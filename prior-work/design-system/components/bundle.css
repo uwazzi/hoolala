@@ -1,0 +1,82 @@
+/* Hoolala! Mono LCD: shared component styles. Uses the custom properties generated from tokens.json. */
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+.lcd { background: var(--lcd-bg); color: var(--lcd-ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.lcd-kicker { font: 12px/1.3 var(--font-display); color: var(--lcd-ink-secondary); letter-spacing: .02em; text-transform: uppercase; }
+.lcd-title { font: 700 clamp(22px, 5vw, 28px)/1.22 var(--font-display); letter-spacing: -.03em; text-transform: uppercase; margin: 0; }
+.lcd-title-s { font: 700 20px/1.22 var(--font-display); text-transform: uppercase; margin: 0; }
+.lcd-small { font-size: 13px; line-height: 1.45; color: var(--lcd-ink-secondary); }
+
+.lcd-key { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: var(--touch-target); padding: 10px 12px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); color: var(--lcd-ink); font: 700 14px/1.2 var(--font-display); text-transform: uppercase; text-decoration: none; cursor: pointer; }
+.lcd-key--primary { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.lcd-key:active { background: var(--lcd-sunken); color: var(--lcd-ink); }
+.lcd-key--primary:active { background: var(--lcd-ink-secondary); color: var(--lcd-selected-ink); }
+
+.lcd-menu { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lcd-option { display: flex; align-items: center; gap: 12px; width: 100%; min-height: var(--menu-row); padding: 8px 12px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: transparent; color: var(--lcd-ink); font: 700 14px/1.2 var(--font-display); text-transform: uppercase; text-align: left; cursor: pointer; }
+.lcd-option::after { content: ">"; margin-left: auto; }
+.lcd-option:hover, .lcd-option[aria-current="true"], .lcd-option.is-selected { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+
+.lcd-softkeys { display: flex; justify-content: space-between; gap: 8px; border-top: 2px solid var(--lcd-ink); padding: 4px 8px; }
+.lcd-softkey { min-height: var(--touch-target); min-width: var(--touch-target); padding: 8px 12px; border: 0; background: transparent; color: var(--lcd-ink); font: 700 14px/1.2 var(--font-display); text-transform: uppercase; cursor: pointer; }
+.lcd-softkey:hover { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+
+.lcd-block { border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); padding: 12px 16px; }
+.lcd-block--sunken { background: var(--lcd-sunken); }
+.lcd-block--dashed { background: transparent; border-style: dashed; border-color: var(--lcd-ink-secondary); }
+.lcd-rule { border: 0; border-top: 2px dashed var(--lcd-ink-secondary); margin: 8px 0; }
+.lcd-badge { display: inline-block; padding: 2px 8px; border: 2px solid var(--lcd-ink); font: 12px/1.4 var(--font-display); text-transform: uppercase; }
+
+.lcd-field { width: 100%; box-sizing: border-box; min-height: var(--touch-target); padding: 10px 12px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); color: var(--lcd-ink); font: 16px/1.5 var(--font-body); }
+.lcd-field::placeholder { color: var(--lcd-ink-secondary); }
+.lcd-label { display: block; margin-bottom: 4px; font: 700 14px/1.2 var(--font-display); text-transform: uppercase; }
+
+.lcd-progress { display: flex; gap: 4px; height: 16px; }
+.lcd-progress span { flex: 1; border: 2px solid var(--lcd-ink); }
+.lcd-progress .on { background: var(--lcd-ink); }
+
+.lcd-pixel { image-rendering: pixelated; shape-rendering: crispEdges; }
+
+.lcd-key:focus-visible, .lcd-option:focus-visible, .lcd-softkey:focus-visible, .lcd-field:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 3px; }
+
+/* Observations */
+.obs{margin:0;display:flex;flex-direction:column;gap:8px}
+.obs-say{margin:0;font:700 18px/1.35 var(--font-body)}
+.obs-happens{margin:0;font:400 16px/1.5 var(--font-body);color:var(--lcd-ink-secondary)}
+.obs-happens::before{content:"> ";font-family:var(--font-display)}
+.obs-card{border:2px solid var(--lcd-ink);border-radius:var(--radius-control);background:var(--lcd-surface);padding:16px}
+.obs-hero .obs-say{font-size:28px;line-height:1.25}
+.obs-hero .obs-happens{font-size:18px;color:var(--lcd-ink)}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* v3 (26 Oct 2026): Go App-Free, Personal Compass and the Muse Spark functions */
+/* AI text: dashed secondary border and an AI / kicker. Never used for friends' words. */
+.lcd-ai { border: 2px dashed var(--lcd-ink-secondary); border-radius: var(--radius-control); background: transparent; padding: 12px 16px; }
+.lcd-ai > .lcd-kicker:first-child::before { content: "AI / "; }
+/* Web finds: a source line linking to the original */
+.lcd-src { display: block; margin-top: 8px; font: 12px/1.3 var(--font-display); text-transform: uppercase; color: var(--lcd-ink-secondary); text-decoration: underline; text-underline-offset: 3px; }
+.lcd-src::before { content: "> "; }
+/* Choice chips for onboarding answers; selected = inverted */
+.lcd-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.lcd-chip { min-height: var(--touch-target); padding: 8px 12px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); color: var(--lcd-ink); font: 400 15px/1.3 var(--font-body); text-align: left; cursor: pointer; }
+.lcd-chip[aria-pressed="true"] { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.lcd-chip:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 3px; }
+/* Before / after for compass edits */
+.lcd-diff { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; }
+.lcd-diff > div { border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); padding: 8px 12px; }
+.lcd-diff > div:first-child { background: var(--lcd-sunken); text-decoration: line-through; text-decoration-thickness: 2px; }
+.lcd-diff > div:last-child { background: var(--lcd-surface); }
+/* The person's own message (right aligned, sunken) */
+.lcd-me { align-self: flex-end; max-width: 80%; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-sunken); padding: 8px 12px; }
+/* Small text-like key used for SHOW THE WORKINGS */
+.lcd-link-key { display: inline-flex; align-items: center; min-height: var(--touch-target); padding: 0 4px; border: 0; background: transparent; color: var(--lcd-ink); font: 700 14px/1.2 var(--font-display); text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.lcd-link-key:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 3px; }
+/* Stepped pixel loader: three cells that fill in steps */
+.lcd-loader { display: inline-flex; gap: 4px; vertical-align: middle; }
+.lcd-loader span { width: 8px; height: 8px; border: 2px solid var(--lcd-ink); }
+.lcd-loader span.on { background: var(--lcd-ink); }
+/* A list of label / value rows (workings, snap results) */
+.lcd-rows { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: 4px 12px; margin: 0; }
+.lcd-rows dt { font: 700 12px/1.6 var(--font-display); text-transform: uppercase; color: var(--lcd-ink-secondary); }
+.lcd-rows dd { margin: 0; }
