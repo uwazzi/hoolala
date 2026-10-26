@@ -2,6 +2,8 @@
 
 *You never know until you go.*
 
+**Hoolala! reads the feed, so you don't have to. You decide what to do with it.**
+
 Hoolala! turns "we should catch up" into "we did". It's an anti-social-media social network: a tiny private circle, little signals instead of an online status, catch-ups that end after three, and a public counter of real-life meet-ups that only goes up when both people confirm.
 
 Muse Spark does the work in between. It listens, looks, searches and drafts, then stops and lets two people decide.

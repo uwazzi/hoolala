@@ -6,6 +6,10 @@ Agreed direction (26 Oct): every Hoolala! function is built around one Muse Spar
 
 **Hoolala! turns "we should catch up" into "we did".** Muse Spark does the work in between: it listens, looks, searches and plans, then stops and lets two people decide.
 
+Pitch line (opening of the video, first line of the README, subtitle of GO APP-FREE): **Hoolala! reads the feed, so you don't have to. You decide what to do with it.**
+
+"The feed" means only what Hoolala! can honestly read: friends' notes, signals and invitations, Muse Spark web searches shaped by the compass, and links the person shares. Never LinkedIn or Instagram feeds. The demo must show the deciding (a reason per item, a cap of three, one action, nothing sent without a tap), not just the reading.
+
 ## The loop: six functions, six capabilities
 
 | # | Function | The moment | Muse Spark capability | API feature | Code guardrail | Fallback (model off) |
@@ -45,7 +49,7 @@ Then the model deliberately steps out:
 
 | Time | Beat | Capability on screen |
 |---|---|---|
-| 0:00 | "We live five minutes apart." / It's been six months. One line: Hoolala! turns "we should" into "we did". | |
+| 0:00 | "We live five minutes apart." / It's been six months. Then the pitch line on screen: "Hoolala! reads the feed, so you don't have to. You decide what to do with it." | |
 | 0:15 | TELL IT: three answers, one smart follow-up, "Your world, according to you." | Conversation state, structured output |
 | 0:45 | FIND IT in Telegram: Sophie's signal, plus a jazz night near Ouchy with its source and a reason | Web search with citations, grounding |
 | 1:10 | SAY IT: voice note "coffee Thursday?" | Native audio |

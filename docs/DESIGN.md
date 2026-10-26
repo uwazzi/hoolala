@@ -227,6 +227,8 @@ Signature: **Hoolala!** *You never know until you go.*
 
 Positioning (Go App-Free, pitch, README; never under the logo): **Your data. Your choice. Your attention.**
 
+Pitch line (video opening, README, GO APP-FREE subtitle; never under the logo): **Hoolala! reads the feed, so you don't have to. You decide what to do with it.** "The feed" only ever means what Hoolala! can honestly read (friends' notes and signals, compass-shaped web finds, shared links), never other platforms' feeds.
+
 The difference to keep: other apps ask what is distracting you. Hoolala! asks what you'd like more of. A person who deliberately watches six hours of video is not failing Hoolala!.
 
 ## Banned
@@ -273,7 +275,7 @@ Preachy, motivational or self-righteous lines: "reclaim your life", "disconnect 
 | After a break | NICE ONE. THE BEST PART HAPPENED AWAY FROM HERE. |
 | Meet IRL | GOOD TO MEET YOU. +1 PRIVATE MOMENT |
 | Sign-off | THAT'S ALL. OFF YOU GO. |
-| Go App-Free (TELL IT) | Hello, human. / Before we get acquainted, what would you like a little more of? / What would make your digital time feel worthwhile? / Anything you'd rather hear less about? / How often should I bother you? / Your rules. Change them whenever you like. |
+| Go App-Free (TELL IT) | GO APP-FREE / subtitle: Hoolala! reads the feed, so you don't have to. You decide what to do with it. / Hello, human. / Before we get acquainted, what would you like a little more of? / What would make your digital time feel worthwhile? / Anything you'd rather hear less about? / How often should I bother you? / Your rules. Change them whenever you like. |
 | Intention choices | More real-world adventures. / Better connections with friends. / Interesting career opportunities. / Learning and inspiration. / Something else entirely. |
 | Profile reveal | YOUR WORLD, ACCORDING TO YOU. / Everything else can wait. / Sound about right? [LOOKS RIGHT] [CHANGE SOMETHING] [START AGAIN] |
 | Personal compass | YOUR PERSONAL COMPASS / What you're curious about right now: / CHANGES / UNDO |
