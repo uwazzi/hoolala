@@ -78,7 +78,7 @@ Never cut: ARRIVE with location, add place and search by name, Telegram login an
 
 ## API (JSON, session cookie unless noted)
 
-Auth: `POST /api/auth/start` · `GET /auth/verify` · `POST /api/auth/telegram {initData}` (HMAC checked with the bot token) · `POST /api/auth/logout` · `GET /api/me` · `DELETE /api/me`
+Auth: `POST /api/auth/start` · `GET /auth/verify` · `POST /api/auth/telegram {initData}` (HMAC checked with the bot token) · `POST /api/auth/logout` · `GET /api/me` · `PATCH /api/me {firstName}` · `DELETE /api/me`
 Get started: `POST /api/me/find {consent: true, name, city, links[]}` (FIND ME: findings with sources) · `POST /api/me/compass/draft {kept[], answers}` · `POST /api/me/compass/confirm` · `GET /api/me/compass` · `POST /api/me/compass/propose {text}` · `POST /api/me/compass/changes/:id/undo` · `DELETE /api/me/compass`
 Places and check-in: `POST /api/places/nearby {lat, lng}` (Hoolala! places, then Google nearby; coordinates discarded after the lookup) · `GET /api/places/search?q=` · `POST /api/places {name, kind, lat, lng}` (ADD THIS PLACE, screened) · `GET /api/places/:slug/peek` (public: name and up to 3 open topics) · `POST /api/checkin {place, method, key? | code?}` · `POST /api/checkin/leave` · `GET /api/checkin`
 Place card: `GET /api/places/:id/card` (people's facts plus PLACE IT fetch) · `POST /api/places/:id/facts {field, value}` · `POST /api/places/facts/:id/confirm` · `POST /api/places/facts/:id/dispute` · `GET /api/me/points` (private)
@@ -102,9 +102,10 @@ Telegram: `POST /telegram/webhook` (secret header; only notifications the person
 - [ ] `npm run deploy`; `/api/health` ok.
 
 ### WP2 Sign-in with email magic link (Tue 27, afternoon)
-- [ ] Email, 18+ checkbox, SEND MY LINK; tokens hashed, single use, 15 minutes; rate limits in KV; session cookie HttpOnly, Secure, SameSite=Lax (SameSite=None inside the Telegram webview, see WP21). First name on first sign-in.
-- [ ] Delete account removes check-ins, signals, responses, moments, friendships, Telegram id; keeps anonymous counts.
-- [ ] Tests: expired, reused, wrong tokens; same response whether or not the email exists.
+- [x] Email, 18+ checkbox, SEND MY LINK; tokens hashed, single use, 15 minutes; rate limits in KV; session cookie HttpOnly, Secure, SameSite=Lax (SameSite=None inside the Telegram webview, see WP21). First name on first sign-in.
+- [x] Delete account removes check-ins, signals, responses, moments, friendships, Telegram id; keeps anonymous counts.
+- [x] Tests: expired, reused, wrong tokens; same response whether or not the email exists.
+- [ ] Owner: Resend account, sender domain verified, `wrangler secret put EMAIL_API_KEY` and `EMAIL_FROM`; sign in from your phone on staging.
 
 ### WP20 Places and check-in (Wed 28, morning)
 - [ ] `src/rules/checkin.ts` (pure, tests first): places within radius (haversine); search only within the person's city; optional poster key and code; check-in lasts 4 h or until leave; one active check-in per person.
