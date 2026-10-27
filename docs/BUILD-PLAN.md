@@ -97,8 +97,8 @@ Telegram: `POST /telegram/webhook` (secret header; only notifications the person
 - [ ] One Muse Spark test call with a tool definition and a structured output schema.
 
 ### WP1 Skeleton and deploy (Tue 27, morning)
-- [ ] Worker serves `public/` (new Mono LCD front end from `prior-work/design-system/`) with security headers and a CSP that allows Telegram's Mini App script. Home, sign-in, and placeholders for ARRIVE, HERE, MEET, LIVE.
-- [ ] D1 migrations for every table above; KV bound; Cron Trigger (expire check-ins and signals every 5 minutes, purge check-ins after 24 h, roll up `metrics_daily`).
+- [x] Worker serves `public/` (new Mono LCD front end from `prior-work/design-system/`) with security headers and a CSP that allows Telegram's Mini App script. Home, sign-in, and placeholders for ARRIVE, HERE, MEET, LIVE.
+- [x] D1 migrations for every table above; KV bound; Cron Trigger (expire check-ins and signals every 5 minutes, purge check-ins after 24 h; `metrics_daily` rollup deferred to WP5/WP6, see DECISIONS).
 - [ ] `npm run deploy`; `/api/health` ok.
 
 ### WP2 Sign-in with email magic link (Tue 27, afternoon)

@@ -1,0 +1,179 @@
+/* Hoolala! Mono LCD front end (built during the hackathon, WP1).
+   Values from prior-work/design-system/tokens.json; patterns follow its
+   bundle.css. Silkscreen and Space Mono load from Google Fonts (SIL OFL). */
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --lcd-bg: #BED39C;
+  --lcd-surface: #DDE7C6;
+  --lcd-sunken: #AEC58A;
+  --lcd-ink: #182513;
+  --lcd-ink-secondary: #304327;
+  --lcd-selected: #182513;
+  --lcd-selected-ink: #DDE7C6;
+  --surround-bg: #E5E8E0;
+  --font-display: Silkscreen, "Lucida Console", monospace;
+  --font-body: "Space Mono", "Courier New", monospace;
+  --radius-control: 2px;
+  --touch-target: 44px;
+  --menu-row: 48px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--surround-bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 42ch;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--lcd-bg);
+  color: var(--lcd-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding: 16px 16px 0;
+}
+
+@media (min-width: 640px) {
+  body { border-left: 2px solid var(--lcd-ink); border-right: 2px solid var(--lcd-ink); }
+}
+
+a { color: var(--lcd-ink); }
+
+.brand { text-align: center; margin: 24px 0 8px; }
+.brand-name {
+  font: 700 clamp(22px, 5vw, 28px)/1.22 var(--font-display);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.brand-tagline { margin: 4px 0 0; font-size: 16px; }
+
+.obs { margin: 16px 0; text-align: center; }
+.obs-say { margin: 0; font-weight: 700; font-size: 18px; }
+.obs-happens { margin: 0; color: var(--lcd-ink-secondary); }
+
+.screen-title {
+  font: 700 clamp(22px, 5vw, 28px)/1.22 var(--font-display);
+  text-transform: uppercase;
+  margin: 24px 0 8px;
+}
+
+.lcd-block {
+  border: 2px solid var(--lcd-ink);
+  border-radius: var(--radius-control);
+  background: var(--lcd-surface);
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+
+.lcd-small { font-size: 13px; line-height: 1.45; color: var(--lcd-ink-secondary); }
+
+.lcd-kicker {
+  font: 12px/1.3 var(--font-display);
+  color: var(--lcd-ink-secondary);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+main { flex: 1; }
+
+.key-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; padding: 0; list-style: none; }
+
+.lcd-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 10px 12px;
+  border: 2px solid var(--lcd-ink);
+  border-radius: var(--radius-control);
+  background: var(--lcd-surface);
+  color: var(--lcd-ink);
+  font: 700 14px/1.2 var(--font-display);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+.lcd-key--primary { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.lcd-key:active { background: var(--lcd-sunken); color: var(--lcd-ink); }
+.lcd-key[disabled] { opacity: 0.55; cursor: not-allowed; }
+
+.lcd-menu { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; padding: 0; list-style: none; }
+.lcd-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--menu-row);
+  padding: 8px 12px;
+  border: 2px solid var(--lcd-ink);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--lcd-ink);
+  font: 700 14px/1.2 var(--font-display);
+  text-transform: uppercase;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.lcd-option::after { content: ">"; margin-left: auto; }
+.lcd-option:hover, .lcd-option.is-selected { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+
+.lcd-field {
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 10px 12px;
+  border: 2px solid var(--lcd-ink);
+  border-radius: var(--radius-control);
+  background: var(--lcd-surface);
+  color: var(--lcd-ink);
+  font: 16px/1.5 var(--font-body);
+}
+.lcd-field::placeholder { color: var(--lcd-ink-secondary); }
+.lcd-label { display: block; margin: 16px 0 4px; font: 700 14px/1.2 var(--font-display); text-transform: uppercase; }
+
+.check-row { display: flex; gap: 12px; align-items: flex-start; margin: 16px 0; }
+.check-row input { width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: var(--lcd-ink); }
+
+.lcd-softkeys {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 2px solid var(--lcd-ink);
+  padding: 4px 8px;
+  margin: 24px -16px 0;
+}
+.lcd-softkey {
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--lcd-ink);
+  font: 700 14px/1.2 var(--font-display);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+.lcd-softkey:hover { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+
+.lcd-key:focus-visible, .lcd-option:focus-visible, .lcd-softkey:focus-visible,
+.lcd-field:focus-visible, .check-row input:focus-visible {
+  outline: 3px dashed var(--lcd-ink);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sign in. Hoolala!</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1 class="screen-title">Sign in</h1>
+    <form action="#" method="post" aria-describedby="signin-note">
+      <label class="lcd-label" for="email">Email</label>
+      <input class="lcd-field" type="email" id="email" name="email" autocomplete="email"
+        placeholder="you@example.com" disabled>
+      <div class="check-row">
+        <input type="checkbox" id="adult" name="adult" disabled>
+        <label for="adult">I am 18 or older.</label>
+      </div>
+      <ul class="key-list">
+        <li><button class="lcd-key lcd-key--primary" type="submit" disabled>Send my link</button></li>
+      </ul>
+    </form>
+    <p class="lcd-small" id="signin-note">Sign-in opens here this afternoon (WP2). Nothing is sent yet.</p>
+  </main>
+  <nav class="lcd-softkeys" aria-label="Shortcuts">
+    <a class="lcd-softkey" href="/">Back</a>
+    <span class="lcd-softkey" aria-hidden="true"></span>
+  </nav>
+</body>
+</html>
