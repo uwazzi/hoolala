@@ -1,0 +1,16 @@
+name = "hoolala-staging"
+main = "src/worker.ts"
+compatibility_date = "2026-10-27"
+workers_dev = false
+
+[assets]
+directory = "public/"
+binding = "ASSETS"
+
+[[routes]]
+pattern = "staging.hoolala.hg-labs.io"
+custom_domain = true
+
+[vars]
+LLM_ENABLED = "false"
+PLACES_PROVIDER = "osm"

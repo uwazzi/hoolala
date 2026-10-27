@@ -1,5 +1,10 @@
 # Hoolala! changelog
 
+## 2026-10-27: Sandbox setup
+
+- Stored the global `MuseCodeSandbox` service secret in sbx for sandbox use. Secret values stay out of the repository.
+- Deployed the isolated `hoolala-staging` Worker with the `staging.hoolala.hg-labs.io` custom domain; production `hoolala.hg-labs.io` is unchanged. Staging currently serves static assets and health checks only.
+
 ## 2026-10-27 (later): Any place, FIND ME and place points (v5)
 
 - **A venue is now any public place**: a café, a bar, a coworking space, a library. No partner or host needed; posters and codes stay optional for partner places.
