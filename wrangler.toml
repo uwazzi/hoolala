@@ -11,6 +11,10 @@ directory = "public/"
 binding = "ASSETS"
 run_worker_first = true
 
+[[routes]]
+pattern = "hoolala.hg-labs.io"
+custom_domain = true
+
 [[d1_databases]]
 binding = "DB"
 database_name = "hoolala"
