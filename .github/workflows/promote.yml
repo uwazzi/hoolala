@@ -33,13 +33,18 @@ jobs:
   accept:
     runs-on: ubuntu-latest
     needs: smoke-staging
-    environment: acceptance
+    environment:
+      name: acceptance
+      url: https://staging.hoolala.hg-labs.io
     steps:
       - run: echo "Staging accepted. Releasing to production."
 
   release:
     runs-on: ubuntu-latest
     needs: accept
+    environment:
+      name: production
+      url: https://hoolala.hg-labs.io
     steps:
       - uses: actions/checkout@v4
         with:
