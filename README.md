@@ -41,6 +41,7 @@ North star: **real-world connection rate**, accepted signals that end in a QR-co
 | `docs/SIGNALS-HERE.md` | Product brief for 4 Nov (wins on scope) |
 | `docs/MUSE-SPARK-BY-FUNCTION.md` | How each function uses Muse Spark, and the demo beat sheet |
 | `docs/BUILD-PLAN.md` | Schedule, data model, API, work packages |
+| `docs/AGENTIC-CODING.md` | Docker Sandbox setup and agentic coding workflow |
 | `docs/HACKATHON-RULES.md` | Official rules and what they mean for us |
 | `docs/DESIGN.md` | Mono LCD design system (v5), portable copy |
 | `docs/COMPETITOR-REVIEWS.md` | Review research behind the Signals here decision |

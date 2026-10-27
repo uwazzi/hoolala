@@ -9,6 +9,7 @@ Read this first in every chat in this project. Updated 27 Oct 2026: **Signals he
 | `docs/MUSE-SPARK-BY-FUNCTION.md` | How each function uses Muse Spark, and the demo beat sheet (wins on model use) |
 | `docs/HACKATHON-RULES.md` | Official rules, dates, submission and judging (wins on anything about the hackathon) |
 | `docs/BUILD-PLAN.md` | Schedule, data model, API and work packages |
+| `docs/AGENTIC-CODING.md` | Docker Sandbox setup and agentic coding workflow |
 | `AGENTS.md` | Rules for every coding agent |
 | `docs/DESIGN.md` | Mono LCD design system, voice and product rules |
 | `docs/COMPETITOR-REVIEWS.md` | The review research behind the 27 Oct decision |

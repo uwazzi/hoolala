@@ -43,6 +43,23 @@ The Muse CLI installation is not yet confirmed: the first attempt ran the Bash i
 - **Keep changes reviewable:** avoid unrelated edits, inspect the final diff, and do not commit generated files, secrets, or changes under `prior-work/`.
 - **Record outcomes:** report the branch, changes, commands run, test results, and any remaining blockers. Keep API keys and private user data out of that report.
 
+## GitHub connector (push and API access from the sandbox)
+
+The host Mac login does not reach the sandbox: the sandbox needs its own
+GitHub credential, provisioned without ever pasting it into agent chat,
+prompts, logs or the repo.
+
+1. On the host, make sure the `gh` login can push workflow files:
+   `gh auth refresh -h github.com -s workflow` (one-off; skip if already granted).
+2. Bind the host login into the running sandbox (this sandbox is
+   `shell-hoolala`; check `sbx ls` if unsure). The command runs on the host;
+   the token value is never displayed, pasted or shared:
+   `sbx secret set github --sandbox shell-hoolala --command 'gh auth token'`
+   For a sandbox created afterwards, set the global secret first instead:
+   `sbx secret set -g github`.
+3. The agent verifies with `gh auth status` (shows the login, never the token)
+   and then pushes, seeds issues and reads Actions results itself.
+
 ## Ready-to-code check
 
 - [ ] Docker Sandbox is running and the repository is cloned inside it.
