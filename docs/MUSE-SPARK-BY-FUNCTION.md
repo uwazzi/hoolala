@@ -1,75 +1,79 @@
 # Hoolala!: Muse Spark by function
 
-Agreed direction (26 Oct): every Hoolala! function is built around one Muse Spark capability, so the judges see a different capability at each step of the demo, and every step ends nearer a real meet-up. This document wins over older docs on how models are used. Product rules in `docs/DESIGN.md`, `docs/PROJECT-INSTRUCTIONS-v3.2.md` and `AGENTS.md` still apply.
+Updated 27 Oct 2026 (v5) for **Signals here** (`claude/SIGNALS-HERE.md`): any place, FIND ME onboarding with the Personal Compass, PLACE IT and place points. This document wins over older docs on how models are used. Product rules in `claude/DESIGN.md` and `claude/AGENTS.md` still apply. Briefings (FIND IT) and SAY IT move to after 4 Nov.
 
 ## The story in one line
 
-**Hoolala! turns "we should catch up" into "we did".** Muse Spark does the work in between: it listens, looks, searches and plans, then stops and lets two people decide.
+**Hoolala! turns "we should talk sometime" into "we did".** People who share a place post small invitations to talk. Muse Spark gets to know you from what's public (with your OK), gets to know the place, suggests, screens, translates and plans, then stops and lets two people decide. Arriving and meeting stay model-free, on purpose.
 
-Pitch line (opening of the video, first line of the README, subtitle of GO APP-FREE): **Hoolala! reads the feed, so you don't have to. You decide what to do with it.**
+Pitch line (video opening, README): **"We've sat at the same table for six months." / Never spoken.** Then: **Hoolala! Signals, not feeds.**
 
-"The feed" means only what Hoolala! can honestly read: friends' notes, signals and invitations, Muse Spark web searches shaped by the compass, and links the person shares. Never LinkedIn or Instagram feeds. The demo must show the deciding (a reason per item, a cap of three, one action, nothing sent without a tap), not just the reading.
-
-## The loop: six functions, six capabilities
+## The loop
 
 | # | Function | The moment | Muse Spark capability | API feature | Code guardrail | Fallback (model off) |
 |---|---|---|---|---|---|---|
-| 1 | **TELL IT** (Go App-Free onboarding) | "Hello, human. What would you like a little more of?" A short conversation becomes your Personal Compass. | Multi-turn conversation that remembers, plus structured output | Responses API state (`previous_response_id`), JSON schema output, `reasoning_effort: low` | `src/rules/compass.ts`: every compass item traces to the person's own words; no personality, health or screen-time labels; nothing saved before LOOKS RIGHT | Scripted stages, same screens |
-| 2 | **SAY IT** (voice in Telegram) | Send a voice note: "Anyone free for coffee Thursday? Somewhere near Ouchy." | Native audio understanding, no separate transcription step | Audio content part in the request; intent returned as structured output | Audio never stored; intent shown as text before anything happens; crisis words checked on the transcript | Text message works the same |
-| 3 | **SNAP IT** (poster to plan) | Photograph a gig poster, a café chalkboard or a flyer. "Jazz at Le Bourg, Thu 21:00. So... Thursday?" | Vision: reads event, date, time and place from a photo | Image content part; structured output `{title, date, time, place, confidence}` | Image processed in memory, never stored; low confidence asks the person to check the details; no faces or people extracted | Type the details yourself |
-| 4 | **FIND IT** (finite briefing) | ANYTHING NEW? Two friends' items, then one or two things happening near you that match your compass, each with a reason and a source. | Built-in web search with citations, plus grounded ranking | `web_search` tool with inline citations; `reasoning_effort: medium`; prompt caching for the compass and rules | `src/rules/grounding.ts`: every line maps to a real friend item id or a returned citation URL and a compass id; cap respected; friends first; mood signals never used | Friends' items only, newest first |
-| 5 | **PLAN IT** (the agent) | "Sophie could be persuaded into coffee. Jazz on Thursday fits you both. Shall I draft it?" | Parallel tool calling and planning | Tools: `get_shared_availability`, `get_my_compass`, `get_open_invitations`, `draft_invitation`; parallel calls; max 4 per turn | The model can only draft. Sending needs a confirmation token from a tap. Only signals shared with this person, never mood signals | Prefilled invitation form |
-| 6 | **CHECK IT** (show the workings) | Tap SHOW THE WORKINGS: the tools called, the citations, "Grounded: 3 of 3 lines", the compass line behind each item. | Verifiable agent behaviour | Logged tool calls and citations per response (no personal text stored) | Evaluation set of about 30 cases run before every deploy; pass rate in the README | Panel says "Model off: rules only" |
+| 0 | **FIND ME** | "Want a head start?" Hoolala! looks at what's public about you, you tick what's really you, it drafts your Personal Compass | Web search with citations, structured output, short conversation | `web_search` (at most 3, only the person's own name, city and links they gave), JSON schema `{findings[{text, url}], compass[{part, text, source_url}]}`, `reasoning_effort: low` | `src/rules/compass.ts`: explicit consent; every compass line traces to a ticked finding or the person's words; banned labels (personality, health, politics, religion, sexuality); nothing stored before LOOKS RIGHT; raw findings never stored | Three scripted questions with chips |
+| 1 | **ARRIVE** (no AI) | Share location, pick the place, or ADD THIS PLACE. GPS wrong? Search by name | None, on purpose | | `src/rules/checkin.ts`: radius, place search within the city, optional poster key and code, 4-hour expiry; the person's coordinates discarded after the lookup | Same |
+| 2 | **PLACE IT** | The place card: hours, menu highlights, spots. "AI / FOUND > google maps" until people confirm it | Parallel tool calling, structured output, web search | Tools: `google_place_details` (live, field-masked), `web_search` (menu and hours on the place's website), `get_place_facts`; parallel; JSON schema `{facts[{field, value, source, url}]}`; `reasoning_effort: low`; cached per place for 30 days as fetched facts only where the source allows | `src/rules/places.ts`: facts carry a source; Google content shown live with attribution, only the place id kept; nothing becomes a Hoolala! fact without a person confirming; SCREEN IT on people's edits; points rules | People's confirmed facts only |
+| 3 | **SUGGEST IT** | "Need a topic?" Three ideas that fit you, the place and what's on nearby: "Their flat white is apparently famous. Verdict at 16:00?" | Web search with citations, structured output | `web_search` (at most 1, cached per place for 1 hour), schema `{ideas[{topic, why, citation_url?}]}`, `reasoning_effort: low`; compass lines and place facts as context | `src/rules/grounding.ts`: events need a returned citation; ideas pass SCREEN IT; AI / SUGGESTION, never posted automatically | Hand-written topics by time of day |
+| 4 | **SCREEN IT** | Every topic, reply and place detail checked before anyone sees it, translated FR/EN | Structured output (classification with reasons), translation | `{verdict, category, reason, fr, en}`, `reasoning_effort: minimal`, prompt caching on the house rules | `src/rules/screening.ts` first (contacts, links, handles, length, word list, crisis words); approve or reject, never rewrite | Code rules only |
+| 5 | **PLAN IT** | "Terrace at 15:10 works for all three of you. Confirm?" | Parallel tool calling and planning | `get_signal`, `get_place_spots`, `get_place_hours`, `get_quick_replies`, `draft_meeting_point`; max 4 per turn; `reasoning_effort: medium` | Draft only; the poster confirms with a tap; only this signal and place | The spot and time the poster picked |
+| 6 | **SNAP IT** (stretch) | Photograph the menu board: new menu facts to confirm | Vision | Image part, schema `{items[{name, price}], confidence}` | Image in memory only; becomes AI / FOUND facts, never stored as fact until a person confirms; never describes people | Type it in |
+| 7 | **CHECK IT** | SHOW THE WORKINGS: tools, citations, verdicts, "Grounded: 3 of 3" | Verifiable agent behaviour | Logged tool calls, citations, verdicts (no personal text) | Evaluation set of about 36 cases before every deploy; pass rate in the README | "Model off: rules only." |
 
-Then the model deliberately steps out:
+Then the model steps out:
 
 | # | Function | Why no AI here |
 |---|---|---|
-| 7 | **MEET IT**: two phones, mutual QR, both agree, +1 private moment, the Live counter ticks up | Real life is confirmed by two people, not inferred by a model. Saying so is part of the pitch. |
-| 8 | **GO LIVE**: HOOLALA! IS OFF. YOU'RE ON. | The best screen is the one that ends. |
+| 8 | **MEET IT**: two phones, mutual QR, both agree; the connection rate ticks up | Real life is confirmed by two people, not inferred by a model. |
+| 9 | **STAY IN TOUCH**: both choose it, or nothing happens | A friendship is a decision, not a recommendation. |
+| 10 | **GO LIVE**: HOOLALA! IS OFF. YOU'RE ON. | The best screen is the one that ends. |
 
-## Reasoning effort by function (a craft detail worth showing in the README)
+## Reasoning effort by function
 
 | Function | Effort | Why |
 |---|---|---|
-| Chat replies, SAY IT intent | minimal | Fast, one action |
-| TELL IT, SNAP IT | low | Extraction and short questions |
-| FIND IT | medium | Search, compare against the compass, explain |
-| PLAN IT | medium | Combine several tool results into one proposal |
-| Evaluation runs | high | Judge-style checks of grounding and rules |
+| SCREEN IT | minimal | Fast verdict on every post, reply and detail |
+| FIND ME, PLACE IT, SUGGEST IT, SNAP IT | low | Search, extraction and short drafts |
+| PLAN IT | medium | Combines several tool results into one proposal |
+| Evaluation runs | high | Judge-style checks |
 
-## What this replaces
+## Evaluation set (about 36 cases, `npm run eval`)
 
-- **RSS fetcher and shared-link sources are dropped.** FIND IT uses Muse Spark's built-in web search with citations instead. It needs less code, is more useful ("things happening near Lausanne this week"), and highlights a Muse Spark feature. LinkedIn and Instagram stay "links you share only" and are not part of the demo.
-- **Muse Voice Transcribe is not needed** for SAY IT: Muse Spark takes audio directly. Keep Transcribe only as a fallback if audio input isn't available on our API key.
-- **Scheduled Telegram delivery is cut.** On demand only ("anything new?"), which also fits "pull, not push".
-- Onboarding is five stages on camera (intentions, what matters, filters, how often, reveal); sources and Telegram linking are folded into the reveal.
+- FIND ME: never keeps an unticked finding; never produces a personality, health, political or religious label; every compass line has a source or "you said"; refuses to look up someone else's name.
+- PLACE IT: every fact has a source; never invents a menu item without a source; Google facts are never written as Hoolala! facts.
+- SCREEN IT: rejects dating lines, phone numbers and handles, selling, insults, and abusive place edits; approves ordinary French and English; never rewrites.
+- SUGGEST IT: an event without a returned citation is dropped.
+- PLAN IT: never returns "sent"; only real spots; respects capacity.
+- Crisis words bypass the model.
 
 ## The demo, beat by beat (3 minutes)
 
 | Time | Beat | Capability on screen |
 |---|---|---|
-| 0:00 | "We live five minutes apart." / It's been six months. Then the pitch line on screen: "Hoolala! reads the feed, so you don't have to. You decide what to do with it." | |
-| 0:15 | TELL IT: three answers, one smart follow-up, "Your world, according to you." | Conversation state, structured output |
-| 0:45 | FIND IT in Telegram: Sophie's signal, plus a jazz night near Ouchy with its source and a reason | Web search with citations, grounding |
-| 1:10 | SAY IT: voice note "coffee Thursday?" | Native audio |
-| 1:25 | PLAN IT: the agent combines Sophie's availability, the jazz night and your compass, drafts the invitation, stops at SEND THIS TO SOPHIE? | Parallel tool calling, confirmation boundary |
-| 1:50 | Sophie's phone: I'M IN | |
-| 2:00 | SNAP IT: at the café, photograph the chalkboard; next week's quiz night becomes a draft for the circle | Vision |
-| 2:20 | SHOW THE WORKINGS for five seconds: tools, citations, "Grounded: 3 of 3" | Verifiable agent |
-| 2:30 | MEET IT: two phones, QR, the Live number ticks up; share card | (no AI, on purpose) |
-| 2:50 | GO LIVE. "Your data. Your choice. Your attention." Built with Muse Spark and Muse Code. | |
+| 0:00 | A café or coworking space, people side by side with headphones. "We've sat at the same table for six months." / Never spoken. Hoolala! | |
+| 0:12 | GET STARTED: "Want a head start?" YES. Three findings with sources, one NOT ME (a namesake). The compass in three lines. LOOKS RIGHT. | FIND ME (web search, structured output) |
+| 0:35 | ARRIVE: share location, pick the café. Then the failure case: "the lake", search by name works. | None, on purpose |
+| 0:50 | THE PLACE: hours and menu fetched with sources; one price is wrong: FIX IT, +5 place points (private). | PLACE IT (parallel tools) |
+| 1:05 | DISCOVER: three signals, one in French shown in English, one marked FITS YOU | SCREEN IT translation |
+| 1:15 | POST: "Need a topic?" An idea from the menu and one citing a talk nearby tonight. A cheeky dating line gets a friendly no. | SUGGEST IT, SCREEN IT |
+| 1:40 | Second phone: I'M CURIOUS. ACCEPT. First names. PLAN IT: "Terrace at 15:10?" CONFIRM. ON MY WAY. | PLAN IT |
+| 2:05 | MEET IT: two phones, QR, both agree. Live page: "Real-world connection rate: 7 of 9". | None, on purpose |
+| 2:20 | SHOW THE WORKINGS: tools, citations, verdicts; the eval pass rate | CHECK IT |
+| 2:35 | STAY IN TOUCH, both. | |
+| 2:45 | GO LIVE. "Signals, not feeds." Built with Muse Spark and Muse Code. One line on prior work. | |
 
-## Risks to check at kickoff (Mon 26, 17:00 Zurich)
+## Risks to check
 
-- **Access from Switzerland.** Meta's developer blog describes the Muse Spark preview as available to US developers. Confirm that hackathon keys work from Zurich (ask in #questions). If not, run through the partner route the organisers suggest, and note it in `docs/DECISIONS.md`.
-- Confirm on our key: audio input, image input, `web_search`, structured output, parallel tool calling, `previous_response_id`, and the exact model id (public sources list versions 1.1 to 1.3).
-- `web_search` cost and latency: cap at 2 searches per briefing, cache results for an hour per compass, and keep the friends-only fallback.
-- Privacy for SNAP IT and SAY IT: images and audio are never written to D1, KV, R2 or logs. State it on the privacy page and in the video.
+- **Access from Switzerland** and features on our key (`web_search`, structured output, parallel tools, image input, prompt caching). Log in `docs/DECISIONS.md`.
+- **Google Maps Platform:** needs a key with billing and attribution. Terms allow keeping the place id; latitude and longitude only for 30 days; Places content may not be used with a non-Google map. So: Google content is shown live, place coordinates come from the person who added the place, and our facts are people's own. Fallback if the key is a problem: OpenStreetMap search plus web search.
+- **FIND ME and the anti-project list** ("personality analysers"): it extracts interests the person confirms, in their words, never traits. Say so in the README and show IS THIS YOU? on camera.
+- `web_search` cost: FIND ME at most 3 per person once; PLACE IT once per place per 30 days; SUGGEST IT cached per place per hour.
+- Telegram Mini App location: use the Mini App location API where available, browser geolocation otherwise; search by name always works.
 
-## Scoring logic (why this direction)
+## Scoring logic
 
-- **Use of Meta AI tooling:** five distinct Muse Spark capabilities (conversation state, audio, vision, web search, parallel tools), each doing a real job, plus Muse Code for building. Not one wrapper.
-- **Technical depth:** each capability sits behind a pure, tested guardrail; an evaluation set; reasoning effort tuned per function; prompt caching; a full model-off path.
-- **Impact:** every function ends nearer a real meet-up, and the Live counter measures it with confirmations from both people.
-- **Demo:** one story, two people, one day; a new capability every 20 to 30 seconds; a memorable ending.
+- **Use of Meta AI tooling:** web search with citations twice over (you and the place), a real tool-using agent (PLACE IT, PLAN IT), classification and translation, vision (stretch), verifiable workings with an eval set, plus Muse Code for building.
+- **Technical depth:** location check-in with fallbacks, server-enforced anonymity and audience rules, consent and provenance on every compass line and place fact, points that can't be farmed, evals, model-off paths.
+- **Impact:** works in any café tomorrow, not just partner venues; one primary metric that counts real conversations; place data that gets better as people use it.
+- **Demo:** one place, two phones, a new capability every 20 to 30 seconds, and a memorable ending.

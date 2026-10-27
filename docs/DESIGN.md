@@ -1,13 +1,18 @@
-<!-- Hoolala! Mono LCD design system, portable copy (v3, 26 Oct 2026). Source of truth: the Hoolala! design system in Claude. Product: PROJECT-INSTRUCTIONS-v3.2.md and MUSE-SPARK-BY-FUNCTION.md. Drop into a repo as docs/DESIGN.md. -->
+<!-- Hoolala! Mono LCD design system, portable copy (v5, 27 Oct 2026). Source of truth: the Hoolala! design system in Claude. Product: SIGNALS-HERE.md and MUSE-SPARK-BY-FUNCTION.md. Drop into a repo as docs/DESIGN.md. -->
+
 # Hoolala! Mono LCD
 
 You never know until you go.
 
-Hoolala! is a tiny, private social network that knows when to say goodbye. It turns "we should catch up" into "we did". Friends leave each other short notes, little signals and plans. Muse Spark listens, looks, searches and drafts, then stops and lets two people decide. Catch-ups end after three at most, and the app's best moment is the screen that sends you back to real life. The look is early-mobile nostalgia: one green monochrome LCD, pixel type, inverted selection bars and little one-bit drawings.
+Hoolala! helps people who share a place actually talk. At any public place (a café, a bar, a coworking space) people get a head start from their public footprint as a private Personal Compass, check in by sharing their location or adding the place, keep the place's details right for private place points, post and answer small invitations to talk (Signals here), stay anonymous until both accept, and meet in person. It turns "we should talk sometime" into "we did". Beyond the venue, Hoolala! is a tiny, private social network that knows when to say goodbye. Friends leave each other short notes, little signals and plans. Muse Spark listens, looks, searches and drafts, then stops and lets two people decide. Catch-ups end after three at most, and the app's best moment is the screen that sends you back to real life. The look is early-mobile nostalgia: one green monochrome LCD, pixel type, inverted selection bars and little one-bit drawings.
 
 This system is the visual **and interaction** source of truth for every Hoolala! surface: the web app, Telegram (Go App-Free), marketing pages and pitch material. Any agent (Claude, Muse Code, Cursor or another) building for Hoolala! starts here.
 
 > The tagline "You never know until you go." always sits directly under the HOOLALA! name. It is the only brand line. The positioning line "Your data. Your choice. Your attention." is used for Go App-Free, the pitch and the README, never under the logo. "Less screen. More life." is retired and must not be used.
+>
+> Version 5 (27 Oct 2026): a venue is now **any place**, no host needed. FIND ME (onboarding from the public footprint, with consent) brings the Personal Compass back; check-in is share location, pick or ADD THIS PLACE; PLACE IT fetches place details people confirm for **place points** (private). New: FootprintCheck, PlaceCard; VenueCheckIn becomes PlaceCheckIn.
+>
+> Version 4 (27 Oct 2026): **Signals here** is the hackathon hero (check-in ladder, place signals, anonymous until both accept, quick replies, meeting points, the real-world connection rate). Muse Spark: SUGGEST IT, SCREEN IT, PLAN IT, CHECK IT, SNAP IT as a stretch. Go App-Free and its components move to ROADMAP.
 >
 > Version 3 (26 Oct 2026): adds Go App-Free, the Personal Compass and the six Muse Spark functions (TELL IT, SAY IT, SNAP IT, FIND IT, PLAN IT, CHECK IT). Version 2 (23 Oct) replaced the purple "quest companion" system. The name is **Hoolala!** everywhere; "HOO!" is not used. "Hoolala!" is a working name, not trademark-cleared.
 
@@ -17,26 +22,29 @@ This system is the visual **and interaction** source of truth for every Hoolala!
 2. Take every colour, size and duration from `tokens.json`. Never type a hex value that is not a token.
 3. Build only the flows and components described here. If a request needs a feed, a counter, a public profile, invented content or screen-time judgement, stop and say which rule it breaks.
 4. Use sample data, clearly labelled, until a real API exists. Never fake an API result.
-5. Components marked **ROADMAP** in their guidelines (small talk, Sounds familiar? and its sharing, Find a plan, Unplug, Outside picks) are designed but not in the hackathon build. Don't build them unless asked.
+5. Components marked **ROADMAP** in their guidelines (Go App-Free and the Personal Compass, briefings, voice notes, small talk, Sounds familiar? and its sharing, Find a plan, Unplug, Outside picks) are designed but not in the hackathon build. Don't build them unless asked.
 
 ## The product in one sentence
 
 A social network where messages wait for you, not the reverse: it connects a tiny trusted circle, helps turn what people say into real plans, then encourages everyone to get back to real life.
 
-## The loop: six Muse Spark functions, then real life
+## The loop (v4): Signals here
 
-| Function | The moment | Component |
+| Step | The moment | Component |
 |---|---|---|
-| TELL IT | "Hello, human." A short conversation becomes your Personal Compass | OnboardingStage, CompassReveal, PersonalCompass |
-| SAY IT | A voice note ("coffee Thursday?") becomes a request | VoiceNote |
-| SNAP IT | A poster or chalkboard photo becomes an event draft | SnapResult |
-| FIND IT | A finite briefing: friends first, then cited finds nearby | BriefingItem |
-| PLAN IT | The agent drafts one invitation; you confirm | AgentDraft |
-| CHECK IT | SHOW THE WORKINGS: tools, citations, what was grounded | Workings |
-| MEET IT | Two phones, mutual QR, both agree. No AI, on purpose | PrivateKeepsake |
+| FIND ME | "Want a head start?" What's public about you, IS THIS YOU?, then your compass | FootprintCheck, CompassReveal, PersonalCompass |
+| ARRIVE | Share location, pick the place or ADD THIS PLACE. GPS wrong? Search by name. No AI, on purpose | PlaceCheckIn |
+| PLACE IT | Hours, menu, spots with sources; THAT'S RIGHT / FIX IT for place points | PlaceCard |
+| PEEK and DISCOVER | "3 signals here right now", then three at a time, anonymous, translated | PlaceSignal |
+| POST | A topic, when, where in the venue, for how many. SUGGEST IT gives ideas; SCREEN IT checks | PlaceSignal |
+| RESPOND | I'M CURIOUS; the poster accepts; first names appear; quick replies only | CuriousRequest |
+| PLAN IT | "Terrace at 15:10?" The agent drafts; the poster confirms | MeetingPoint |
+| CHECK IT | SHOW THE WORKINGS: tools, citations, the screening verdict | Workings |
+| MEET IT | Two phones, mutual QR, both agree. The connection rate ticks up. No AI, on purpose | PrivateKeepsake |
+| STAY IN TOUCH | Both choose it, or nothing happens | CuriousRequest |
 | GO LIVE | HOOLALA! IS OFF. YOU'RE ON. | EndOfSession |
 
-Telegram carries the same functions in a chat window: see TelegramSurface.
+The v3 loop (TELL IT, SAY IT, FIND IT briefings, Telegram briefings) is ROADMAP after 4 Nov; its components stay below, marked.
 
 ## Experience principles
 
@@ -46,7 +54,9 @@ Telegram carries the same functions in a chat window: see TelegramSurface.
 | **Finite by design** | Every sequence ends: THAT'S EVERYTHING. GO LIVE. | Endless next items, recommendations, infinite scroll |
 | **A relationship, not an audience** | Notes to chosen people, confirmed before sending | Followers, likes, comments, public profiles |
 | **Analog rhythm** | Occasional notes, one plan at a time, quiet hours | Typing indicators, read receipts, streaks, real-time pressure |
-| **Present in the world** | Plans, a mutual opt-in QR tap, private keepsakes | Location tracking, claims that a meeting was verified |
+| **Present in the world** | Plans, a mutual opt-in QR tap, private keepsakes, venue-level check-in for a few hours | Location tracking, maps of people, claims that a meeting was verified |
+| **Curious, then safe** | Topics before identities; anonymous until both accept; quick replies only | Profiles, photos, swiping, free chat with strangers, anything that feels like dating |
+| **Care for places** | Private place points for adding and fixing place details | Points for socialising, leaderboards, public totals, streaks |
 | **One small interface** | A conversational home and a few task panels | Dashboards, tab overload, push notifications |
 | **Your attention, your rules** | A Personal Compass the person writes and edits in plain words, with undo | Hidden profiling, screen-time scores, productivity goals, "years reclaimed" |
 | **AI as editor, shown openly** | Muse Spark drafts, ranks and explains; SHOW THE WORKINGS on every AI answer | AI-invented updates, autonomous social actions, a companion persona, black-box ranking |
@@ -99,7 +109,7 @@ Three voices share one screen, so each has a fixed shape:
 ### Pixel drawings
 
 - Icons on a 16 x 16 grid, shown at 24 or 32px, `image-rendering: pixelated` and `shape-rendering: crispEdges`, monochrome `lcd-ink`.
-- Motifs: envelope, sun, hill, pine, record, bicycle, phone, stars, a hand-wave; new for v3: a compass, a microphone, a camera, a magnifying glass, a cog for the workings.
+- Motifs: envelope, sun, hill, pine, record, bicycle, phone, stars, a hand-wave; new for v4 and v5: a door, a coffee cup, a table, a pin for the spot, a menu, a plus for a new place; v3: a compass, a microphone, a camera, a magnifying glass, a cog for the workings.
 - Decorative terrain (hills, a pine, a sun) marks moments of ending and leaving. Illustration is never mistaken for user content.
 
 ### Motion
@@ -122,19 +132,20 @@ Brief and stepped: a 120ms inversion flash on press, entrances of 180ms or less.
 
 The interaction contract. Every screen, agent reply and API must keep these.
 
-## The home
+## The home (v5, at a place)
 
-One two-line observation, then HOOLALA! and the tagline, two keys and a short menu, nothing else:
+Checked in at a place: the place name and HERE UNTIL 15:40, then one line ("3 signals here right now."), two keys and a short menu:
 
-- Keys: `ANYTHING NEW?` (FIND IT) · `GO APP-FREE` (TELL IT, until the compass exists; then `MY COMPASS`)
-- Menu: `LITTLE SIGNALS` · `ANYONE AROUND?` · `INVITE THEM OUT` · `SNAP IT` · `MEET IRL`
-- A one-question chat box at the bottom, with a microphone key for SAY IT.
+- Keys: `WHAT'S HERE?` (discover) · `POST ONE` (post a signal)
+- Menu: `THIS PLACE` (the place card) · `MY SIGNAL` (when you have one) · `CURIOUS REQUESTS` (when someone is curious) · `MEET` · `I'M LEAVING`
+- Not checked in: one observation ("We've sat at the same table for six months." / Never spoken.), then `WHERE ARE YOU?` (share location, add or search a place) and `MY COMPASS`.
+- First time only: GET STARTED (FIND ME) before anything else.
 
-Softkeys: `CHAT` (left) and `MY MOMENTS` (right). Every other screen has a BACK softkey and returns here; Escape does too.
+Softkeys: `HERE` (left) and `MY MOMENTS` (right; private moments and place points). Every other screen has a BACK softkey; Escape returns home.
 
-## Hackathon build and roadmap (26 Oct 2026)
+## Hackathon build and roadmap (27 Oct 2026, v5)
 
-In the build: home, sign-in, circle, notes and invitations, Little Signals, Anyone around?, the six Muse Spark functions, Telegram on demand, Meet IRL, the Live page, the share card and Go live. Designed but **ROADMAP** (not built before 4 Nov): Sounds familiar? and its sharing and discovery (rules 12, 13, 18), small talk (rule 14), Outside picks (rule 19), Find a plan as its own flow (open invitations appear in FIND IT instead), Unplug, NFC, scheduled delivery.
+In the build: sign-in (Telegram Mini App login, email on the web), FIND ME and the Personal Compass (rule 22 and rules 38 to 39), places and check-in, PLACE IT and place points (rules 40 to 41), Signals here, I'M CURIOUS and mutual accept, quick replies, PLAN IT meeting points, SUGGEST IT, SCREEN IT, CHECK IT, mutual QR, the Live page with the connection rate, STAY IN TOUCH, the share card and Go live. If time: the share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations. **ROADMAP** (after 4 Nov): the rest of Go App-Free (rule 21; the compass itself is in the build), briefings (rule 23), SAY IT (rule 24, voice part), Telegram briefings (rule 27), Sounds familiar? (12, 13, 18), small talk (14), Outside picks (19), Find a plan, Unplug, NFC.
 
 ## Non-negotiables
 
@@ -145,7 +156,7 @@ In the build: home, sign-in, circle, notes and invitations, Little Signals, Anyo
 5. **Confirm every outbound action.** Draft > show recipients > person confirms > backend publishes > receipt. Never show SENT before the backend acknowledges.
 6. **One plan at a time.** Show date, time and timezone. RSVP needs a separate confirmation.
 7. **Real life without surveillance.** QR or NFC is opt-in on both phones, short-lived and mutual. It proves proximity, never a conversation or a friendship.
-8. **Reward wisely.** UNPLUG records a self-declared break. A web app cannot track whole-phone screen time, so never claim it. Moments are private keepsakes: no scores, leaderboards or comparisons.
+8. **Reward wisely.** (Place points, rule 41, are the one exception: private credit for place data, never for social activity.) UNPLUG records a self-declared break. A web app cannot track whole-phone screen time, so never claim it. Moments are private keepsakes: no scores, leaderboards or comparisons.
 9. **A light facilitator, not a companion.** The chat retrieves what friends shared, summarises accurately, helps people say what they mean, surfaces mutual opportunities and recognises when it's done ("That's everything. We could show you more, but we'd have to make it up."). It never invents updates, availability or feelings, keeps friends' words separate from its own suggestions, and never sends, shares or invites without approval. Not a therapist, not an engagement optimiser.
 10. **Notes are small and effortless.** LEAVE A NOTE offers a QUICK NOTE ("Finally finished moving.", "Thinking of you.") or INVITE THEM OUT (activity, when, where, who). Recipients are chosen every time; notes can be edited and deleted (MY NOTES). Never require interesting content or a posting schedule. Invitations are answered I'M IN or NOT THIS TIME, no explanation needed.
 11. **GO LIVE switches Hoolala! off.** The joke flips "going live": the pixel screen SWITCHES TO FULL RESOLUTION... while a resolution readout steps 84 x 48 > 640 x 480 > 1920 x 1080 > 7680 x 4320 > REAL LIFE, then the backlight steps down to `shell-bg` (about 3s in total, instant with reduced motion). The dark screen shows a blinking LIVE light, HOOLALA! IS OFF. YOU'RE ON., the line "Now showing everywhere except here. Your phone can take a break too." and one SWITCH ON key. Keep it a wink: never lecture about screen time. No app can power off a phone, so never claim it did; a native build may later offer to start the OS Focus or Do Not Disturb mode, with permission.
@@ -158,18 +169,43 @@ In the build: home, sign-in, circle, notes and invitations, Little Signals, Anyo
 18. **ROADMAP. Black box sharing.** Observations export in three styles: black box (white on black), LCD card (pixel), plain text. Cards carry only the joke and a small HOOLALA! signature. Social platforms are acquisition channels, never an engagement model to copy. Growth line: PLEASE DON'T FOLLOW US. BRING A FRIEND.
 19. **ROADMAP. Outside picks are optional and clean.** A clearly labelled OUTSIDE PICKS screen suggests free, borrowed or repaired activities. No paid placements in private messages, no data selling, no behavioural ads, no hidden sponsorships, nothing that monetises emotional vulnerability. Any future partner (e.g. mission-aligned outdoor brands) needs human approval and a visible label.
 20. **No pictures or video as content.** Notes are text. A photo for SNAP IT and a voice note for SAY IT are inputs only: processed in memory, never stored, never shown to anyone else, and always with a typed alternative.
-21. **Go App-Free starts with what you want more of.** TELL IT is a short conversation (five stages on camera: what you'd like more of, what makes digital time worthwhile, what to hear less about, how often, the reveal). Playful first line ("Hello, human."), multiple choices plus free text, at most one follow-up question per stage, progress cells, BACK and SKIP everywhere, every answer editable. Never ask for age, screen-time estimates or anything not needed.
+21. **ROADMAP. Go App-Free starts with what you want more of.** TELL IT is a short conversation (five stages on camera: what you'd like more of, what makes digital time worthwhile, what to hear less about, how often, the reveal). Playful first line ("Hello, human."), multiple choices plus free text, at most one follow-up question per stage, progress cells, BACK and SKIP everywhere, every answer editable. Never ask for age, screen-time estimates or anything not needed.
 22. **The Personal Compass is yours, in your words.** "What you're curious about right now": intentions, interests, filters, delivery and welcome actions, built only from what the person said or chose. Never a score, a personality label or a judgement of behaviour. Plain-language edits ("Only send me things near Lausanne") show BEFORE / AFTER and save only on CONFIRM; every change sits in a CHANGES list with UNDO. Nothing learnt from time spent, opens or scrolling.
-23. **FIND IT is finite, grounded and explained.** ANYTHING NEW? shows at most the person's cap (default 3): friends' notes, signals and invitations first, in their own words, then up to two finds from the web. Each AI line says why it is there (AI / WHY THIS: "Because you said: live music.") and every web find shows its source. Lines that can't be traced to a real item or a returned source are dropped. Ends with one action at most and THAT'S EVERYTHING. WE COULD SHOW YOU MORE, BUT WE'D HAVE TO MAKE IT UP. Feedback (MORE LIKE THIS / NOT USEFUL / LESS OF THIS) becomes a visible compass change with UNDO.
+23. **ROADMAP. FIND IT is finite, grounded and explained.** ANYTHING NEW? shows at most the person's cap (default 3): friends' notes, signals and invitations first, in their own words, then up to two finds from the web. Each AI line says why it is there (AI / WHY THIS: "Because you said: live music.") and every web find shows its source. Lines that can't be traced to a real item or a returned source are dropped. Ends with one action at most and THAT'S EVERYTHING. WE COULD SHOW YOU MORE, BUT WE'D HAVE TO MAKE IT UP. Feedback (MORE LIKE THIS / NOT USEFUL / LESS OF THIS) becomes a visible compass change with UNDO.
 24. **SAY IT and SNAP IT show what was understood before anything happens.** YOU SAID: "..." or LOOKS LIKE: Jazz at Le Bourg, Thu 21:00, with FIX IT and NOT NOW. Low confidence opens the details for checking first. Never describe people or faces from a photo.
 25. **PLAN IT drafts, people send.** The agent may combine shared availability, finds and the compass into one draft invitation, labelled AI / DRAFT. It always stops at SEND THIS TO SOPHIE? with YES, SEND IT and EDIT. Mood signals never reach it. Never "SENT" before the server confirms.
 26. **Show the workings.** Every AI answer has a SHOW THE WORKINGS key: the capability used, tools called, sources, "Grounded: 3 of 3 lines", the compass line behind each item. It shows method, never other people's private data.
-27. **Telegram is the same Hoolala!, smaller.** Go App-Free links Telegram with a single-use link. Briefings arrive only when asked ("anything new?"). Same caps, labels, confirmations and endings as the web; no chat-style companionship, no "good morning" messages, no streaks. PAUSE and UNLINK work from both sides.
+27. **ROADMAP. Telegram is the same Hoolala!, smaller.** Go App-Free links Telegram with a single-use link. Briefings arrive only when asked ("anything new?"). Same caps, labels, confirmations and endings as the web; no chat-style companionship, no "good morning" messages, no streaks. PAUSE and UNLINK work from both sides.
+
+28. **Arrive without friction (no AI).** Check-in is a ladder, never a dead end: share location once (explained first: "Only to find the place you're in."), pick the place from those within about 150 m; not listed, ADD THIS PLACE (name and kind, saved at that location); location wrong or off, search by name within your city; partner places may have a QR poster and code. The person's own coordinates are discarded after the lookup; only places people add are saved, and check-ins are deleted after 24 hours. Public places only. Failure copy is kind and specific: "Your phone thinks you're in the lake. Search for the place instead."
+29. **Curiosity before identity.** Scanning shows PEEK: the place and up to 3 open topics, no names, before signing in. Sign-in is one tap in Telegram, an email link on the web.
+30. **Signals here are for the room, for a while.** Everyone checked in at the same place right now can see a place signal; nobody else can. A topic is 60 characters, with WHEN, WHERE (a spot in the place) and FOR HOW MANY (1 to 3). It expires at its time plus 30 minutes, when the poster leaves, or after 2 hours. At most 2 open signals per person. Discovery shows 3 at a time, then THAT'S EVERYTHING HERE RIGHT NOW. POST ONE? No feed, no map, no "people near you".
+31. **Anonymous until both accept.** Before acceptance everyone is "Someone here". I'M CURIOUS (with an optional line, 60 characters) goes to the poster, who chooses ACCEPT or NOT THIS TIME. Only after acceptance do the two see each other's first names. Never photos, profiles, last names or contact details.
+32. **Quick replies, not chat.** After acceptance: ON MY WAY / 5 MINUTES LATE / CAN'T MAKE IT / WE'RE AT THE [SPOT]. No free text between people who met through a signal.
+33. **Screened, never rewritten.** Every topic, reply line and suggestion passes code rules (contacts, links, length, words) and SCREEN IT (verdict, category, reason). The model approves or rejects; it never changes someone's words. A rejection says why in Hoolala! voice and offers EDIT. Not dating, not selling, not recruiting.
+34. **Suggestions and plans are drafts.** SUGGEST IT ideas are labelled AI / SUGGESTION, cite their source when they mention an event, and are never posted without a tap. PLAN IT proposes a spot and time labelled AI / DRAFT; the poster confirms.
+35. **Real-world connection rate is the only metric we show off.** The Live page shows collective numbers: real-life hellos (both-confirmed), the connection rate (accepted signals that became a QR-confirmed meet-up) and first-try check-in success. Never per person, never ranked.
+36. **Stay in touch is mutual or invisible.** After a confirmed meet-up, each can choose STAY IN TOUCH. Only if both do does a friendship start. A one-sided choice is never revealed.
+37. **Leaving is always one tap.** I'M LEAVING ends the check-in and hides your signals; responders see "They had to go." Block works both ways at every place; report hides the item at once.
+
+38. **FIND ME asks first and only looks at you.** "Want a head start? OK to read your public profile?" YES, HAVE A LOOK / NO, I'LL TELL YOU. It searches only the name, city and links the person gives, at most three times; shows IS THIS YOU? with THAT'S ME / NOT ME (namesakes are normal); keeps only ticked findings; and stores only the compass lines that come out of them, each with its source. Never another person, never a login to a social network, never the raw results.
+39. **The compass stays private.** Interests in the person's words, each with "from: [source]" or "you said". It shapes only their own topic ideas and puts signals that fit them first (FITS YOU, shown only to them). Never shown to others, never used to match, rank or recommend people. No personality types, scores, health, politics, religion or sexuality.
+40. **Place facts say where they came from.** The place card shows CONFIRMED HERE facts (people at the place) first, then AI / FOUND facts with a source line (> google maps, > the place's website). Google Maps content is shown live with attribution and not kept. A fetched fact becomes a Hoolala! fact only when a person confirms or fixes it. Edits are screened. Places are public places only.
+41. **Place points are for caring for places, and private.** Add a new place 10 (once someone else checks in), add or fix a detail 5 (once confirmed or undisputed for a day), confirm a detail 2. Only while checked in there, never for your own, at most 30 a day. Shown only to you in MY MOMENTS ("You've helped 4 places."); the Live page shows collective counts only. **Never points for posting, replying or meeting people.** No leaderboards, levels, badges for rank, streaks or public totals.
 
 ## The primary flows
 
 | Flow | Screens | Ends with |
 |---|---|---|
+| Get started | Sign in, 18+ > WANT A HEAD START? > name, city, links > IS THIS YOU? > YOUR WORLD, ACCORDING TO YOU. | LOOKS RIGHT saves the compass; NO goes to three questions |
+| Arrive | WHERE ARE YOU? > share location > pick the place (or ADD THIS PLACE, or search) > checked in > PEEK | HERE UNTIL 15:40. |
+| This place | THIS PLACE > confirmed facts, then AI / FOUND with sources > THAT'S RIGHT / FIX IT / NOT ANY MORE | NOTED. +5 PLACE POINTS ONCE SOMEONE CONFIRMS. |
+| Discover | WHAT'S HERE? > 3 signals, anonymous, translated > I'M CURIOUS | THAT'S EVERYTHING HERE RIGHT NOW. POST ONE? |
+| Post one | Topic (or NEED A TOPIC? > 3 AI ideas) > when, where, how many > CHECKING... > SIGNAL UP. | Your signal on home until it expires |
+| Curious and accept | I'M CURIOUS (+ line) > the poster sees SOMEONE HERE IS CURIOUS > ACCEPT or NOT THIS TIME > first names | Quick replies and a meeting point |
+| Meeting point | PLAN IT: "Terrace at 15:10?" > CONFIRM or CHANGE | ON MY WAY, then MEET |
+| Meet and stay in touch | MEET > QR > both agree > YOU MET AN ACTUAL HUMAN. > STAY IN TOUCH? | +1 private moment; a friendship only if both chose it |
+| Leave | I'M LEAVING > signals hidden | THANKS FOR DROPPING BY. GO LIVE? |
 | Catch up | ANYTHING NEW? > notes and signals, 3 at a time > THAT'S THREE (ASK FOR MORE) > end | THAT'S EVERYTHING. WE COULD SHOW YOU MORE, BUT WE'D HAVE TO MAKE IT UP. |
 | Little signals | Pick a signal or write one > dry reply > how long > circle / choose friends / private | SIGNAL UP. Shows on home until it expires |
 | Anyone around? | Friends' shared availability signals > SO... THURSDAY? | Suggest a plan, leave a note, or maybe later |
@@ -222,12 +258,16 @@ Witty, sarcastic, subtle, curious and unmistakably human. Observational humour f
 | "Let's organise something!" | A new WhatsApp group was born. Nothing else. |
 | "I'll let you know." | Last seen in 2023. |
 | "We have to meet before you leave." | Sent from the airport. |
+| "We've sat at the same table for six months." | Never spoken. |
+| "We should grab lunch sometime." | Eats at the desk. Every day. Same desk. |
 
 Signature: **Hoolala!** *You never know until you go.*
 
 Positioning (Go App-Free, pitch, README; never under the logo): **Your data. Your choice. Your attention.**
 
-Pitch line (video opening, README, GO APP-FREE subtitle; never under the logo): **Hoolala! reads the feed, so you don't have to. You decide what to do with it.** "The feed" only ever means what Hoolala! can honestly read (friends' notes and signals, compass-shaped web finds, shared links), never other platforms' feeds.
+Pitch line for the hackathon (v4; video opening, README; never under the logo): **"We've sat at the same table for six months." / Never spoken.** Then **Signals, not feeds.**
+
+Pitch line for Go App-Free (ROADMAP): **Hoolala! reads the feed, so you don't have to. You decide what to do with it.** "The feed" only ever means what Hoolala! can honestly read (friends' notes and signals, compass-shaped web finds, shared links), never other platforms' feeds.
 
 The difference to keep: other apps ask what is distracting you. Hoolala! asks what you'd like more of. A person who deliberately watches six hours of video is not failing Hoolala!.
 
@@ -250,6 +290,23 @@ Preachy, motivational or self-righteous lines: "reclaim your life", "disconnect 
 | Moment | Copy |
 |---|---|
 | Under the name (always) | You never know until you go. |
+| Poster (optional, partner places) | SIGNALS HERE. / Small invitations to talk, from people in this room. / Scan to see what's up. Or type the code: KAFE. / Not a dating app. Anonymous until you both say yes. |
+| Get started (FIND ME) | WANT A HEAD START? / Hoolala! can look at what's public about you online to guess what you like talking about. OK? / YES, HAVE A LOOK / NO, I'LL TELL YOU / LOOKING YOU UP. POLITELY... / IS THIS YOU? / THAT'S ME / NOT ME / Apparently there are three of you. Which one's you? / Only you see this. We keep the compass, not the search. |
+| Arrive | WHERE ARE YOU? / Only to find the place you're in. / CHECKING YOU IN... / HERE UNTIL 15:40. / Not on the list? ADD THIS PLACE / Your phone thinks you're in the lake. Search for the place instead. |
+| Add a place | WHAT'S IT CALLED? / WHAT KIND OF PLACE? / PLACE ADDED. Points arrive when someone else checks in. Bring a friend? |
+| The place (PLACE IT) | THIS PLACE / CHECKING THE MENU... / CONFIRMED HERE / AI / FOUND > google maps / THAT'S RIGHT / FIX IT / NOT ANY MORE / NOTED. +5 PLACE POINTS ONCE SOMEONE CONFIRMS. / The internet says 4.50. The internet is not always right. |
+| Place points | You've helped 4 places. 62 place points. / Points for caring for places. Never for people. |
+| Peek | 3 SIGNALS HERE RIGHT NOW. / Topics only. Names come later, if both of you want. / I'M CURIOUS > |
+| Discover | WHAT'S HERE? / Someone here / 15:00 / Coffee machine / THAT'S EVERYTHING HERE RIGHT NOW. POST ONE? / ORIGINAL |
+| Post one | WHAT'S THE TOPIC? / NEED A TOPIC? / AI / SUGGESTION / CHECKING... / SIGNAL UP. Visible to people here until 15:30. |
+| Screening refusal | That sounds more like a date than a coffee break. Try again? / Let's keep phone numbers out of it. Meet first. / Selling something? This room's off the clock. |
+| Curious | I'M CURIOUS / Add a line? (optional) / SENT. They'll decide. No pressure either way. |
+| Accept | SOMEONE HERE IS CURIOUS. / ACCEPT / NOT THIS TIME / You're on. It's Lea. / Not this time. No hard feelings. |
+| Quick replies | ON MY WAY / 5 MINUTES LATE / CAN'T MAKE IT / WE'RE AT THE TERRACE |
+| Meeting point | AI / DRAFT: Terrace at 15:10? / CONFIRM / CHANGE |
+| Stay in touch | STAY IN TOUCH? / Only if you both say yes. We'll never tell them if you don't. |
+| Leaving | I'M LEAVING / THANKS FOR DROPPING BY. Your signals are gone. / They had to go. |
+| Example topics | "Coffee break at 15:00. Small talk welcome, work talk tolerated." / "Anyone else stuck on a pitch deck? Moral support at the kitchen." / "First week here. Where's the good coffee?" / "Their flat white is apparently famous. Verdict at 16:00?" |
 | Home | One two-line observation, then HOOLALA! You never know until you go. Keys: SOUNDS FAMILIAR? / ANYTHING NEW? |
 | Sounds familiar? | What's something we always say? / And what actually happens? / Painfully accurate. Want to share it? |
 | Discovery | Here's one someone left behind… / That's all for now. The internet will survive. |
@@ -310,6 +367,12 @@ Preachy, motivational or self-righteous lines: "reclaim your life", "disconnect 
 | "Good morning! Here's your daily digest" (unasked) | Nothing until they ask ANYTHING NEW? |
 | "I sent the invitation for you." | SEND THIS TO SOPHIE? then SENT TO SOPHIE. after the server confirms |
 | "Your friends are posting more than you." | Nothing. No comparison. |
+| "12 people near you!" | 3 SIGNALS HERE RIGHT NOW. (topics, never people) |
+| "Lea viewed your signal." | Nothing. No views, no "seen". |
+| "Find your match" / "Who's single here?" | Nothing. Not a dating app. |
+| "Based on your profile, you're an introvert." | Nothing. The compass holds interests you confirmed, never types. |
+| "Lea also likes jazz!" | Nothing. Nobody sees anyone's compass. |
+| "You're #3 contributor in Lausanne!" | You've helped 4 places. (only to you) |
 
 ---
 # AI and data
@@ -379,7 +442,30 @@ The model never queries raw social data itself and never claims it sent anything
 - Asked to invent friend activity: decline and offer to draft a note instead.
 - Summaries are visibly labelled (e.g. a `SUMMARY` kicker) and the original note is one tap away.
 
-## Compass record
+## Signals here (v5): model use, records and rules
+
+| Function | Capability | Guardrail in code | Fallback |
+|---|---|---|---|
+| FIND ME | Web search with citations (at most 3, only the person's own name, city and links), structured output `{findings, compass}` | Consent first; IS THIS YOU?; raw findings never stored; every compass line has a ticked source or "you said"; banned labels; nothing saved before LOOKS RIGHT | Three scripted questions |
+| PLACE IT | Parallel tools: `google_place_details` (live), `web_search` (menu, hours on the place's website), `get_place_facts`; structured `{facts[{field, value, source, url}]}` | Every fact has a source; Google content shown live with attribution, only the place id kept; nothing becomes a Hoolala! fact without a person; edits screened | People's facts only |
+| SUGGEST IT | Web search with citations (1 per request, cached per place for an hour), structured output | Event ideas need a citation returned in that call; ideas pass screening; never posted without a tap | Hand-written topics by time of day |
+| SCREEN IT | Structured verdict `{verdict, category, reason, fr, en}`, minimal effort | Code rules first (contacts, links, handles, length, words, crisis words); approve or reject only, never rewrite | Code rules only |
+| PLAN IT | Parallel tools: `get_signal`, `get_place_spots`, `get_quick_replies`, `get_place_hours`, `draft_meeting_point` | Draft only; only this signal and place; confirmation token from a tap | The spot and time the poster picked |
+| ARRIVE, MEET IT, STAY IN TOUCH | None, on purpose | Check-in rules, mutual QR, mutual choice | |
+
+| Record | Fields and rules |
+|---|---|
+| Place | name, kind, city, coordinates from the person who added it, radius, Google place id, spots, optional code and poster key, added_by, status |
+| Place fact | place, field (hours, menu item, price, spot, wifi, sockets, quiet, rule), value, source (people, google, web, snap), source url, state (found, confirmed, disputed), confirmations, updated. Google facts are fetched live, never stored. |
+| Place contribution | person, place, fact, action (add place, add, fix, confirm), points, state (pending, counted, rejected). Private to the person. |
+| Compass item | person, part, text, source url or "you said", origin (find me, questions, edit), active. Never returned to anyone else. |
+| Check-in | user, place, method (location, add, search, qr, code), started, ends (4 hours), left. Deleted after 24 hours. Attempts store method, ok and reason only: never coordinates, never the user. |
+| Place signal | owner, place, topic (60), when, spot, capacity (1 to 3), language and translation, screening verdict, expiry, state |
+| Response | signal, responder, optional line (60), state (requested, accepted, declined, withdrawn), quick replies |
+
+Server rule (`src/rules/here.ts`): a viewer sees a place signal only if both are checked in at that place now, it is open and unexpired, neither blocked the other, and it isn't theirs. First names only between an owner and accepted responders.
+
+## Compass record (in the build through FIND ME)
 
 | Field | Notes |
 |---|---|
@@ -429,6 +515,7 @@ Extra tools: `draft_observation_suggestion({text, mode: shorter|funnier})` (sugg
 
 - Notes are private by recipient ACL. No sharing to new audiences without the author.
 - No access to contacts, calendar, precise location or usage analytics without a specific permission and a clear purpose.
+- Check-in by location uses the person's coordinates once to find nearby places and discards them (only a newly added place keeps the coordinates it was added at); nothing about where someone has been is kept beyond their own private moments. Check-ins are deleted after 24 hours.
 - Quiet hours, no bulk notifications, data deletion and circle revocation are first-class settings.
 - Photos (SNAP IT) and voice notes (SAY IT) are processed in memory and never written to storage or logs.
 - LinkedIn and Instagram are "links you share only": their platform rules don't allow reading feeds or building digests.
@@ -439,7 +526,7 @@ Extra tools: `draft_observation_suggestion({text, mode: shorter|funnier})` (sugg
 
 # Components
 
-Core first, then Go App-Free and the Muse Spark functions, then ROADMAP components.
+Core first, then Signals here (the hackathon build), then Go App-Free (ROADMAP after 4 Nov), then other ROADMAP components.
 
 ## Key
 
@@ -550,9 +637,23 @@ The real-world reward: a private record of a moment, never a score.
 - Never public, ranked, compared, levelled or tied to streaks. No "you're behind" or "keep it up" nudges.
 - Copy states honestly what it records: a tap means proximity, a break is self-declared.
 
+## FootprintCheck
+
+FIND ME: the head start. With the person's OK, Muse Spark looks at what's public about them, they tick what's really them, and the compass is drafted from that. Then CompassReveal.
+
+- **Consent first:** WANT A HEAD START? / "Hoolala! can look at what's public about you online (a website, a public profile, talks, articles) to guess what you like talking about. OK?" YES, HAVE A LOOK (primary) / NO, I'LL TELL YOU (three scripted questions, OnboardingStage).
+- **Inputs:** THE NAME YOU USE ONLINE, YOUR CITY, and up to 3 links (optional). Helper: "Only you. We never look anyone else up."
+- **Searching:** LOOKING YOU UP. POLITELY... with the stepped loader.
+- **IS THIS YOU?:** findings one per block, each a short line in Hoolala!'s words plus a `lcd-src` line (domain), with THAT'S ME / NOT ME. Several namesakes are normal: "Apparently there are three of you. Which one's you?" Progress cells N of M. Nothing unticked is used.
+- **Then:** DRAFT MY COMPASS > opens CompassReveal, every line with "from: [domain]" or "you said".
+- Privacy line, always visible: "Only you see this. We keep the compass, not the search."
+- Never: looking up someone else, a personality type, a score, anything about health, politics, religion or sexuality, a social network login.
+- Consumer provides: consent state, inputs, findings with URL and tick state.
+
 ## OnboardingStage
 
 One stage of Go App-Free (TELL IT): a short question from Muse Spark, a few choices, a free-text answer, and a way back.
+> **IN THE BUILD (v5, 27 Oct).** Used by FIND ME: the compass is drafted from the person's confirmed public footprint or three questions. Telegram linking and briefings stay ROADMAP.
 
 - Progress: five pixel cells (`lcd-progress`), labelled "Stage N of 5". BACK on the right softkey, SKIP on optional stages, every earlier answer editable.
 - The question in Space Mono at body size, from Muse Spark or the scripted fallback. Stage 1 always opens "Hello, human. Before we get acquainted, what would you like a little more of?"
@@ -565,17 +666,19 @@ One stage of Go App-Free (TELL IT): a short question from Muse Spark, a few choi
 ## CompassReveal
 
 The end of TELL IT: "Your world, according to you." Muse Spark states the Personal Compass back in one or two plain sentences, and the person decides.
+> **IN THE BUILD (v5, 27 Oct).** Used by FIND ME: the compass is drafted from the person's confirmed public footprint or three questions. Telegram linking and briefings stay ROADMAP.
 
 - Kicker GO APP-FREE / STAGE 5 OF 5, title YOUR WORLD, ACCORDING TO YOU.
 - The compass lines as a short list in Space Mono, in the person's own words where possible. Below it, one dashed AI block: "I'll look for things that fit and leave the rest alone." and "Everything else can wait."
 - SOUND ABOUT RIGHT? with three keys: LOOKS RIGHT (primary), CHANGE SOMETHING, START AGAIN. Nothing is saved until LOOKS RIGHT.
-- After LOOKS RIGHT: the Telegram link step (TelegramSurface) or STAY ON THE WEB, then a first FIND IT briefing or a clearly labelled PREVIEW.
+- After LOOKS RIGHT (v5): WHERE ARE YOU? (PlaceCheckIn). Each line shows "from: [source]" or "you said". (ROADMAP: the Telegram link step and a first briefing.)
 - Never a score, a type, a personality label or a time projection. No "years reclaimed".
 - Consumer provides: compass lines, the AI summary sentence.
 
 ## PersonalCompass
 
 YOUR PERSONAL COMPASS: what the person is curious about right now, in their own words, with every change visible and undoable. Never a score.
+> **IN THE BUILD (v5, 27 Oct).** Used by FIND ME: the compass is drafted from the person's confirmed public footprint or three questions. Telegram linking and briefings stay ROADMAP.
 
 - Sections as kickers: WHAT YOU WANT MORE OF, INTERESTS, LESS OF THIS, HOW OFTEN, WELCOME SUGGESTIONS. Each line is plain Space Mono with EDIT and REMOVE.
 - One field at the top: SAY IT YOUR WAY ("Only send me things near Lausanne."). Muse Spark proposes the change; the screen shows BEFORE / AFTER (`lcd-diff`) and SAVE THIS CHANGE? with SAVE (primary) and NOT NOW.
@@ -583,51 +686,65 @@ YOUR PERSONAL COMPASS: what the person is curious about right now, in their own 
 - Built only from what the person said or chose. No inferred interests, no "people like you", nothing from time spent or opens.
 - Consumer provides: compass items by part, the change log, a pending proposal.
 
-## BriefingItem
+## PlaceCheckIn
 
-One item in a FIND IT briefing: a friend's own words, or a find from the web with its source, each with a short AI reason tied to the compass.
+ARRIVE at any public place: share location, pick the place, or add it. Search by name when location fails. Then PEEK. No AI, on purpose.
 
-- Order: friends' notes, availability signals and open invitations first, then at most two web finds. At most the person's cap (default 3) per briefing, with progress cells "N of M".
-- **Friend item:** FriendNote styling (paper block, sender, exact words). Its reason, if any, sits below in a dashed AI block.
-- **Web find:** paper block, title in Silkscreen, one-line summary in Hoolala!'s words, date and place, then a `lcd-src` line (domain and date) linking to the original. Never reproduce the page.
-- **AI / WHY THIS:** one line in a dashed block, naming the compass line in the person's words ("Because you said: live music, small venues.").
-- Actions: one primary (ASK A FRIEND > opens PLAN IT, or NEXT >), then a small feedback row: MORE LIKE THIS / NOT USEFUL / LESS OF THIS, and SHOW THE WORKINGS. Feedback shows "Noted." with UNDO.
-- Last item: THAT'S EVERYTHING. We could show you more, but we'd have to make it up.
-- Consumer provides: kind, friend name and text or title, summary, date, place, source URL, reason, index and total.
+- **Ask well:** WHERE ARE YOU? with one line on why ("Only to find the place you're in.") before the permission prompt, and SEARCH INSTEAD beside it.
+- **Pick:** up to 5 places within about 150 m as `lcd-option` rows: name, kind and distance band (HERE, NEXT DOOR). Hoolala! places first, then Google Maps places with a small "> google maps" line. Tapping one checks in: CHECKING YOU IN... then HERE UNTIL 15:40.
+- **Add:** NOT ON THE LIST? ADD THIS PLACE: WHAT'S IT CALLED? (`lcd-field`), WHAT KIND OF PLACE? (chips: café, bar, coworking, library, other), ADD IT. Then PLACE ADDED. Points arrive when someone else checks in. Public places only; a name that looks like a home or an address is refused kindly.
+- **Search:** "Your phone thinks you're in the lake. Search for the place instead." A field with results from your city.
+- **Poster (optional, partner places):** the A4 LCD poster with QR and a four-letter code still works and checks in directly.
+- **Peek:** the place name, 3 SIGNALS HERE RIGHT NOW., topics only, I'M CURIOUS >.
+- **Checked in:** a slim status strip at the top of home: place name and HERE UNTIL 15:40, I'M LEAVING in the menu.
+- Never: a map of people, distances to people, "12 people near you", a permission prompt before explaining why, keeping anyone's location.
+- Consumer provides: nearby places, method, state (asking, picking, adding, searching, ok, failed with reason), expiry, open topic count.
 
-## VoiceNote
+## PlaceCard
 
-SAY IT: speak a request instead of typing it. Muse Spark listens, and the screen shows what it heard before anything happens.
+THIS PLACE: what a place is like, kept right by the people in it. PLACE IT fetches; people confirm or fix; they earn private place points.
 
-- A microphone key beside every chat input (`aria-label="Say it"`); press to start, press again to stop. In Telegram, a normal voice note.
-- While recording: LISTENING... with the stepped loader and a STOP key. No waveform theatre, no timer pressure.
-- Result: YOU SAID: "..." in a sunken block (the person's words), then what Hoolala! will do in one line (CHECKING WHAT FRIENDS SHARED...), and FIX IT to edit the text.
-- Fails gently: Didn't catch that. Mind typing it?
-- Privacy line, always visible on first use: Heard, then forgotten. We don't keep your voice note.
-- Crisis words in the transcript return the fixed help message, never a model reply.
-- Consumer provides: recording state, transcript, the routed intent.
+- **Header:** place name in the title, kind and HERE UNTIL 15:40 as a kicker.
+- **CONFIRMED HERE first:** paper blocks, `lcd-rows` (HOURS, MENU, SPOTS, WIFI, SOCKETS, QUIET) with "confirmed by 3 people, 2 days ago".
+- **AI / FOUND next:** dashed AI blocks with the fact and a `lcd-src` line (> google maps, > the place's website). Google attribution visible whenever Google content shows. Each fact: THAT'S RIGHT / FIX IT / NOT ANY MORE.
+- **Fix it:** the field prefilled, SAVE; then NOTED. +5 PLACE POINTS ONCE SOMEONE CONFIRMS. A dry line is allowed: "The internet says 4.50. The internet is not always right."
+- While fetching: CHECKING THE MENU... with the stepped loader. SHOW THE WORKINGS under fetched facts.
+- **Points** appear as a small `lcd-badge` (+2, +5) after an action and in MY MOMENTS as "You've helped 4 places. 62 place points." Never on anyone else's screen, never ranked.
+- Never: reviews, star ratings, photos of people, popularity, "busy now" from people's check-ins, other contributors' names.
+- Consumer provides: confirmed facts, found facts with source, pending contributions, points (own only).
 
-## SnapResult
+## PlaceSignal
 
-SNAP IT: a photo of a poster, flyer or chalkboard becomes event details Muse Spark read, shown for checking, then one nudge towards a plan.
+A small invitation to talk, visible only to people checked in at the same place, for a short while. Discover three at a time; post your own with optional AI ideas.
 
-- Entry: SNAP IT on the home menu opens the camera or a file picker; in Telegram, send a photo. Typed alternative always offered (TYPE IT IN).
-- While reading: READING THE POSTER... with the stepped loader.
-- Result: LOOKS LIKE: and a `lcd-rows` list (What, When, Where), each editable. Low confidence opens the fields for checking first, with the kicker PLEASE CHECK.
-- Keys: SO... THURSDAY? > (primary, opens PLAN IT prefilled), FIX DETAILS, NOT NOW.
-- Never shows the photo back as content, never describes people or faces. Privacy line: Read, then forgotten. We don't keep your photo.
-- Fails with humour: Couldn't read it. The poster wins this round. Type it in?
-- Consumer provides: extracted title, date, time, place, confidence.
+- **Discover (WHAT'S HERE?):** signals that fit the viewer's compass come first with a small FITS YOU kicker (only the viewer sees it). One signal per block: the topic in Space Mono as written (or translated, with ORIGINAL to toggle; translation in a dashed AI / TRANSLATED kicker), then a `lcd-rows` line: WHO (Someone here), WHEN (15:00), WHERE (Coffee machine), FOR (2 people), UNTIL (15:30). Key: I'M CURIOUS. Three per screen with progress cells, then THAT'S EVERYTHING HERE RIGHT NOW. POST ONE?
+- **Post (POST ONE):** WHAT'S THE TOPIC? (60 characters with a counter), NEED A TOPIC? opening three AI / SUGGESTION blocks (each with USE THIS, and a `lcd-src` line when it cites an event), then WHEN (now, in 30 min, at a time), WHERE (place spots as `lcd-chip`s), FOR HOW MANY (1 to 3). POST IT > shows CHECKING... (SCREEN IT), then SIGNAL UP. or a friendly refusal with EDIT.
+- **Mine:** a double-bordered block on home with the topic, UNTIL, the number of curious requests (only to the owner) and EDIT / CANCEL IT.
+- Never: names or photos before acceptance, view counts, "seen", likes, a feed, a map.
+- Consumer provides: topic, translation, when, spot, capacity, expiry, state, suggestions with optional citation.
 
-## AgentDraft
+## CuriousRequest
 
-PLAN IT: the agent's one proposal. Muse Spark combines what friends chose to share, recent finds and the compass into a single draft invitation, then stops for the person to decide.
+I'M CURIOUS, the decision, and what happens after: anonymous until both accept, then first names and quick replies only.
 
-- Above the draft, one short reply in a paper block saying what it found, using only shared facts ("Sophie could be persuaded into coffee, and the jazz fits you both.").
-- The draft in a dashed AI block, kicker AI / DRAFT: activity, day, time, place, recipients and the one line, all editable.
-- Then the normal review: SEND THIS TO SOPHIE? with YES, SEND IT (primary) and EDIT. On server receipt: INVITATION OUT. Otherwise COULDN'T SEND. TRY AGAIN?
-- SHOW THE WORKINGS under it. Never uses mood signals, location or strangers. Never says it sent anything itself.
-- Consumer provides: reply text, draft fields, recipient names from permitted data.
+- **Sending:** I'M CURIOUS opens an optional line (60 characters, screened) and SEND. Then: "Sent. They'll decide. No pressure either way."
+- **Receiving (owner):** SOMEONE HERE IS CURIOUS. with their line in a paper block, then ACCEPT (primary) and NOT THIS TIME. Up to the signal's capacity.
+- **After accept:** both see "You're on. It's Lea." (first name only), the meeting point (see MeetingPoint) and four quick-reply keys: ON MY WAY / 5 MINUTES LATE / CAN'T MAKE IT / WE'RE AT THE [SPOT]. Replies show as short `lcd-me` or paper lines with a time. No text field.
+- **After decline:** the responder sees "Not this time. No hard feelings." No reason, no name.
+- **After the meet-up:** STAY IN TOUCH? "Only if you both say yes. We'll never tell them if you don't." YES / NO THANKS.
+- Every screen has BLOCK and REPORT in the softkey menu.
+- Consumer provides: request line, state, first name (after accept only), quick replies, meeting point.
+
+## MeetingPoint
+
+PLAN IT for Signals here: the agent proposes where and when to meet inside the place; the poster confirms. Then MEET opens the QR handshake.
+
+- While the agent works: CHECKING THE ROOM... with the stepped loader.
+- The proposal in a dashed AI / DRAFT block: "Terrace at 15:10? It's free until 16:00 and it's where you said." with CONFIRM (primary) and CHANGE (spot chips and a time field).
+- Confirmed: a paper block MEETING POINT with the spot and time, visible to the owner and accepted responders only, and MEET > for the mutual QR at the spot.
+- SHOW THE WORKINGS under the draft: tools (get_signal, get_place_spots, get_quick_replies in parallel), effort medium.
+- Only spots that exist in the place; never "my place", never outside the place. Never says it confirmed anything itself.
+- Consumer provides: proposed spot, time, reason, state.
 
 ## Workings
 
@@ -642,6 +759,8 @@ CHECK IT: SHOW THE WORKINGS opens a short, honest account of how an AI answer wa
 
 ## TelegramSurface
 
+
+> **v4 (27 Oct).** In the hackathon build Telegram is the **Mini App** that the place poster opens (same LCD front end, Telegram login checked on the server), plus three opt-in bot notifications only: "Someone here is curious.", "Accepted. Terrace at 15:10." and quick replies. Briefings in Telegram are ROADMAP.
 Go App-Free in Telegram: the same Hoolala!, in someone else's chat window. Telegram draws its own bubbles, so the brand lives in the words, the structure and the inline buttons.
 
 - **Linking:** the web reveal shows LINK TELEGRAM > with a single-use link (10 minutes). The bot's first message: "Linked. I'll only speak when spoken to." and the confirmed settings.
@@ -651,6 +770,57 @@ Go App-Free in Telegram: the same Hoolala!, in someone else's chat window. Teleg
 - **Endings:** THAT'S EVERYTHING. We could show you more, but we'd have to make it up. PAUSE and UNLINK work by saying so.
 - No emoji, no stickers, no typing indicator tricks. Crisis words return the fixed help message.
 - The preview below is the LCD mock used in docs and the demo, not Telegram's real UI.
+
+## SnapResult
+
+> **STRETCH for 4 Nov.** In Signals here, SNAP IT turns a photo of the menu board (new menu facts to confirm, PlaceCard) or an event poster into a draft signal; otherwise as below.
+
+SNAP IT: a photo of a poster, flyer or chalkboard becomes event details Muse Spark read, shown for checking, then one nudge towards a plan.
+
+- Entry: SNAP IT on the home menu opens the camera or a file picker; in Telegram, send a photo. Typed alternative always offered (TYPE IT IN).
+- While reading: READING THE POSTER... with the stepped loader.
+- Result: LOOKS LIKE: and a `lcd-rows` list (What, When, Where), each editable. Low confidence opens the fields for checking first, with the kicker PLEASE CHECK.
+- Keys: SO... THURSDAY? > (primary, opens PLAN IT prefilled), FIX DETAILS, NOT NOW.
+- Never shows the photo back as content, never describes people or faces. Privacy line: Read, then forgotten. We don't keep your photo.
+- Fails with humour: Couldn't read it. The poster wins this round. Type it in?
+- Consumer provides: extracted title, date, time, place, confidence.
+
+## BriefingItem
+
+One item in a FIND IT briefing: a friend's own words, or a find from the web with its source, each with a short AI reason tied to the compass.
+> **ROADMAP.** Part of Go App-Free, moved to after 4 Nov 2026 (27 Oct decision). Not in the hackathon build.
+
+- Order: friends' notes, availability signals and open invitations first, then at most two web finds. At most the person's cap (default 3) per briefing, with progress cells "N of M".
+- **Friend item:** FriendNote styling (paper block, sender, exact words). Its reason, if any, sits below in a dashed AI block.
+- **Web find:** paper block, title in Silkscreen, one-line summary in Hoolala!'s words, date and place, then a `lcd-src` line (domain and date) linking to the original. Never reproduce the page.
+- **AI / WHY THIS:** one line in a dashed block, naming the compass line in the person's words ("Because you said: live music, small venues.").
+- Actions: one primary (ASK A FRIEND > opens PLAN IT, or NEXT >), then a small feedback row: MORE LIKE THIS / NOT USEFUL / LESS OF THIS, and SHOW THE WORKINGS. Feedback shows "Noted." with UNDO.
+- Last item: THAT'S EVERYTHING. We could show you more, but we'd have to make it up.
+- Consumer provides: kind, friend name and text or title, summary, date, place, source URL, reason, index and total.
+
+## VoiceNote
+
+SAY IT: speak a request instead of typing it. Muse Spark listens, and the screen shows what it heard before anything happens.
+> **ROADMAP.** Part of Go App-Free, moved to after 4 Nov 2026 (27 Oct decision). Not in the hackathon build.
+
+- A microphone key beside every chat input (`aria-label="Say it"`); press to start, press again to stop. In Telegram, a normal voice note.
+- While recording: LISTENING... with the stepped loader and a STOP key. No waveform theatre, no timer pressure.
+- Result: YOU SAID: "..." in a sunken block (the person's words), then what Hoolala! will do in one line (CHECKING WHAT FRIENDS SHARED...), and FIX IT to edit the text.
+- Fails gently: Didn't catch that. Mind typing it?
+- Privacy line, always visible on first use: Heard, then forgotten. We don't keep your voice note.
+- Crisis words in the transcript return the fixed help message, never a model reply.
+- Consumer provides: recording state, transcript, the routed intent.
+
+## AgentDraft
+
+PLAN IT: the agent's one proposal. Muse Spark combines what friends chose to share, recent finds and the compass into a single draft invitation, then stops for the person to decide.
+> **ROADMAP.** Part of Go App-Free, moved to after 4 Nov 2026 (27 Oct decision). Not in the hackathon build.
+
+- Above the draft, one short reply in a paper block saying what it found, using only shared facts ("Sophie could be persuaded into coffee, and the jazz fits you both.").
+- The draft in a dashed AI block, kicker AI / DRAFT: activity, day, time, place, recipients and the one line, all editable.
+- Then the normal review: SEND THIS TO SOPHIE? with YES, SEND IT (primary) and EDIT. On server receipt: INVITATION OUT. Otherwise COULDN'T SEND. TRY AGAIN?
+- SHOW THE WORKINGS under it. Never uses mood signals, location or strangers. Never says it sent anything itself.
+- Consumer provides: reply text, draft fields, recipient names from permitted data.
 
 ## PlanCard
 

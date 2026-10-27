@@ -1,8 +1,30 @@
 # Hoolala! changelog
 
+## 2026-10-27 (later): Any place, FIND ME and place points (v5)
+
+- **A venue is now any public place**: a café, a bar, a coworking space, a library. No partner or host needed; posters and codes stay optional for partner places.
+- **Check-in:** share location and pick the place; not listed, ADD THIS PLACE (saved at that location; the place's coordinates come from the person who added it); location wrong, search by name. The person's own coordinates are discarded after the lookup; check-ins are deleted after 24 hours.
+- **FIND ME (onboarding):** "Want a head start? OK to read your public profile?" Muse Spark searches only the person's own name, city and links (at most 3 searches), shows IS THIS YOU? with sources, and drafts the **Personal Compass** from what they tick. Only compass lines with their sources are stored. Private: used only for their own topic ideas and to show signals that fit them first. NO means three quick questions.
+- **PLACE IT:** an agent with parallel tools (Google Maps place details live, web search for the menu and hours, our confirmed facts) fills the place card with sourced facts. People confirm or fix them; only then do they become Hoolala! facts. Google content is shown live with attribution and not stored, per the Google Maps Platform terms (place id kept; latitude and longitude only 30 days).
+- **Place points (private):** add a place 10 (once someone else checks in), add or fix a detail 5 (once confirmed), confirm 2; only while checked in, never for your own, max 30 a day. Never for posting, replying or meeting. No leaderboards or public totals; the Live page shows collective counts only.
+- Build plan: WP20 becomes places and check-in; new WP24 FIND ME and the compass (Fri 30), WP25 PLACE IT and points (Sat 31); share card image moves to "if time"; new cut order (PLAN IT first if late); Google Maps key with OpenStreetMap as fallback.
+- Design system v5: PlaceCheckIn (replaces VenueCheckIn), FootprintCheck, PlaceCard; OnboardingStage, CompassReveal and PersonalCompass back in the build; product rules 38 to 41; new copy. `DESIGN.md` regenerated.
+
+## 2026-10-27: Signals here becomes the hackathon hero
+
+- Decision from the competitor review (`COMPETITOR-REVIEWS.md`): the hackathon build is **Signals here**. People at the same venue check in by scanning a poster, post and answer small invitations to talk, stay anonymous until both accept, agree a meeting point and confirm the meet-up with a mutual QR. North star: the **real-world connection rate**.
+- New `SIGNALS-HERE.md` (wins on product scope): the check-in ladder (QR poster, optional location compared once and never stored, four-letter code, host), peek before sign-in, discover 3 at a time, post (60-character topic, when, spot, 1 to 3 people), I'M CURIOUS and mutual accept, first names only after accept, quick replies instead of chat, PLAN IT meeting points, STAY IN TOUCH only if both choose it, limits, safety, metrics and the pilot.
+- Audience: anyone checked in at the same venue right now. Telegram Mini App as the main entry at the venue, email magic link on the web.
+- Muse Spark functions now: SUGGEST IT (web search with citations), SCREEN IT (structured verdicts plus FR/EN translation, never rewrites), PLAN IT (parallel tools, draft only), CHECK IT (workings and evals), SNAP IT as a stretch. ARRIVE, MEET IT and STAY IN TOUCH use no AI, on purpose.
+- Moved to after 4 Nov: Go App-Free, the Personal Compass, briefings, SAY IT, Telegram briefings (`PROJECT-INSTRUCTIONS-v3.2.md` kept as that brief). Moved to "if time": friends' Little Signals and Anyone around?, quick notes and invitations.
+- Build plan rewritten: WP20 venues and check-in, WP21 Mini App, WP22 Signals here, WP23 the Muse Spark functions; new D1 tables (venues, checkins, checkin_attempts, signals with venue audience, signal_responses, quick_replies, meeting_points, blocks, stay_in_touch, metrics_daily).
+- Pilot: a Lausanne coworking space on Mon 2 Nov 11:00 to 16:00 with 15 to 20 opt-in people, friends dry run Sat 31 Oct. **Venue to confirm by Thu 29 Oct**; fallback a café, a university common room or a meetup.
+- Design system v4: VenueCheckIn, PlaceSignal, CuriousRequest, MeetingPoint with previews; product rules 28 to 37; new home (WHAT'S HERE? / POST ONE); poster, check-in, screening and accept copy; Signals here records and server rule; Go App-Free components marked ROADMAP. `DESIGN.md` regenerated.
+- Pitch: "We've sat at the same table for six months." / Never spoken. Closing line: "Signals, not feeds." Not a dating app, said on the poster and the first screen.
+
 ## 2026-10-26: Design system v3 (Go App-Free and Muse Spark)
 
-- The Hoolala! design system in Claude now covers the new direction; `docs/DESIGN.md` is regenerated from it.
+- The Hoolala! design system in Claude now covers the new direction; `claude/DESIGN.md` is regenerated from it.
 - Nine new components with previews: OnboardingStage, CompassReveal, PersonalCompass (TELL IT), BriefingItem (FIND IT), VoiceNote (SAY IT), SnapResult (SNAP IT), AgentDraft (PLAN IT), Workings (CHECK IT), TelegramSurface.
 - New visual rule for three voices on one screen: friends' words in solid paper blocks, Muse Spark text in dashed blocks with an AI / kicker, web finds with a `>` source line.
 - Home: ANYTHING NEW? and GO APP-FREE keys; menu LITTLE SIGNALS, ANYONE AROUND?, INVITE THEM OUT, SNAP IT, MEET IRL; a microphone key in the chat.
