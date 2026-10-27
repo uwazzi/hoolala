@@ -1,6 +1,6 @@
 # Meta Global AI Developer Hackathon: rules and what they mean for Hoolala!
 
-Source: the official participant guide at https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details (read 26 Oct 2026). This is a paraphrased summary; if anything here disagrees with the guide or with Discord #announcements, the official source wins. All Zurich times are worked out from ET (Europe changed clocks on 25 Oct, the US changes on 1 Nov).
+Source: the official participant guide at https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details (read 26 Oct 2026). This is a paraphrased summary; if anything here disagrees with the guide or with Discord #announcements, the official source wins. All Zurich times are worked out from ET (Europe changed clocks on 25 Oct, the US changes on 1 Nov). Section 8 updated 27 Oct for Signals here (v5: any place, FIND ME, PLACE IT).
 
 ## 1. Problem statement
 
@@ -69,52 +69,39 @@ Own target stays: **submit by 18:00 Zurich on Wed 4 Nov.** Late submissions are 
 
 ## 7. Resources
 
-- **$150 Meta Model API credits** per participant: claim link "coming soon"; a credit card must be on the account to call the API; set a spend-limit alert on the Billing page. Claim by the deadline.
+- **$150 Meta Model API credits** per participant: a credit card must be on the account to call the API; set a spend-limit alert on the Billing page. Claim by the deadline.
 - Partner credits (not guaranteed): Baseten $100 plus a 2M TPM limit (use model `meta-models/muse-spark-open-1026`, not the id in their docs); Modal $100 for the first 1,000; Fireworks $25 for shortlisted teams.
 - Docs: overview, quickstart, model list, API cookbook, Muse Code recipes, OSS model cookbook; on-demand sessions on Muse Spark multimodality and building with Muse Spark and Muse Code.
 - Discord: introduce yourself in #intros, questions in #questions, Meta team in #office-hours, updates in #announcements.
 
-## 8. What this means for Hoolala!
+## 8. What this means for Hoolala! (updated 27 Oct for Signals here)
 
 ### Fit and framing
 - Problem statement: **Build for Your World**. Track: **Indie Developer**.
-- Pitch Hoolala! as a **social product** (a tiny private circle that turns into real plans and real meet-ups), never as a mental-health, loneliness-treatment or coaching chatbot. The anti-project list names AI mental-health advisers and AI coaches. In the submission, video and README:
-  - Avoid "lonely", "shy", "social anxiety", "therapy", "wellbeing coach". Use "friends", "plans", "real life", "small talk game".
-  - Small talk missions are a playful private game with pre-written missions (data), not AI advice. The model never gives emotional or health advice.
-  - The crisis message stays fixed text from `src/rules/safety.ts`, presented as a safety feature, not a product feature.
+- Pitch: **people who share a place but never talk** (any café, bar or coworking space). Hoolala! makes it effortless to arrive, intriguing to discover, safe to respond and natural to meet, and measures one thing: how many accepted invitations become real conversations.
+- Not a mental-health product, not a coach, **not a dating app**. In the submission, video and README avoid "lonely", "shy", "social anxiety", "therapy", "coach" and "dating". Say "people who share a place", "small invitations to talk", "real conversations".
+- Meeting people you don't know raises the bar on safety, and judges will look for it: anonymous until both accept, first names only, no free chat, screening on every topic and reply, block and report, place-level presence only, the person's coordinates discarded after the lookup, FIND ME only with consent and only about yourself, 18+. Show at least one of these on camera (a dating line refused by SCREEN IT).
+- The crisis message stays fixed text from `src/rules/safety.ts`, presented as a safety feature.
 
 ### Use of Meta AI tooling (a quarter of the score)
-Model calls must be visible and meaningful, not a single "rewrite this" button. **The full plan is now `docs/MUSE-SPARK-BY-FUNCTION.md`:** six functions (TELL IT, SAY IT, SNAP IT, FIND IT, PLAN IT, CHECK IT), each showing one Muse Spark capability (conversation state and structured output, native audio, vision, web search with citations, parallel tool calling, verifiable workings and evals). The list below is the earlier version, kept for history:
+The plan is `docs/MUSE-SPARK-BY-FUNCTION.md`: FIND ME (web search with citations about the person, with consent, and a compass draft), PLACE IT (parallel tools: Google Maps details, web search, our facts), SUGGEST IT (web search with citations, structured output), SCREEN IT (classification with reasons and FR/EN translation), PLAN IT (parallel tool calling, draft only), SNAP IT (vision, stretch) and CHECK IT (show the workings, an evaluation set with a pass rate). Check-in, meeting and staying in touch are model-free on purpose, and saying so is part of the pitch. Muse Code builds it; agent commits carry `Agent: Muse Code`. PLAN IT plus the multi-step check-in-to-meet flow is our entry for **Best Agentic Use-Case**.
 
-1. **Muse Spark runs the onboarding conversation** with one follow-up per stage and schema-validated output, and drafts the Personal Compass only from the person's own answers.
-2. **Muse Spark turns plain language into compass edits** ("Only send me opportunities near Lausanne"), shown as before/after, confirmed, undoable.
-3. **Verifiable briefings.** Muse Spark ranks real candidates (friends' items and feed items) against the compass and writes a reason per item; a validator rejects any line not tied to a real item and compass id. Shows craft ("Agents 102: verifiable agents").
-4. **Tool-using agent behind a confirmation boundary** in the web chat and Telegram: "anyone free for coffee Thursday?" becomes tool calls and stops at a confirm. Targets Best Agentic Use-Case.
-5. **Muse Code as the coding agent.** Agent commits carry the trailer `Agent: Muse Code`, reported in the README and video.
-
-Not in the hackathon build: Muse Voice Transcribe, Muse Spark Open, Muse Image, Muse Wonder.
-
-**Anti-project risk for v3.2:** a briefing built from outside content can look like a "basic RAG app". Make the difference obvious in the video and README: an agent-led setup, a compass the person controls in plain language, grounded and explained ranking, friends' items first, and briefings that end in a real-world action. LinkedIn and Instagram are "links you share only", stated openly, because their platform rules forbid feed reading and digests.
+**Anti-project risk:** FIND ME must not look like a "personality analyser": it finds interests the person confirms, in their words, with sources, never traits or types, and it's private. SCREEN IT must not look like a "simple" moderation wrapper. Show that it sits behind code rules, returns structured reasons, translates for a bilingual room, is evaluated, and never rewrites people's words.
 
 ### New work and prior work
-Built **before** 26 Oct (must be declared, and not shown in the demo as hackathon work):
-- Brainstorming and project organisation: product briefs, the Muse Spark plan, build plan, agent rules, these rules notes.
-- The Mono LCD design system (tokens, guidelines, component previews).
-- A clickable prototype also existed; it is deliberately **not** in the repo, and the front end is built from scratch during the event.
-- Product brief, context and plan documents.
+Built **before** 26 Oct (declared, not shown as hackathon work): the Mono LCD design system, product briefs, plans, agent rules, these notes, and a clickable prototype that is deliberately not in the repo.
 
-How we make it obvious:
-- Repo starts after kickoff. Commit 1: `Pre-hackathon assets (built before 26 Oct 2026)` adding the design system and an inventory of prior work (`PRIOR-WORK.md`), tagged `pre-hackathon`. Every later commit is hackathon work, so `git diff pre-hackathon..main` shows it.
-- README section "Built during the hackathon" with a table: prior (design system and plans only, no product code) vs new (all code: Worker backend, D1, sign-in, circles, invitations, Little Signals server rules, the six Muse Spark functions, Telegram, mutual QR, Live counter, share card).
-- The demo video narrates only the new parts and says once, plainly, that the visual design and a clickable mock-up existed before.
+- Repo commit 1 `Pre-hackathon work`, tagged `pre-hackathon`; everything after is hackathon work (`git diff pre-hackathon..main`).
+- README section "Built during the hackathon": prior (design system and plans, no product code) vs new (all code: Worker, D1, sign-in and Telegram login, FIND ME and the compass, places, check-in, PLACE IT and place points, Signals here with its server rules, the Muse Spark functions, evals, mutual QR, Live page, posters and share card).
+- The video says once, plainly, that the visual design and a mock-up existed before.
 
-### Demo (3 minutes, judged as a quarter of the score)
-Real accounts on a public URL, two phones, Telegram, model switched on. Suggested beats (updated for v3.2): "Hello, human." onboarding with one agent follow-up; "Your world, according to you."; Telegram link; a briefing with a friend's signal and a feed item, each with a reason; a plain-language compass edit with confirm and undo; ASK A FRIEND becomes an invitation and the friend answers I'M IN; two phones do the mutual QR; the Live number ticks up; share card; Go live. End on "Your data. Your choice. Your attention." and "built with Muse Spark and Muse Code".
+### Demo (3 minutes, a quarter of the score)
+Filmed at the pilot place with consenting people only. Beat sheet in `docs/MUSE-SPARK-BY-FUNCTION.md`: "We've sat at the same table for six months." / Never spoken; FIND ME with a namesake ticked NOT ME; share location and check in, GPS fails and search by name works; the place card with a fixed price; three signals, one translated; SUGGEST IT with a cited idea, a dating line refused; I'M CURIOUS, accept, first names, PLAN IT; two phones confirm on the terrace, the connection rate ticks up; SHOW THE WORKINGS; STAY IN TOUCH; GO LIVE. End on "Signals, not feeds." and "built with Muse Spark and Muse Code".
 
 ### Growth bonuses
-The share card and "Please don't follow us. Bring a friend." suit **Most Viral** and **Community Vote**: post the demo on X before the deadline, submit the link, ask pilot testers to vote on 9 Nov.
+The poster itself is shareable ("Signals here. Not a dating app."), and the share card and Live page suit **Most Viral** and **Community Vote**: post the demo on X before the deadline, ask pilot participants to vote on 9 Nov.
 
-## 9. Still to confirm (Discord #questions or kickoff)
-- Can code start after the kickoff on Mon 26 Oct, or only from Tue 27 Oct (the guide lists the building period as 27 Oct to 4 Nov)? Default: only setup on Monday.
-- Exact Meta Model API base URL, auth, model ids (Muse Spark, Muse Voice Transcribe) and rate limits.
+## 9. Still to confirm
+- Meta Model API base URL, auth, model ids and rate limits; which features are on our key from Switzerland (web_search, structured output, parallel tools, image input, prompt caching).
 - Whether a declared pre-hackathon design system is acceptable (assumed yes under the "clearly identify" rule).
+- Pilot place by Thu 29 Oct, and the OK to film there.

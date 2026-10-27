@@ -1,116 +1,105 @@
 # Hoolala! project context (Meta hackathon)
 
-Read this first in every chat in this project. The current docs (26 Oct), and nothing else, define the project:
+Read this first in every chat in this project. Updated 27 Oct 2026: **Signals here is the hackathon hero** (v5: any place, FIND ME onboarding, PLACE IT and place points). These docs, and nothing else, define the project:
 
 | Doc | What it decides |
 |---|---|
 | `docs/CONTEXT.md` (this file) | The summary: event, product, scope, principles |
-| `docs/PROJECT-INSTRUCTIONS-v3.2.md` | The product brief: Go App-Free, Personal Compass, sources, briefings |
+| `docs/SIGNALS-HERE.md` | The product brief for 4 Nov: check-in, Signals here, safety, metrics, pilot (wins on product scope) |
 | `docs/MUSE-SPARK-BY-FUNCTION.md` | How each function uses Muse Spark, and the demo beat sheet (wins on model use) |
 | `docs/HACKATHON-RULES.md` | Official rules, dates, submission and judging (wins on anything about the hackathon) |
 | `docs/BUILD-PLAN.md` | Schedule, data model, API and work packages |
 | `AGENTS.md` | Rules for every coding agent |
-| `docs/DESIGN.md` | Mono LCD design system, voice and core product rules |
+| `docs/DESIGN.md` | Mono LCD design system, voice and product rules |
+| `docs/COMPETITOR-REVIEWS.md` | The review research behind the 27 Oct decision |
+| `docs/PROJECT-INSTRUCTIONS-v3.2.md` | Go App-Free: the compass ideas now feed FIND ME; briefings and the rest are after 4 Nov |
 | `docs/CHANGELOG.md` | History of decisions |
-
-The earlier Hi-Five quest bot and the v2 brief are retired and deleted. Their core rules (circle, catch-up in threes, Little Signals, invitations, mutual QR, finite by design) live on in this file, `DESIGN.md` and `AGENTS.md`.
 
 ## The event
 - Meta Global AI Developer Hackathon (Cerebral Valley), remote. Building period 27 Oct to 4 Nov 2026. Solo entry by Huguinho (HG-Labs), **Indie Developer track**, problem statement **Build for Your World**.
-- Kickoff Mon 26 Oct 12:00 ET (17:00 Zurich). Workshops 27, 28 and 30 Oct at 17:00 Zurich. Office hours in Discord #office-hours on weekdays, 10:00 to 11:00 ET.
-- **Deadline: Wed 4 Nov 21:00 ET (Thu 5 Nov 03:00 Zurich)** on the CV platform. Late entries are not considered. Own target: submit by 18:00 Zurich on Wed 4 Nov.
-- Submission needs: a **public repo** (open-source licence), a **3-minute demo video** showing only what was built during the hackathon, and a live product.
-- Judging: stage 1 pass or fail (fits a problem statement, reasonably uses the Meta Model API or Meta open weights), then four equal criteria scored 0 to 10: **Impact, Use of Meta AI tooling, Technical depth and execution, Demo**. Top 5 per track judged live on 9 Nov.
-- Bonus prizes worth aiming at: Most Viral (X engagement up to 8 Nov), Community Vote, Best Agentic Use-Case, Best Build on Meta Open Weight Models.
-- Meta stack: Muse Spark via the Meta Model API (language, tool use), Muse Voice Transcribe (voice input), Muse Code (coding agent), optional Muse Spark Open on Baseten (`meta-models/muse-spark-open-1026`). $150 Meta API credits per participant, claim by the deadline; a card must be on the account, set a spend limit.
+- Workshops 27, 28 and 30 Oct at 17:00 Zurich. Office hours in Discord #office-hours on weekdays.
+- **Deadline: Wed 4 Nov 21:00 ET (Thu 5 Nov 03:00 Zurich)** on the CV platform. Own target: submit by 18:00 Zurich on Wed 4 Nov.
+- Submission: a **public repo** (MIT), a **3-minute demo video** of hackathon work only, and a live product.
+- Judging: stage 1 pass or fail (problem statement, reasonable use of the Meta Model API or open weights), then four equal criteria 0 to 10: **Impact, Use of Meta AI tooling, Technical depth and execution, Demo**. Top 5 per track judged live on 9 Nov.
+- Bonus prizes worth aiming at: Most Viral (X up to 8 Nov), Community Vote, Best Agentic Use-Case.
+- Meta stack: Muse Spark via the Meta Model API, Muse Code as the coding agent. $150 API credits, claim by the deadline.
 
 ## Rules that shape the work
-- **New work only, clearly marked.** The design system and the planning docs existed before the building period. They are in the repo's first commit, tagged `pre-hackathon`; the earlier clickable prototype is not carried over, so all code is new. They are are listed in the README as prior work, and are not presented as hackathon work in the video. Not declaring this can mean disqualification.
-- **Stay off the anti-project list.** It names AI mental-health advisers, AI coaches and simple chatbots. Hoolala! is pitched as a social product for friends and real plans. In the submission, video and README avoid "lonely", "shy", "social anxiety", "therapy" and "coach"; the model never gives emotional or health advice; small talk missions are a pre-written game, not AI guidance.
-- **Use of Meta AI tooling is a quarter of the score.** The model must do visible, meaningful work, not one rewrite button. See the model plan below.
-- Only assets we have rights to: our own code and copy, OFL fonts with their licence, no third-party images.
+- **New work only, clearly marked.** The design system and planning docs pre-date the building period, are committed once and tagged `pre-hackathon`, listed as prior work in the README, and not shown in the video as hackathon work. All code is new.
+- **Stay off the anti-project list.** Hoolala! is a social product for people who share a place. Copy, video and README avoid "lonely", "shy", "social anxiety", "therapy", "coach" and "dating". The model never gives emotional, health or relationship advice.
+- **Use of Meta AI tooling is a quarter of the score.** The model does visible, meaningful work at several steps (see below).
+- Only assets we have rights to.
 
 ## The product: Hoolala!
-- Signature: **Hoolala!** *You never know until you go.* ("Less screen. More life." is retired.) Positioning line for Go App-Free, the pitch and the README: **Your data. Your choice. Your attention.**
-- An anti-social-media social network. Not anti-social, not anti-technology, not a digital wellness coach. A tiny private circle, finite by design, whose best screen is the one that sends you outside.
-- v3.2 in one line: Opal helps people manage distractions; Hoolala! helps people navigate possibilities. The person defines what meaningful technology use is; Hoolala! never moralises screen time.
-- Voice: witty, observational, never preachy. Formula: what we say / what actually happens ("We live five minutes apart." / It's been six months.).
-- Look: Nokia 3210-era green monochrome LCD, Silkscreen and Space Mono. Source of truth: `docs/DESIGN.md` (and the Hoolala! design system in Claude).
+- Signature: **Hoolala!** *You never know until you go.* ("Less screen. More life." is retired.)
+- An anti-social-media social network: not anti-social, not anti-technology, not a wellness coach. Finite by design; the best screen is the one that sends you to a real conversation.
+- Voice: witty, observational, never preachy. What we say / what actually happens: **"We've sat at the same table for six months." / Never spoken.**
+- Look: Nokia 3210-era green monochrome LCD, Silkscreen and Space Mono (`docs/DESIGN.md`).
 
-### Features in the hackathon build
-- **Home:** one rotating two-line observation per visit, then ANYTHING NEW? and GO APP-FREE, a short menu and a one-question chat.
-- **Go App-Free (v3.2):** a seven-stage Muse Spark conversation ("Hello, human." > what you want more of > what makes digital time worthwhile > where to look > what to filter > how often > "Your world, according to you.") then Telegram linking and a first briefing. Back, skip and edit everywhere; scripted fallback.
-- **Personal Compass (v3.2):** "What you're curious about right now": intentions, interests, filters, sources, delivery, welcome actions. Built only from what the person said; edits in plain language ("Only send me opportunities near Lausanne") are proposed, confirmed, listed and undoable. Never a score.
-- **Sources:** friends on Hoolala! plus Muse Spark web search (FIND IT). RSS feeds and shared links are cut from the hackathon build. LinkedIn and Instagram are "links you share only" because their platform rules forbid feed reading and digests.
-- **Briefings (v3.2):** finite (default cap 3), friends' items first in their own words, each item with a reason tied to a compass line and a source link, one action at the end (often ASK A FRIEND), one-tap feedback that becomes a visible compass change. In the web app or Telegram, on demand or on the person's schedule, inside quiet hours.
-- **Catch me up (Anything new?):** friends' notes and signals wait until asked; three at a time, ASK FOR MORE only on request, then "That's everything. We could show you more, but we'd have to make it up."
-- **Little Signals:** a temporary mood or availability hint ("Coffee wouldn't hurt.", "Social battery: 12%.") for the circle, chosen friends or private; expires (4 hours default), editable, cancellable, enforced on the server. Not an online status.
-- **Anyone around?:** availability signals friends explicitly shared with you, plus "So... Thursday?" to suggest a plan or leave a note. Never mood signals, location or behaviour; nothing sent without approval.
-- **Leave a note:** quick personal notes (edit, delete) or an invitation out.
-- **Invite them out:** pick an activity, when, where, who, one line, review, send. Answers: I'M IN / NOT THIS TIME. Open invitations also appear in briefings (this replaces Find a plan).
-- **Meet IRL:** mutual QR, both agree, +1 private moment, counted on the Live page.
-- **Go live:** the screen "switches to full resolution" (real life), goes dark: HOOLALA! IS OFF. YOU'RE ON.
+### The hackathon build: Signals here (`docs/SIGNALS-HERE.md`, v5)
+Works at **any public place**: a café, a bar, a coworking space, a library. No partner or host needed.
+0. **Get started (FIND ME):** "Want a head start? OK to read your public profile?" Muse Spark searches what's public about the person (their name, city, links they give), they tick IS THIS YOU?, and it drafts their **Personal Compass** with a source on every line. Private: used only for their own topic ideas and to show signals that fit them first. NO means three quick questions.
+1. **Arrive** (no AI, on purpose): share location, pick the place; not listed, ADD THIS PLACE (saved at that location); GPS wrong, search by name; QR poster optional for partner places. The person's coordinates are discarded after the lookup.
+2. **The place (PLACE IT):** hours, menu, spots fetched from Google Maps and the place's website with sources; people confirm or fix them and earn private **place points**.
+3. **Peek and discover:** up to 3 open signals from people checked in at the same place, anonymous, translated FR/EN, FITS YOU marked only for you.
+4. **Post:** a topic (60 characters), when, where in the place, for how many (1 to 3). SUGGEST IT gives ideas that fit you and the place; SCREEN IT checks every topic, reply and place detail.
+5. **Respond and accept:** I'M CURIOUS; the poster accepts or says NOT THIS TIME. First names only after both accept. No free chat, quick replies only.
+6. **Plan:** PLAN IT proposes the spot and time; the poster confirms.
+7. **Meet:** mutual QR, both agree; the Live page counts it and the **real-world connection rate** rises.
+8. **Stay in touch:** both choose it, or nothing happens.
+9. **Go live:** HOOLALA! IS OFF. YOU'RE ON.
 
-### Cut from the hackathon build (26 Oct, to make room for v3.2)
-Small talk missions, Sounds familiar? persistence, sharing and discovery, Find a plan as a separate flow, Unplug, Outside Picks, NFC, voice input, Muse Spark Open. Their designs stay in the design system, marked ROADMAP; none are built or shown in the demo. They return to the roadmap after 4 Nov.
+### How Muse Spark is used (see `docs/MUSE-SPARK-BY-FUNCTION.md`)
+- **FIND ME:** web search with citations about the person (with consent) and a structured compass draft they confirm.
+- **PLACE IT:** an agent with parallel tools (Google Maps details live, web search for the menu, our confirmed facts) that returns sourced place facts for people to confirm.
+- **SUGGEST IT:** topic ideas from the place, the time and what's on nearby, with web search citations.
+- **SCREEN IT:** structured verdicts on every topic and reply (no dating, selling, personal data, harassment), plus FR/EN translation. Code rules first; the model never rewrites silently.
+- **PLAN IT:** parallel tool calls propose a meeting spot and time; draft only, the poster confirms.
+- **SNAP IT** (stretch): a noticeboard photo becomes a draft signal.
+- **CHECK IT:** SHOW THE WORKINGS on every AI answer, an evaluation set with a published pass rate.
+- No AI on purpose: ARRIVE, MEET IT, STAY IN TOUCH, GO LIVE. Muse Code builds it (`Agent: Muse Code` trailer).
 
-### How Muse Spark is used: by function (see `docs/MUSE-SPARK-BY-FUNCTION.md`, which wins on model use)
-Hoolala! turns "we should catch up" into "we did". Each step shows one Muse Spark capability, behind a code guardrail and with a model-off fallback:
-1. **TELL IT:** onboarding conversation builds the Personal Compass (conversation state, structured output).
-2. **SAY IT:** a Telegram voice note becomes an intent (native audio; audio never stored).
-3. **SNAP IT:** a poster or chalkboard photo becomes an event draft (vision; image never stored).
-4. **FIND IT:** a finite briefing of friends' items plus cited things happening nearby (built-in web search with citations, grounding validator).
-5. **PLAN IT:** the agent combines shared availability, finds and the compass into one draft invitation (parallel tool calling; sending needs your tap).
-6. **CHECK IT:** SHOW THE WORKINGS on every AI answer, plus an evaluation set with a published pass rate.
-Then the model steps out on purpose: **MEET IT** (mutual QR, Live counter) and **GO LIVE**. Reasoning effort is tuned per function. Muse Code builds it (commit trailer `Agent: Muse Code`). Not used: Muse Image, Muse Wonder, Muse Spark Open; Muse Voice Transcribe only as a fallback.
-
-### Development priorities
-1. Private accounts and trusted circles. 2. Conversational mailbox. 3. Little Signals with audience controls and expiry. 4. Social opportunities and voluntary invitations. 5. Sounds familiar? creation and sharing. 6. QR real-world acknowledgements. 7. Offline rewards. 8. Optional Outside Picks.
-For the hackathon build (26 Oct): accounts and circle, invitations, Little Signals, then Go App-Free (onboarding, compass, sources, briefings, Telegram), then QR, Live and share card. Small talk missions and Sounds familiar? move to after 4 Nov.
+### Moved to after 4 Nov
+Briefings (FIND IT), Telegram bot briefings (the rest of Go App-Free; brief kept in `PROJECT-INSTRUCTIONS-v3.2.md`), SAY IT, small talk missions, Sounds familiar?, Find a plan, Unplug, Outside picks, NFC. The Personal Compass is back in the build through FIND ME. If time after Sun 1: share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations.
 
 ### Success metrics
-Friend connections made, invitations accepted, plans made and (when reported) completed, share of users who find catch-ups useful, ease of starting an interaction, whether signals make plans easier, self-reported connection. Never session length or notification opens.
-v3.2 adds: onboarding completed without friction, self-rated compass accuracy, confidence editing preferences, sources and Telegram connected, first-briefing usefulness, actions taken from briefings. Never "screen time reduced".
+**North star: real-world connection rate** (accepted signals that end in a QR-confirmed meet-up). Also: first-attempt check-in success rate, signal-to-response conversion, response-to-accept, stay-in-touch rate, and in the pilot whether people understood signals without help and how comfortable replying felt. Never time in app, opens or "engagement".
 
-### Hackathon goal (updated 26 Oct for v3.2)
-By 4 Nov, real people can:
-1. **Sign in** with an email magic link on a public URL.
-2. **Go App-Free:** finish the onboarding conversation, approve their Personal Compass, add a feed or a shared link, and link Telegram.
-3. **Get a finite briefing** in the web app or Telegram: friends' notes, signals and invitations plus their own sources, each with a reason and a link, ending on one action. Give feedback that visibly changes the compass.
-4. **Exchange:** add friends, send notes and invitations (agent drafts, person confirms), answer I'M IN.
-5. **Count real life:** a public Live page shows one collective number of interactions confirmed by both people.
-6. **Share:** a pixel LCD share card. Post the demo on X for Most Viral.
+### Place points
+Private credit for caring for places: add a new place (10, once someone else checks in), add or fix a detail (5, once confirmed), confirm a detail (2). Only while checked in, never for your own, max 30 a day. Never for posting, replying or meeting. No leaderboards, no public totals, no streaks.
+
+### Pilot
+One busy Lausanne place, decided by Thu 29 Oct (a coworking space first; a café or a university common room otherwise; no host needed now), 15 to 20 opt-in people, Mon 2 Nov 11:00 to 16:00, after a friends dry run at a café on Sat 31 Oct. Film the demo there, with consent.
+
+### Hackathon goal (27 Oct)
+By 4 Nov, at a real café or coworking space: people get a head start from their public footprint, check in on the first try, see place details they can fix, see and post signals, reply and accept anonymously, get a proposed meeting point, meet and confirm with two phones, and the Live page shows the connection rate. Every AI answer can SHOW THE WORKINGS; the eval pass rate is in the README.
 
 ### Demo video (3 minutes)
-"Hello, human." onboarding with one agent follow-up; "Your world, according to you."; Telegram link; a briefing with a friend's signal and a feed item, each with a reason; "Stop showing me this topic" with confirm and undo; ASK A FRIEND becomes an invitation and the friend says I'M IN; two phones do the QR; the Live number ticks up; share card; Go live. One plain line that the visual design and a mock-up pre-date the event; credits for Muse Spark and Muse Code.
+Beat sheet in `MUSE-SPARK-BY-FUNCTION.md`: the coworking table line; FIND ME with a namesake ticked NOT ME; share location and check in (with the GPS failure and search by name); the place card with a fixed price; three signals, one translated; SUGGEST IT with a cited idea and a dating line politely refused; I'M CURIOUS, accept, first names, PLAN IT; MEET IT on the terrace and the connection rate; SHOW THE WORKINGS; STAY IN TOUCH; GO LIVE. One plain line that the visual design and a mock-up pre-date the event.
 
 ## Design principles (non-negotiable)
-- No feed, no likes, no follower counts, no streaks, no leaderboards, no guilt. The only public number is collective.
-- Pull, not push. Private by default. Confirm every outbound action. Never show SENT before the server confirms.
-- Not an AI companion and not an adviser: the chat answers one question with one action and gets out of the way. AI suggests, people decide; nothing AI-written is published automatically.
-- Honest claims: a QR tap means both people were together and agreed, not that a conversation was "verified". A web app cannot track screen time or switch a phone off.
-- Safety: 18+, block and report, delete account, simple public everyday plans, respect "no". Crisis words trigger a fixed help message (Switzerland 143, 147 for under 25s; UK Samaritans 116 123; 112). The model never improvises this.
-- Privacy: no contacts, location or usage data without explicit purpose. The compass holds only what the person said or chose; no hidden behavioural profiling, no personality labels, no dwell time or opens treated as interest. Feed items are purged after 14 days.
-- No screen-time moralising: never years lost, time wasted, productivity goals or comparisons. Limits are the person's own and easy to change or switch off.
+- No feed, no likes, no follower counts, no streaks, no leaderboards, no map of people. The only public numbers are collective. Place points are private.
+- Finite: 3 signals at a time; every flow ends.
+- Anonymous until both accept; first names only; no photos or profiles; no free chat with someone who hasn't accepted.
+- Place-level presence only: checked-in people at the same place, for at most 4 hours. The person's coordinates are discarded after finding the place; only places people add are saved. Check-ins deleted after 24 hours.
+- Your compass is yours: built only with consent, only about you, every line sourced, never shown to others, never used to match people.
+- Not dating, not selling, not recruiting: screened by code and Muse Spark, stated on the poster and the first screen.
+- Not an AI companion and not an adviser: AI suggests, screens and drafts; people post, accept and send. Nothing AI-written is published automatically.
+- Honest claims: a QR tap means both people met and agreed, not that a conversation was "verified".
+- Safety: 18+, block (both ways, everywhere) and report, leave any time, public meeting points inside the place only, rate limits. Crisis words trigger a fixed help message (Switzerland 143, 147 for under 25s; UK Samaritans 116 123; 112). The model never improvises this.
 
 ## Tech
-- One rule still holds: code for rules, data for content, the model for language.
-- Cloudflare Worker (TypeScript) serving the Mono LCD front end and a JSON API, D1, KV for sessions and rate limits, Cron Triggers for clean-up. Share card images as SVG to PNG with `@resvg/resvg-wasm`.
-- Email magic link via an email API (Resend or similar). Session cookie: HttpOnly, Secure, SameSite=Lax.
-- Muse Spark behind `src/llm/`. Endpoint and model id from env.
-- Telegram Bot API through `src/channels/telegram.ts` (webhook on the Worker, single-use link tokens). External finds come from Muse Spark's built-in web search, cached for an hour.
-- Front end: built from scratch during the hackathon from the Mono LCD design system (`prior-work/design-system/`), talking to the API.
+- Code for rules, data for content, the model for language.
+- Cloudflare Worker (TypeScript) serving the Mono LCD front end and a JSON API, D1, KV, Cron Triggers. Share cards and posters as SVG to PNG with `@resvg/resvg-wasm`.
+- Telegram Mini App as the main entry at the place (login verified with HMAC on the server); email magic link on the web. Optional bot notifications only for curious, accepted and quick replies, off by default.
+- Muse Spark behind `src/llm/` (`suggest.ts`, `screen.ts`, `agent.ts`, `snap.ts`). Endpoint and model id from env.
 - Full task list: `docs/BUILD-PLAN.md`. Agent rules: `AGENTS.md`.
 
-## Business model (to revisit after the hackathon)
-- Earlier idea: B2B finite programmes for employers, universities and relocation services. Not needed for the demo, and not part of the Indie Developer pitch.
-
 ## Open questions
-- Can code start after Monday's kickoff, or only from Tue 27 Oct? Default: setup only on Monday. Ask in #questions.
-- Do hackathon keys work from Switzerland (the Muse Spark preview was described as US only)? Which features are on our key: audio, image, web_search, structured output, parallel tools, conversation state?
-- Meta Model API base URL, auth and model ids (Muse Spark, Muse Voice Transcribe), rate limits; credit claim link.
-- Confirm a declared pre-hackathon design system is acceptable.
-- Domain name and email sender for magic links. Trademark check on "Hoolala!".
+- Which Muse Spark features are on our key from Switzerland (web_search, structured output, parallel tools, image input, prompt caching)?
+- Pilot place (by Thu 29 Oct) and the OK to film there.
+- Google Maps Platform key with billing (fallback: OpenStreetMap).
+- Domain and email sender; trademark check on "Hoolala!".
 
 ## Style
 - UK English, no em dashes, in all user-facing text and docs.
