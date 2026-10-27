@@ -1,0 +1,39 @@
+name: deploy-production
+
+# Safety net for direct pushes to main (a docs hotfix merged by PR, a manual
+# merge). The normal path is Actions > promote: you accept staging, and that
+# run merges staging into main and deploys production itself. Its push does
+# not retrigger this workflow (GitHub starts no new run from a GITHUB_TOKEN
+# push), so there is no double deploy.
+# Also runnable by hand for a redeploy: Actions > deploy-production > Run workflow.
+# Needs the CLOUDFLARE_API_TOKEN secret (and CLOUDFLARE_ACCOUNT_ID).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run eval
+      - run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - run: node scripts/smoke.mjs https://hoolala.hg-labs.io

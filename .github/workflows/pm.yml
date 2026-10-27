@@ -1,0 +1,32 @@
+name: pm
+
+# The PM agent: rule-based, runs on GitHub, needs no secrets beyond GITHUB_TOKEN.
+# Every morning it checks BUILD-PLAN checkboxes, branch state and repo hygiene,
+# updates the pinned status issue, and fails loudly if prior-work/ was touched.
+on:
+  schedule:
+    - cron: "0 7 * * *" # 08:00 Zurich (CET)
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/pm.mjs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          LLM_TOKEN_BUDGET: ${{ vars.LLM_TOKEN_BUDGET }}

@@ -1,0 +1,37 @@
+name: deploy-staging
+
+# Keeps the staging branch aligned with the staging URL: every push to staging
+# runs the checks, deploys, and smoke-tests https://staging.hoolala.hg-labs.io.
+# Needs the CLOUDFLARE_API_TOKEN secret (and CLOUDFLARE_ACCOUNT_ID).
+on:
+  push:
+    branches: [staging]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.hoolala.hg-labs.io
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run eval
+      - run: npm run deploy:staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - run: node scripts/smoke.mjs https://staging.hoolala.hg-labs.io

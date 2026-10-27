@@ -1,0 +1,29 @@
+# Hoolala! Worker config. Owner steps before the first deploy:
+#   wrangler d1 create hoolala        -> paste database_id below
+#   wrangler kv namespace create SESSIONS -> paste id below
+#   wrangler secret put TELEGRAM_BOT_TOKEN (and the other secrets; never in this file)
+name = "hoolala"
+main = "src/worker.ts"
+compatibility_date = "2026-10-27"
+
+[assets]
+directory = "public/"
+binding = "ASSETS"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hoolala"
+database_id = "0718e6c5-5d27-4c05-adf2-7caf3187aa87"
+migrations_dir = "src/db/migrations"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "62618ecee68b4cf8a56e0cfa10d3a675"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+LLM_ENABLED = "false"
+PLACES_PROVIDER = "osm"
