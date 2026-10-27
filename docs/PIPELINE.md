@@ -4,8 +4,13 @@
 
 | Branch | URL | Deployed by |
 |---|---|---|
-| `staging` | https://staging.hoolala.hg-labs.io | `deploy-staging.yml` on every push: checks, `npm run deploy:staging`, smoke test |
-| `main` | https://hoolala.hg-labs.io | `promote.yml` after your manual accept: merge, `npm run deploy`, smoke test |
+| `staging` | https://staging.hoolala.hg-labs.io | `deploy-staging.yml` on every push: checks, eval, `npm run deploy:staging`, smoke test |
+| `main` | https://hoolala.hg-labs.io | `promote.yml` after your manual accept: merge, checks, eval, `npm run deploy`, smoke test, all in one run |
+
+`deploy-production.yml` is the safety net for direct pushes to `main` (a docs
+hotfix merged by PR, a manual merge): checks, eval, deploy, smoke test. It
+never double-deploys after a promotion, because GitHub starts no new run from
+a `GITHUB_TOKEN` push. It is also runnable by hand for a redeploy.
 
 Both configs set `run_worker_first = true`, so every request (pages and API)
 passes through `src/worker.ts` and carries the security headers. Without it the
@@ -33,6 +38,19 @@ then add the bindings to `wrangler.staging.toml` and run `npm run db:migrate:sta
 
 One-time setup: repo Settings > Environments > `acceptance`, with yourself as
 required reviewer.
+
+## Work package issues
+
+One GitHub issue per work package, seeded from `docs/BUILD-PLAN.md`:
+
+```bash
+node scripts/seed-wp-issues.mjs
+```
+
+Safe to re-run: it skips titles that already exist, and creates the
+`work-package` label if missing. `DRY_RUN=1` prints what it would create.
+The PM agent keeps the separate Build status issue (label `pm`) and never
+closes or assigns these issues; you do.
 
 ## Secrets and variables
 

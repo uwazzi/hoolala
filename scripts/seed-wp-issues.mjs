@@ -14,6 +14,13 @@ function sh(cmd, args) {
 
 const plan = readFileSync(ROOT + "docs/BUILD-PLAN.md", "utf8");
 const sections = plan.split(/^### /m).slice(1);
+if (!DRY_RUN) {
+  try {
+    sh("gh", ["label", "create", "work-package", "--color", "0e8a16", "--description", "Build plan work package"]);
+  } catch {
+    // Label already exists.
+  }
+}
 let existingTitles = [];
 try {
   existingTitles = sh("gh", ["issue", "list", "--limit", "100", "--json", "title", "--jq", ".[].title"])

@@ -162,6 +162,7 @@ if (DRY_RUN) {
     sh("gh", ["issue", "edit", existing, "--repo", REPO, "--body", report]);
     console.log(`updated issue #${existing}`);
   } else {
+    sh("gh", ["label", "create", "pm", "--repo", REPO, "--color", "1d76db", "--description", "PM agent status"]);
     sh("gh", ["issue", "create", "--repo", REPO, "--title", STATUS_TITLE, "--body", report, "--label", "pm"]);
     console.log("created status issue");
   }

@@ -2,7 +2,9 @@ name: promote
 
 # Staging is published and tested; you validate it by accepting this run:
 # Actions > promote > Run workflow > review > Accept. Accepting merges staging
-# into main and publishes https://hoolala.hg-labs.io.
+# into main and publishes https://hoolala.hg-labs.io, all in this one run.
+# Its push to main does not retrigger deploy-production.yml (GitHub starts no
+# new run from a GITHUB_TOKEN push), so production deploys exactly once.
 # One-time setup: repo Settings > Environments > `acceptance`, with yourself
 # as required reviewer. Needs the CLOUDFLARE_API_TOKEN secret (and
 # CLOUDFLARE_ACCOUNT_ID) for the production deploy.
@@ -11,6 +13,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
 
 jobs:
   smoke-staging:
@@ -51,6 +57,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: npm run eval
       - run: npm run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
