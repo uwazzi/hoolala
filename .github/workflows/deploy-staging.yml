@@ -17,6 +17,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.hoolala.hg-labs.io
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
