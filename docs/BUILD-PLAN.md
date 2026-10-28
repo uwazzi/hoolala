@@ -169,9 +169,9 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] `src/rules/screening.ts` first (pure, tests): length, links, emails, phone numbers, handles, crisis words, a short word list (dating, sexual, slurs, selling). Code rules decide alone when the model is off or times out.
 - [x] `src/llm/screen.ts` (SCREEN IT): structured output `{verdict, category, reason, fr, en}`, `reasoning_effort: minimal`, prompt caching on the house rules, 1.5 s target, 4 s timeout. Can approve or reject; never rewrites. Rejection screen: the reason in Hoolala! voice ("That sounds more like a date than a coffee break. Try again?") and EDIT.
 - [x] `src/llm/suggest.ts` (SUGGEST IT): place name, area, time of day, spots, plus at most one `web_search` ("events near <area> today"), cached per place for 1 hour. Returns 3 ideas `{topic, why, citation_url?}`; `src/rules/grounding.ts` drops ideas naming an event without a returned citation; every idea also passes SCREEN IT. Shown as AI / SUGGESTION with USE THIS; never posted automatically.
-- [ ] `src/llm/agent.ts` (PLAN IT): tools `get_signal`, `get_place_spots`, `get_quick_replies`, `get_place_hours`, `draft_meeting_point` (draft only); parallel calls, max 4; returns "Terrace at 15:10?" with CONFIRM (issues the confirmation token) and CHANGE.
-- [ ] Every AI answer writes a `workings` row and an `llm_calls` row.
-- [ ] Tests: model never rewrites silently; invented event dropped; PLAN IT only proposes real spots; never "sent"; model-off paths.
+- [x] `src/llm/agent.ts` (PLAN IT): tools `get_signal`, `get_place_spots`, `get_quick_replies`, `get_place_hours`, `draft_meeting_point` (draft only); parallel calls, max 4; returns "Terrace at 15:10?" with CONFIRM (issues the confirmation token) and CHANGE.
+- [x] Every AI answer writes a `workings` row and an `llm_calls` row.
+- [x] Tests: model never rewrites silently; invented event dropped; PLAN IT only proposes real spots; never "sent"; model-off paths.
 
 ### WP5 Meet and the connection rate (Sat 31)
 - [x] From an accepted signal: MEET > shows a QR (10 minutes) plus a short code; the other scans and both agree; writes `interactions` (kind `here`, place, signal), a private moment each: "You met an actual human."

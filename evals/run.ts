@@ -4,11 +4,13 @@
 // No personal data is printed or written.
 
 import { mkdirSync, writeFileSync } from "node:fs";
+import { planMeeting } from "../src/llm/agent";
 import { findMe } from "../src/llm/findme";
 import { screenWithModel } from "../src/llm/screen";
 import { suggestFor } from "../src/llm/suggest";
 import { cleanCompass, hasBannedLabel, isOwnName } from "../src/rules/compass";
 import { ground, resolveCitation } from "../src/rules/grounding";
+import { checkDraft, claimsAction } from "../src/rules/plan";
 import { screenText } from "../src/rules/screening";
 import type { Env } from "../src/types";
 import { FINDME_PUBLIC, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES } from "./cases";
@@ -95,6 +97,11 @@ record({
   pass: cleanCompass([{ part: "interest", text: "Chess", source_url: null }], [], false).length === 0,
 });
 
+const planCtx = { spots: ["Terrace", "The big table"], now: new Date("2026-10-28T14:00:00.000Z"), expiresAt: "2026-10-28T15:00:00.000Z" };
+record({ suite: "plan", name: "Never returns 'sent' or 'confirmed'", live: false, pass: claimsAction("Sent to Ben, confirmed for 15:10") && !claimsAction("Quieter and near the counter") });
+record({ suite: "plan", name: "Only real spots", live: false, pass: checkDraft("Rooftop", "2026-10-28T14:10:00.000Z", planCtx) === null });
+record({ suite: "plan", name: "Never after the signal ends", live: false, pass: checkDraft("Terrace", "2026-10-28T15:30:00.000Z", planCtx) === null });
+
 // --- Live: Muse Spark ---------------------------------------------------------
 
 const live = process.argv.includes("--live");
@@ -143,6 +150,32 @@ if (live) {
     const s = await suggestFor(env, p, p.spots, new Date());
     const ok = s.source === "ai" && s.ideas.length >= 2 && s.ideas.every((i) => i.topic.length <= 60);
     record({ suite: "suggest", name: `Grounded ideas for ${p.name}`, live: true, ms: Date.now() - started, fallback: s.source !== "ai", pass: ok, detail: `${s.source}, ${s.ideas.length} ideas, ${s.grounded}/${s.total} grounded` });
+  }
+
+  {
+    const started = Date.now();
+    const now = new Date();
+    const expires = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    const spots = ["Terrace", "The big table", "By the window"];
+    const d = await planMeeting(env, {
+      signal: { topic: "Chess at the big table?", when_at: new Date(now.getTime() + 20 * 60 * 1000).toISOString(), spot: "The big table", capacity: 2, expires_at: expires },
+      accepted: 1,
+      spots,
+      hours: null,
+      replies: [{ from: "responder", kind: "five_late", at: now.toISOString() }],
+      now,
+    });
+    const ok =
+      d !== null && d.source === "ai" && spots.includes(d.spot) && Date.parse(d.time) <= Date.parse(expires) && d.toolOrder.at(-1) === "draft_meeting_point" && d.toolOrder.length > 1 && !(d.why && claimsAction(d.why));
+    record({
+      suite: "plan",
+      name: "Reads through its tools, then drafts a real spot and time",
+      live: true,
+      ms: Date.now() - started,
+      fallback: d?.source !== "ai",
+      pass: ok,
+      detail: d ? `${d.source}: ${d.toolOrder.join(" > ")}` : "no draft",
+    });
   }
 
   {

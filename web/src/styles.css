@@ -262,3 +262,7 @@ select.lcd-field { appearance: none; }
 .workings-list dt { font: 700 11px/1.6 var(--font-display); text-transform: uppercase; color: var(--lcd-ink-secondary); }
 .workings-list dd { margin: 0; overflow-wrap: anywhere; }
 .workings-off { color: var(--lcd-ink-secondary); }
+
+/* PLAN IT */
+.meeting-point { font-weight: 700; }
+.plan { margin: 8px 0; }

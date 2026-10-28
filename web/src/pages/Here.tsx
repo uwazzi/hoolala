@@ -5,12 +5,14 @@ import { useEffect, useState } from "preact/hooks";
 import type { CheckinView } from "../../../src/types";
 import { api } from "../api";
 import { Screen } from "../components/Screen";
+import { PlanBox } from "../components/PlanBox";
 import { Workings } from "../components/Workings";
 
 interface Reply { from: string; text: string; at: string }
 interface Request { id: string; line: string | null; state: string; name: string | null }
-interface Mine { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
-interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
+interface Point { spot: string; time: string; proposedBy: string }
+interface Mine { id: string; topic: string; translation?: string | null; meetingPoint?: Point | null; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
+interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; meetingPoint?: Point | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
 interface Found { id: string; topic: string; translation?: string | null; fitsYou?: boolean; whenAt: string; spot: string; capacity: number; expiresAt: string }
 interface Idea { topic: string; why: string; citationUrl: string | null; sourceDomain: string | null }
 interface HereView { checkin: CheckinView | null; spots: string[]; mine: Mine[]; joined: Joined[]; discover: Found[] }
@@ -198,6 +200,7 @@ export function Here() {
             ))}
             <Replies replies={s.replies} />
             {accepted.length > 0 && <QuickReplies onSend={(kind) => act(`/api/here/signals/${s.id}/quick`, { kind })} />}
+            {accepted.length > 0 && <PlanBox signalId={s.id} spots={data.spots} point={s.meetingPoint ?? null} onSaved={load} />}
             {accepted.length > 0 && (
               <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href={`/meet?signal=${s.id}`}>Meet: show my QR</a></li></ul>
             )}
@@ -220,6 +223,7 @@ export function Here() {
             <>
               <p>Accepted. <strong>{j.ownerName ?? "Someone"}</strong> · {j.spot.toLowerCase()} · {whenText(j.whenAt).toLowerCase()}.</p>
               <Replies replies={j.replies} />
+              <PlanBox signalId={j.signalId} spots={data.spots} point={j.meetingPoint ?? null} onSaved={load} />
               <QuickReplies onSend={(kind) => act(`/api/here/signals/${j.signalId}/quick`, { kind })} />
               <ul class="key-list">
                 <li>

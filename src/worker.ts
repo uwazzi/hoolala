@@ -18,6 +18,7 @@ import {
 import { handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
+import { handleMeetingPoint, handlePlan } from "./api/plan";
 import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -126,6 +127,11 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     if (action === "cancel") return handleCancelSignal(id, request, env);
     if (action === "curious") return handleCurious(id, request, env);
     return handleQuickReply(id, request, env);
+  }
+  const planAction = /^\/api\/here\/signals\/([0-9a-f-]{36})\/(plan|meeting-point)$/.exec(url.pathname);
+  if (planAction && method === "POST") {
+    const [, id, action] = planAction;
+    return action === "plan" ? handlePlan(id, request, env) : handleMeetingPoint(id, request, env);
   }
   const responseAction = /^\/api\/here\/responses\/([0-9a-f-]{36})\/(accept|decline)$/.exec(url.pathname);
   if (responseAction && method === "POST") {

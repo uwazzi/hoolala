@@ -236,3 +236,43 @@ export async function reportItem(
   }
   await db.batch(statements);
 }
+
+// --- PLAN IT (WP23): meeting points ---------------------------------------------
+
+export async function saveMeetingPoint(
+  db: D1Database,
+  m: { signalId: string; spot: string; time: string; proposedBy: "person" | "agent"; nowIso: string },
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO meeting_points (signal_id, spot, time, proposed_by, confirmed_at) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(signal_id) DO UPDATE SET spot = excluded.spot, time = excluded.time, proposed_by = excluded.proposed_by, confirmed_at = excluded.confirmed_at`,
+    )
+    .bind(m.signalId, m.spot, m.time, m.proposedBy, m.nowIso)
+    .run();
+}
+
+export async function meetingPointsFor(
+  db: D1Database,
+  signalIds: string[],
+): Promise<Map<string, { spot: string; time: string; proposedBy: "person" | "agent" }>> {
+  if (!signalIds.length) return new Map();
+  const { results } = await db
+    .prepare(`SELECT * FROM meeting_points WHERE confirmed_at IS NOT NULL AND signal_id IN (${signalIds.map(() => "?").join(", ")})`)
+    .bind(...signalIds)
+    .all<{ signal_id: string; spot: string; time: string; proposed_by: "person" | "agent" }>();
+  return new Map(results.map((r) => [r.signal_id, { spot: r.spot, time: r.time, proposedBy: r.proposed_by }]));
+}
+
+/** Quick replies on a signal as PLAN IT may see them: who (by role), what, when. No names. */
+export async function repliesByRole(
+  db: D1Database,
+  signalId: string,
+  ownerId: string,
+): Promise<{ from: "owner" | "responder"; kind: QuickReplyKind; at: string }[]> {
+  const { results } = await db
+    .prepare("SELECT user_id, kind, created_at FROM quick_replies WHERE signal_id = ? ORDER BY created_at")
+    .bind(signalId)
+    .all<{ user_id: string; kind: QuickReplyKind; created_at: string }>();
+  return results.map((r) => ({ from: r.user_id === ownerId ? "owner" : "responder", kind: r.kind, at: r.created_at }));
+}

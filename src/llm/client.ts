@@ -239,3 +239,139 @@ export async function searchStructured<T>(
   }
   return result;
 }
+
+export interface AgentTool {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
+  /** Read-only, scoped by the caller. Returns what the model may see. */
+  run: (args: Record<string, unknown>) => Promise<unknown>;
+}
+
+export interface AgentCall {
+  purpose: string;
+  system: string;
+  user: string;
+  tools: AgentTool[];
+  /** The tool that ends the loop; its arguments are the answer, checked by the caller. */
+  finalTool: { name: string; description: string; parameters: Record<string, unknown> };
+  effort: Effort;
+  timeoutMs: number;
+  maxRounds: number;
+  maxCallsPerRound: number;
+}
+
+/**
+ * A short tool loop on Chat Completions. The model may call the read-only
+ * tools (several at once) and must finish by calling the final tool. Never
+ * acts on its own: the final tool's arguments are a draft for a person.
+ */
+export async function agentLoop(
+  env: Env,
+  call: AgentCall,
+): Promise<CallResult<{ final: Record<string, unknown>; toolOrder: string[] }>> {
+  if (!llmEnabled(env)) return { ok: false, reason: "off", latencyMs: 0 };
+  const started = Date.now();
+  const deadline = started + call.timeoutMs;
+  const toolOrder: string[] = [];
+  const byName = new Map(call.tools.map((t) => [t.name, t]));
+  const toolDefs = [...call.tools, call.finalTool].map((t) => ({
+    type: "function",
+    function: { name: t.name, description: t.description, parameters: t.parameters },
+  }));
+  type Message = Record<string, unknown>;
+  const messages: Message[] = [
+    { role: "system", content: call.system },
+    { role: "user", content: call.user },
+  ];
+  const fail = (reason: FailReason): CallResult<never> => ({ ok: false, reason, latencyMs: Date.now() - started });
+
+  for (let round = 0; round < call.maxRounds; round++) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return fail("timeout");
+    let usage: { prompt_tokens?: number; completion_tokens?: number } | undefined;
+    let toolCalls: { id: string; function: { name: string; arguments: string } }[] = [];
+    let message: Message | undefined;
+    const roundStart = Date.now();
+    try {
+      const res = await fetch(`${env.META_API_BASE}/chat/completions`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${env.META_API_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          model: env.MUSE_SPARK_MODEL,
+          reasoning_effort: call.effort,
+          max_completion_tokens: 1500,
+          messages,
+          tools: toolDefs,
+          tool_choice: "auto",
+          parallel_tool_calls: true,
+        }),
+        signal: AbortSignal.timeout(remaining),
+      });
+      if (!res.ok) {
+        await logRound(env, call.purpose, Date.now() - roundStart, 0, false, undefined);
+        return fail("http");
+      }
+      const body = (await res.json()) as { choices?: { message?: Message }[]; usage?: typeof usage };
+      usage = body.usage;
+      message = body.choices?.[0]?.message;
+      toolCalls = ((message?.tool_calls as typeof toolCalls | undefined) ?? []).slice(0, call.maxCallsPerRound);
+    } catch (err) {
+      const timedOut = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+      await logRound(env, call.purpose, Date.now() - roundStart, 0, false, undefined);
+      return fail(timedOut ? "timeout" : "http");
+    }
+
+    const final = toolCalls.find((c) => c.function?.name === call.finalTool.name);
+    await logRound(env, call.purpose, Date.now() - roundStart, toolCalls.length, Boolean(final), usage);
+    if (final) {
+      toolOrder.push(call.finalTool.name);
+      try {
+        const args = JSON.parse(final.function.arguments) as Record<string, unknown>;
+        return { ok: true, value: { final: args, toolOrder }, latencyMs: Date.now() - started };
+      } catch {
+        return fail("invalid");
+      }
+    }
+    if (!toolCalls.length) return fail("invalid");
+
+    // Run the read-only tools the model asked for (together), and hand back the results.
+    messages.push({ role: "assistant", content: message?.content ?? null, tool_calls: toolCalls });
+    const outputs = await Promise.all(
+      toolCalls.map(async (c) => {
+        const tool = byName.get(c.function?.name);
+        let args: Record<string, unknown> = {};
+        try {
+          args = JSON.parse(c.function.arguments || "{}");
+        } catch {
+          args = {};
+        }
+        toolOrder.push(c.function?.name ?? "unknown");
+        const output = tool ? await tool.run(args).catch(() => ({ error: "failed" })) : { error: "unknown tool" };
+        return { role: "tool", tool_call_id: c.id, content: JSON.stringify(output) };
+      }),
+    );
+    messages.push(...outputs);
+  }
+  return fail("invalid");
+}
+
+async function logRound(
+  env: Env,
+  purpose: string,
+  latencyMs: number,
+  toolCalls: number,
+  done: boolean,
+  usage: { prompt_tokens?: number; completion_tokens?: number } | undefined,
+): Promise<void> {
+  try {
+    await env.DB.prepare(
+      `INSERT INTO llm_calls (id, purpose, model, latency_ms, tool_calls, validated, fallback_used, prompt_tokens, completion_tokens, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+    )
+      .bind(crypto.randomUUID(), purpose, env.MUSE_SPARK_MODEL ?? "unknown", latencyMs, toolCalls, done ? 1 : 0, usage?.prompt_tokens ?? null, usage?.completion_tokens ?? null, new Date().toISOString())
+      .run();
+  } catch {
+    // Accounting must never break the feature.
+  }
+}
