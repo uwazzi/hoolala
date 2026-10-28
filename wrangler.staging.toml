@@ -13,6 +13,17 @@ run_worker_first = true
 pattern = "staging.hoolala.hg-labs.io"
 custom_domain = true
 
+# Staging's own D1 and KV (created 28 Oct). Never point these at production.
+[[d1_databases]]
+binding = "DB"
+database_name = "hoolala-staging"
+database_id = "6d2b88a8-c645-46cb-ac1e-d2604bbe2346"
+migrations_dir = "src/db/migrations"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "b694f9efe9664e59a5fb586c15321c99"
+
 [vars]
 LLM_ENABLED = "false"
 PLACES_PROVIDER = "osm"
