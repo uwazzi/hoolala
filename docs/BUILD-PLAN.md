@@ -154,14 +154,16 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Tests: forged initData rejected; stale auth_date rejected; notifications only when switched on.
 
 ### WP22 Signals here (Thu 29)
-- [ ] `src/rules/here.ts` (pure, tests first): a viewer sees a place signal only if both are checked in at that place now, the signal is open and unexpired, neither has blocked the other, and it's not their own; names are revealed only between an owner and an accepted responder; capacity respected; limits (2 open signals, 5 curious per hour).
-- [ ] Post: topic (60), WHEN (now, in 30 min, at a time), WHERE (place spots), FOR HOW MANY (1 to 3); expiry rule from `SIGNALS-HERE.md`; edit, cancel.
-- [ ] Discover: 3 at a time, then "That's everything here right now. Post one?" Shows topic, when, spot, "Someone here", expiry; translation when available with ORIGINAL toggle.
-- [ ] Respond: I'M CURIOUS with an optional line (60); owner sees "Someone here is curious: [line]"; ACCEPT or NOT THIS TIME (no reason; responder sees "Not this time. No hard feelings."). After accept, both see first names, the spot and the time.
-- [ ] Quick replies only: ON MY WAY / 5 MINUTES LATE / CAN'T MAKE IT / WE'RE AT THE [SPOT]. No free chat.
-- [ ] I'M LEAVING ends the check-in and hides open signals; responders see "They had to go."
-- [ ] Block (both ways, all places, immediate) and report (hides the item now, logs for review; a reported place is hidden until reviewed).
-- [ ] Tests: other place can't see; blocked hidden both ways; names hidden before accept; capacity; limits; expired and left hidden.
+- [x] `src/rules/here.ts` (pure, tests first): a viewer sees a place signal only if both are checked in at that place now, the signal is open and unexpired, neither has blocked the other, and it's not their own; names are revealed only between an owner and an accepted responder; capacity respected; limits (2 open signals, 5 curious per hour).
+- [x] Post: topic (60), WHEN (now, in 30 min, at a time), WHERE (place spots), FOR HOW MANY (1 to 3); expiry rule from `SIGNALS-HERE.md`; edit, cancel.
+- [x] Discover: 3 at a time, then "That's everything here right now. Post one?" Shows topic, when, spot, "Someone here", expiry; translation when available with ORIGINAL toggle.
+- [x] Respond: I'M CURIOUS with an optional line (60); owner sees "Someone here is curious: [line]"; ACCEPT or NOT THIS TIME (no reason; responder sees "Not this time. No hard feelings."). After accept, both see first names, the spot and the time.
+- [x] Quick replies only: ON MY WAY / 5 MINUTES LATE / CAN'T MAKE IT / WE'RE AT THE [SPOT]. No free chat.
+- [x] I'M LEAVING ends the check-in and hides open signals; responders see "They had to go."
+- [x] Block (both ways, all places, immediate) and report (hides the item now, logs for review; a reported place is hidden until reviewed).
+- [x] Tests: other place can't see; blocked hidden both ways; names hidden before accept; capacity; limits; expired and left hidden.
+- [ ] Translation with ORIGINAL toggle waits for SCREEN IT (WP23); screening is code rules only until then.
+- [ ] Staging acceptance with real people: two phones at one place, post, curious, accept, quick replies, block and report.
 
 ### WP23 SCREEN IT, SUGGEST IT and PLAN IT (Fri 30)
 - [ ] `src/rules/screening.ts` first (pure, tests): length, links, emails, phone numbers, handles, crisis words, a short word list (dating, sexual, slurs, selling). Code rules decide alone when the model is off or times out.

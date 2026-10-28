@@ -5,7 +5,8 @@ import { LocationProvider, Route, Router, useLocation } from "preact-iso";
 import { useEffect } from "preact/hooks";
 import { Home } from "./pages/Home";
 import { Arrive } from "./pages/Arrive";
-import { Here, Live, Meet, NotFound } from "./pages/Placeholders";
+import { Here } from "./pages/Here";
+import { Live, Meet, NotFound } from "./pages/Placeholders";
 import { SignIn } from "./pages/SignIn";
 import "./styles.css";
 

@@ -1,18 +1,6 @@
 // Honest placeholders until their work package lands.
 import { Screen } from "../components/Screen";
 
-export function Here() {
-  return (
-    <Screen title="What is here?">
-      <h1 class="screen-title">What is here?</h1>
-      <div class="lcd-block">
-        <p>Small invitations to talk, from people checked in at this place right now. Three at a time, then that is everything.</p>
-      </div>
-      <p class="lcd-small">Signals here lands on Thu (WP22). Someone here, never a name, until you both say yes.</p>
-    </Screen>
-  );
-}
-
 export function Meet() {
   return (
     <Screen title="Meet">
