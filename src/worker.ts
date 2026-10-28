@@ -1,6 +1,17 @@
 import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
 import { handleHealth, json } from "./api/health";
+import {
+  handleAccept,
+  handleBlock,
+  handleCancelSignal,
+  handleCurious,
+  handleDecline,
+  handleHere,
+  handlePostSignal,
+  handleQuickReply,
+  handleReport,
+} from "./api/here";
 import { handleMe } from "./api/me";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
@@ -77,6 +88,30 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/checkin/leave" && method === "POST") {
     return handleLeave(request, env);
+  }
+  if (url.pathname === "/api/here" && method === "GET") {
+    return handleHere(request, env);
+  }
+  if (url.pathname === "/api/here/signals" && method === "POST") {
+    return handlePostSignal(request, env);
+  }
+  const signalAction = /^\/api\/here\/signals\/([0-9a-f-]{36})\/(cancel|curious|quick)$/.exec(url.pathname);
+  if (signalAction && method === "POST") {
+    const [, id, action] = signalAction;
+    if (action === "cancel") return handleCancelSignal(id, request, env);
+    if (action === "curious") return handleCurious(id, request, env);
+    return handleQuickReply(id, request, env);
+  }
+  const responseAction = /^\/api\/here\/responses\/([0-9a-f-]{36})\/(accept|decline)$/.exec(url.pathname);
+  if (responseAction && method === "POST") {
+    const [, id, action] = responseAction;
+    return action === "accept" ? handleAccept(id, request, env) : handleDecline(id, request, env);
+  }
+  if (url.pathname === "/api/block" && method === "POST") {
+    return handleBlock(request, env);
+  }
+  if (url.pathname === "/api/report" && method === "POST") {
+    return handleReport(request, env);
   }
   return json({ error: "not_found" }, 404);
 }
