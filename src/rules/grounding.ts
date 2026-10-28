@@ -67,8 +67,16 @@ function host(url: string): string | null {
  * title and snippet share the most words with the claim is used, if any does.
  * A site the search never returned is never accepted.
  */
-export function resolveCitation(cited: string | null, claim: string, pages: ReturnedPage[], given: string[] = []): string | null {
-  if (!cited) return null;
+export function resolveCitation(
+  rawCited: string | null,
+  claim: string,
+  pages: ReturnedPage[],
+  given: string[] = [],
+  opts: { sameSiteFallback?: boolean } = {},
+): string | null {
+  if (!rawCited) return null;
+  // Models also cite a bare domain ("en.wikipedia.org"); read it as that site.
+  const cited = /^[a-z][a-z0-9+.-]*:\/\//i.test(rawCited.trim()) ? rawCited.trim() : `https://${rawCited.trim()}`;
   const c = canonicalUrl(cited);
   if (!c) return null;
   for (const u of [...pages.map((p) => p.url), ...given]) if (canonicalUrl(u) === c) return u;
@@ -84,7 +92,13 @@ export function resolveCitation(cited: string | null, claim: string, pages: Retu
     if (score > 0 && (!best || score > best.score)) best = { url: p.url, score };
   }
   if (best) return best.url;
-  return given.find((g) => host(g) === h) ?? null;
+  const own = given.find((g) => host(g) === h);
+  if (own) return own;
+  // FIND ME only: every page the search returned was about this person, and
+  // they confirm each finding (THAT'S ME / NOT ME), so a returned page on the
+  // cited site is an honest source even when the wording differs.
+  if (opts.sameSiteFallback) return pages.find((p) => host(p.url) === h)?.url ?? null;
+  return null;
 }
 
 export interface GroundingResult {

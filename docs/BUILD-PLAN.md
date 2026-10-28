@@ -184,8 +184,8 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Open Graph image for `/live` and SAMPLE places excluded from the counts (both with WP9).
 
 ### WP14 CHECK IT and the evaluation set (Sun 1)
-- [ ] SHOW THE WORKINGS under every AI answer: capability (Web search, Screening, Tools, Vision), tools in call order, citations, the screening verdict and category, grounded count, reasoning effort. No personal text beyond what the person already sees.
-- [ ] `evals/` with about 30 cases (see `MUSE-SPARK-BY-FUNCTION.md`); `npm run eval` prints a pass rate; run before each deploy. Pass rate, median latency per function and fallback rate go into the README.
+- [x] SHOW THE WORKINGS under every AI answer: capability (Web search, Screening, Tools, Vision), tools in call order, citations, the screening verdict and category, grounded count, reasoning effort. No personal text beyond what the person already sees.
+- [x] `evals/` with about 30 cases (see `MUSE-SPARK-BY-FUNCTION.md`); `npm run eval` prints a pass rate; run before each deploy. Pass rate, median latency per function and fallback rate go into the README.
 
 ### WP7 Share card, slim (Sun 1)
 - [ ] After a confirmed meet: "I went live." / "One of N real-life hellos on Hoolala!" / "You never know until you go." No names, no place unless the person ticks it. Web Share with the image, fallback links, COPY LINK.

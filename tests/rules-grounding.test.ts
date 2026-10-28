@@ -70,10 +70,21 @@ describe("resolveCitation", () => {
     expect(resolveCitation("https://linuxfoundation.org", "Linux Foundation Fellow", pages)).toBe("https://www.linuxfoundation.org/about/leadership");
   });
 
+  it("reads a bare domain as that site, as the model often writes it", () => {
+    expect(resolveCitation("en.wikipedia.org", "Created the distributed version control system Git", pages)).toBe("https://en.wikipedia.org/wiki/Git");
+    expect(resolveCitation("bbntimes.com", "Created Git", pages)).toBeNull();
+  });
+
   it("never accepts a site the search didn't return, or a page that shares nothing with the claim", () => {
     expect(resolveCitation("https://bbntimes.com", "Created Git", pages)).toBeNull();
     expect(resolveCitation("https://en.wikipedia.org", "Plays the cello", pages)).toBeNull();
     expect(resolveCitation(null, "anything", pages)).toBeNull();
+  });
+
+  it("FIND ME may fall back to a returned page on the cited site; never to a site not returned", () => {
+    expect(resolveCitation("https://en.wikipedia.org", "Plays the cello", pages, [], { sameSiteFallback: true })).toBe("https://en.wikipedia.org/wiki/Linus_Torvalds");
+    expect(resolveCitation("https://en.wikipedia.org", "Plays the cello", pages)).toBeNull();
+    expect(resolveCitation("https://bbntimes.com", "Created Git", pages, [], { sameSiteFallback: true })).toBeNull();
   });
 
   it("accepts the person's own links", () => {

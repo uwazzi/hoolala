@@ -15,7 +15,7 @@ const CACHE_TTL_S = 60 * 60;
 
 const INSTRUCTIONS = `You suggest short invitations to talk that someone could post right now in a café, bar, coworking space or library, for other people in the same room to answer.
 Give exactly 3 ideas. Each topic is at most 60 characters, friendly, public and easy to answer.
-At most one idea may mention a public event happening in the area today. Only use an event you found with web search, and copy its URL exactly as it appears in the search results into citation_url; kind is "event". If you find nothing good, don't use an event.
+At most one idea may mention a public event happening in the area today. Only use an event you found with web search, and copy its full URL (starting with https://) exactly as it appears in the search results into citation_url; kind is "event". If you find nothing good, don't use an event.
 The other ideas are general starters that fit the place, the spots and the time of day; kind is "general" and citation_url is null.
 Never dating or flirting, selling, recruiting, contact details or anything about specific people. Write in English. "why" is one short reason the idea fits now.`;
 

@@ -9,3 +9,6 @@ dist/
 coverage/
 web/dist/
 .claude/settings.local.json
+
+# iCloud Drive conflict copies ("file 2.ts")
+* [0-9].*
