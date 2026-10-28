@@ -245,3 +245,6 @@ select.lcd-field { appearance: none; }
 .qr { display: block; width: min(100%, 260px); height: auto; margin: 16px auto; border: 2px solid var(--lcd-ink); }
 .meet-code { text-align: center; font: 700 28px/1 var(--font-display); letter-spacing: 0.2em; margin: 8px 0; }
 .live-number { font: 700 56px/1 var(--font-display); margin: 8px 0; }
+
+/* SUGGEST IT ideas */
+.idea { list-style: none; margin: 0; }

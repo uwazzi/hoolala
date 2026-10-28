@@ -133,3 +133,100 @@ export async function writeWorking(
     return null;
   }
 }
+
+export interface SearchCall<T> {
+  purpose: string;
+  instructions: string;
+  input: string;
+  schemaName: string;
+  schema: Record<string, unknown>;
+  validate: (value: unknown) => T | null;
+  effort: Effort;
+  timeoutMs: number;
+  maxTokens: number;
+  maxSearches: number;
+  location?: { country: string; city?: string; timezone?: string };
+}
+
+/**
+ * One Responses API call with web search and a strict JSON answer. Returns the
+ * URLs the search actually returned, so grounding can check every citation.
+ */
+export async function searchStructured<T>(
+  env: Env,
+  call: SearchCall<T>,
+): Promise<CallResult<{ value: T; returnedUrls: string[]; searches: number }>> {
+  if (!llmEnabled(env)) return { ok: false, reason: "off", latencyMs: 0 };
+  const started = Date.now();
+  let usage: { input_tokens?: number; output_tokens?: number } | undefined;
+  let searches = 0;
+  let result: CallResult<{ value: T; returnedUrls: string[]; searches: number }>;
+  try {
+    const res = await fetch(`${env.META_API_BASE}/responses`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${env.META_API_KEY}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        model: env.MUSE_SPARK_MODEL,
+        reasoning: { effort: call.effort },
+        max_output_tokens: call.maxTokens,
+        max_tool_calls: call.maxSearches,
+        include: ["web_search_call.results"],
+        tools: [
+          {
+            type: "web_search",
+            search_context_size: "low",
+            ...(call.location ? { user_location: { type: "approximate", ...call.location } } : {}),
+          },
+        ],
+        instructions: call.instructions,
+        input: call.input,
+        text: { format: { type: "json_schema", name: call.schemaName, strict: true, schema: call.schema } },
+      }),
+      signal: AbortSignal.timeout(call.timeoutMs),
+    });
+    if (!res.ok) {
+      result = { ok: false, reason: "http", latencyMs: Date.now() - started };
+    } else {
+      const body = (await res.json()) as {
+        output?: { type?: string; results?: { url?: string }[]; content?: { type?: string; text?: string }[] }[];
+        usage?: typeof usage;
+      };
+      usage = body.usage;
+      const output = body.output ?? [];
+      const calls = output.filter((o) => o.type === "web_search_call");
+      searches = calls.length;
+      const returnedUrls = calls.flatMap((c) => (c.results ?? []).map((r) => r.url).filter((u): u is string => typeof u === "string"));
+      // The JSON answer is the last message; earlier ones are the model's preamble.
+      const texts = output
+        .filter((o) => o.type === "message")
+        .flatMap((o) => (o.content ?? []).filter((c) => c.type === "output_text").map((c) => c.text ?? ""));
+      let value: T | null = null;
+      for (const text of texts.reverse()) {
+        try {
+          value = call.validate(JSON.parse(text));
+        } catch {
+          value = null;
+        }
+        if (value !== null) break;
+      }
+      result =
+        value === null
+          ? { ok: false, reason: "invalid", latencyMs: Date.now() - started }
+          : { ok: true, value: { value, returnedUrls, searches }, latencyMs: Date.now() - started };
+    }
+  } catch (err) {
+    const timedOut = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+    result = { ok: false, reason: timedOut ? "timeout" : "http", latencyMs: Date.now() - started };
+  }
+  try {
+    await env.DB.prepare(
+      `INSERT INTO llm_calls (id, purpose, model, latency_ms, tool_calls, validated, fallback_used, prompt_tokens, completion_tokens, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(crypto.randomUUID(), call.purpose, env.MUSE_SPARK_MODEL ?? "unknown", result.latencyMs, searches, result.ok ? 1 : 0, result.ok ? 0 : 1, usage?.input_tokens ?? null, usage?.output_tokens ?? null, new Date().toISOString())
+      .run();
+  } catch {
+    // Accounting must never break the feature.
+  }
+  return result;
+}
