@@ -4,18 +4,18 @@ Read this file first, every session. It is the single source of truth for Muse C
 
 ## What we are building
 
-A finite, place-based social product with a Nokia LCD look. People get a head start from their public footprint (with their OK) as a private Personal Compass, check in at any public place (café, bar, coworking) by sharing location or adding the place, post and answer small invitations to talk (Signals here), stay anonymous until both accept, agree a meeting point, and confirm the meet-up with a mutual QR. People keep place details right and earn private place points. A public Live page shows collective numbers, including the real-world connection rate. Muse Spark powers six functions, each behind a code guardrail: FIND ME (web search about the person, compass draft), PLACE IT (tool-using agent that fetches place details), SUGGEST IT (topic ideas with citations), SCREEN IT (verdicts and FR/EN translation), PLAN IT (drafts the meeting point) and CHECK IT (workings, evaluation set); SNAP IT (menu boards) is a stretch. Check-in, meeting and staying in touch never depend on a model. Product: `docs/SIGNALS-HERE.md` and `docs/MUSE-SPARK-BY-FUNCTION.md` (wins on model use). Brand and product rules: `docs/DESIGN.md`. Context: `claude/hoolala-context.md`. Tasks: `docs/BUILD-PLAN.md`. Hackathon rules: `docs/HACKATHON-RULES.md`.
+A finite, place-based social product with a Nokia LCD look. People get a head start from their public footprint (with their OK) as a private Personal Compass, check in at any public place (café, bar, coworking) by sharing location or adding the place, post and answer small invitations to talk (Signals here), stay anonymous until both accept, agree a meeting point, and confirm the meet-up with a mutual QR. People keep place details right and earn private place points. A public Live page shows collective numbers, including the real-world connection rate. Muse Spark powers six functions, each behind a code guardrail: FIND ME (web search about the person, compass draft), PLACE IT (tool-using agent that fetches place details), SUGGEST IT (topic ideas with citations), SCREEN IT (verdicts and FR/EN translation), PLAN IT (drafts the meeting point) and CHECK IT (workings, evaluation set); SNAP IT (menu boards) is a stretch. Check-in, meeting and staying in touch never depend on a model. Architecture at a glance: `docs/ARCHITECTURE.md`. Product: `docs/SIGNALS-HERE.md` and `docs/MUSE-SPARK-BY-FUNCTION.md` (wins on model use). Brand and product rules: `docs/DESIGN.md`. Context: `claude/hoolala-context.md`. Tasks: `docs/BUILD-PLAN.md`. Hackathon rules: `docs/HACKATHON-RULES.md`.
 
 ## Hackathon rules agents must respect
 
 - **The repo is public.** Nothing secret, personal or unlicensed is ever committed. Every asset must be ours or under a licence we include (fonts: SIL OFL with its licence file).
-- **Prior work stays separate.** `prior-work/` holds the pre-hackathon design system. Never edit it. Build new code in `public/` and `src/`, log any reuse in `docs/DECISIONS.md`.
+- **Prior work stays separate.** `prior-work/` holds the pre-hackathon design system. Never edit it. Build new code in `web/` and `src/`, log any reuse in `docs/DECISIONS.md`.
 - **Mark agent commits.** Muse Code commits end with `Agent: Muse Code` (Claude Code: `Agent: Claude Code`).
 - **Not a mental-health, coaching or dating product.** The model never gives emotional, health, therapy or relationship advice, never assesses people, and never helps with flirting or dating. Avoid "lonely", "shy", "anxiety", "therapy", "coach" and "dating" in user-facing copy, the README and commit messages (except in screening rules that reject dating content).
 
 ## The one architecture rule
 
-**Code for rules, data for content, the model for language.**
+**Code for rules, data for content, the model for language.** The stack diagram and the reasons behind it are in `docs/ARCHITECTURE.md`.
 
 | Folder | Owns | Never does |
 |---|---|---|
@@ -25,15 +25,19 @@ A finite, place-based social product with a Nokia LCD look. People get a head st
 | `src/db/` | D1 schema, migrations, small repositories | Leaks SQL elsewhere |
 | `src/llm/` | Meta Model API client; `findme.ts` (FIND ME), `place.ts` (PLACE IT, with the Google Places tool in `src/places/google.ts`), `suggest.ts` (SUGGEST IT), `screen.ts` (SCREEN IT), `agent.ts` (PLAN IT), `snap.ts` (SNAP IT, stretch); schemas, validators, fallbacks, reasoning effort per function | Decides permissions, posts, accepts, sends or publishes anything, stores images |
 | `src/channels/telegram.ts` | Mini App launch parameters, bot webhook, the three opt-in notifications | Holds business rules or messages anyone who didn't switch notifications on |
+| `src/channels/email.ts` | The sign-in link email (Resend) | Sends anything else |
+| `src/live/` (stretch) | One Durable Object per place pushing live updates | Holds the source of truth (D1 does) or chat memory |
 | `src/share/` | Share cards and place posters (SVG to PNG) | Includes other people's names |
 | `evals/` | About 30 evaluation cases and `npm run eval` | Contains real people's data |
-| `public/` | The Mono LCD front end built during the hackathon | Holds secrets or calls the model directly |
+| `web/` | The Mono LCD web app: Vite + Preact PWA, also the Telegram Mini App | Holds secrets, business rules or calls the model directly |
+| `public/` | WP1/WP2 plain HTML pages, until they move to `web/` | Gets new screens |
 | `prior-work/` | Pre-hackathon design system, read-only | Changes after the `pre-hackathon` tag |
 
 If a task seems to need breaking this table, stop and write the question in `docs/DECISIONS.md`.
 
 ## Stack
 
+- Web app: Vite + Preact PWA in `web/`, served by the Worker; the same build runs as the Telegram Mini App. No native app, no Expo.
 - Cloudflare Worker (TypeScript), D1, KV (sessions, rate limits, magic-link tokens), Cron Triggers (expire check-ins and signals, purge check-ins after 24 h, roll up daily metrics).
 - Telegram Mini App login: verify `initData` with HMAC-SHA256 from the bot token and check `auth_date`; never trust client-side Telegram data. Email magic link on the web (`EMAIL_API_KEY`, `EMAIL_FROM`).
 - Meta Model API behind `src/llm/client.ts`: `MUSE_SPARK_MODEL`, `META_API_BASE`, `META_API_KEY` from env.
@@ -62,6 +66,7 @@ npm run deploy
 5. Secrets only in `.dev.vars` and `wrangler secret put`. Never log emails, topics, replies, Telegram ids, coordinates, names searched by FIND ME or compass lines.
 6. Small commits: `WPn: what changed`, plus the agent trailer.
 7. UK English in all user-facing text. No em dashes. Copy from `docs/DESIGN.md` and `docs/SIGNALS-HERE.md`.
+8. Web layouts are mobile first and responsive, using the shared LCD styles (`public/styles.css` until the move to `web/`). Follow the layout rules in `docs/DESIGN.md`: fluid app container up to 960px, 42ch for prose/forms only, 16/24/32px gutters at base/640/960px. Check 320 to 1440px and 200% zoom. Never cap the entire app at a mobile text measure.
 
 ## Product rules agents must not break
 

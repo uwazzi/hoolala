@@ -26,7 +26,7 @@ Decisions (27 Oct, v5): a venue is now **any public place** (café, bar, coworki
 | Day | Work packages | Event (Zurich) | End-of-day check |
 |---|---|---|---|
 | Tue 27 | WP1 skeleton and deploy, WP2 sign-in (email) | Agents 101, 17:00 | Live URL; you can sign in from your phone |
-| Wed 28 | WP20 places and check-in (location, add place, search), WP21 Telegram Mini App and login | Agents 102, 17:00 | In a real café: share location, pick it or add it, checked in; GPS denied falls back to search |
+| Wed 28 | WP27 web app on Vite + Preact (morning), WP20 places and check-in (location, add place, search), WP21 Telegram Mini App and login | Agents 102, 17:00 | In a real café: share location, pick it or add it, checked in; GPS denied falls back to search |
 | Thu 29 | WP22 Signals here: post, discover, respond, accept, quick replies, block and report | Office hours 15:00; **pilot place decided** | Two phones: one posts, one is curious, accept reveals first names, ON MY WAY arrives |
 | Fri 30 | WP23 SCREEN IT and SUGGEST IT; PLAN IT; WP24 FIND ME and the compass | Fireworks 17:00 (optional) | A flirty topic is rejected; a French topic shows in English; FIND ME on your own name: findings with sources, NOT ME works, LOOKS RIGHT saves the compass |
 | Sat 31 | WP25 PLACE IT and place points; WP5 meet and connection rate; WP6 Live page, STAY IN TOUCH; **dry run with friends at a café** | | The café's hours and menu appear with sources; FIX IT and a second phone's confirm add points; two phones confirm a meet-up; fixes listed |
@@ -97,6 +97,7 @@ Telegram: `POST /telegram/webhook` (secret header; only notifications the person
 - [ ] One Muse Spark test call with a tool definition and a structured output schema.
 
 ### WP1 Skeleton and deploy (Tue 27, morning)
+- [x] Responsive shared web layout: mobile first, fluid desktop container, readable text measure and documented rules for future screens.
 - [x] Worker serves `public/` (new Mono LCD front end from `prior-work/design-system/`) with security headers and a CSP that allows Telegram's Mini App script. Home, sign-in, and placeholders for ARRIVE, HERE, MEET, LIVE.
 - [x] D1 migrations for every table above; KV bound; Cron Trigger (expire check-ins and signals every 5 minutes, purge check-ins after 24 h; `metrics_daily` rollup deferred to WP5/WP6, see DECISIONS).
 - [ ] `npm run deploy`; `/api/health` ok.
@@ -106,6 +107,16 @@ Telegram: `POST /telegram/webhook` (secret header; only notifications the person
 - [x] Delete account removes check-ins, signals, responses, moments, friendships, Telegram id; keeps anonymous counts.
 - [x] Tests: expired, reused, wrong tokens; same response whether or not the email exists.
 - [ ] Owner: Resend account, sender domain verified, `wrangler secret put EMAIL_API_KEY` and `EMAIL_FROM`; sign in from your phone on staging.
+
+### WP27 Web app on Vite + Preact (Wed 28, morning)
+Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more screens are built. API, rules, data and tests stay as they are.
+- [ ] `web/`: Vite + Preact + TypeScript; LCD styles and layout rules carried over from `public/styles.css`; no new runtime dependencies beyond Preact and a small router.
+- [ ] Worker serves the Vite build (`[assets] directory = "web/dist"` in both wrangler configs, `run_worker_first` kept); `npm run build` before deploy in CI and the deploy workflows.
+- [ ] Port home, sign-in (email, sent, first name, signed in, delete) and the ARRIVE/HERE/MEET/LIVE placeholders; `/auth/verify` redirects keep working.
+- [ ] CSP still holds: no inline scripts, Telegram's script allowed; the build works inside the Telegram webview.
+- [ ] One small API client in `web/` (JSON, same-origin cookies, typed with `src/types.ts` type-only imports).
+- [ ] Remove `public/` once the port is live on staging; update `AGENTS.md`.
+- [ ] Tests: worker tests pass against the new asset directory; a smoke check that `/`, `/signin` and `/live` load with the CSP.
 
 ### WP20 Places and check-in (Wed 28, morning)
 - [ ] `src/rules/checkin.ts` (pure, tests first): places within radius (haversine); search only within the person's city; optional poster key and code; check-in lasts 4 h or until leave; one active check-in per person.
