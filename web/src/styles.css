@@ -212,3 +212,19 @@ main { flex: 1; }
   .lcd-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
   .lcd-softkeys { margin-left: -32px; margin-right: -32px; }
 }
+
+/* ARRIVE (WP20): place rows with a small second line, kind chips, city picker. */
+.option-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.option-meta { font: 400 12px/1.3 var(--font-body); text-transform: none; overflow-wrap: anywhere; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; }
+.chips legend { padding: 0; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chip span {
+  display: inline-flex; align-items: center; min-height: var(--touch-target); padding: 8px 12px;
+  border: 2px solid var(--lcd-ink); border-radius: var(--radius-control);
+  font: 700 13px/1 var(--font-display); text-transform: uppercase; cursor: pointer;
+}
+.chip input:checked + span { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.chip input:focus-visible + span { outline: 3px solid var(--lcd-ink); outline-offset: 2px; }
+select.lcd-field { appearance: none; }

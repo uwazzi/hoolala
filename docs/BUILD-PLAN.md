@@ -120,14 +120,15 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests: worker tests pass against the new asset directory; a smoke check that `/`, `/signin` and `/live` load with the CSP.
 
 ### WP20 Places and check-in (Wed 28, morning)
-- [ ] `src/rules/checkin.ts` (pure, tests first): places within radius (haversine); search only within the person's city; optional poster key and code; check-in lasts 4 h or until leave; one active check-in per person.
-- [ ] Share location: explain first ("Only to find the place you're in."), then ask once. `POST /api/places/nearby` returns Hoolala! places, then Google nearby places (live, field mask: id, display name, primary type). Pick one: if it's a Google place not yet in Hoolala!, create the `places` row with the Google place id and the person's coordinates as the place's.
-- [ ] ADD THIS PLACE: name (screened) and kind; saved at the person's location; public places only (no "home", no street addresses as names). Points pending until someone else checks in there.
-- [ ] Search by name when location fails: "Your phone thinks you're in the lake. Search for the place instead."
+- [x] `src/rules/checkin.ts` (pure, tests first): places within radius (haversine); search only within the person's city; optional poster key and code; check-in lasts 4 h or until leave; one active check-in per person.
+- [x] Share location: explain first ("Only to find the place you're in."), then ask once. `POST /api/places/nearby` returns Hoolala! places, then Google nearby places (live, field mask: id, display name, primary type). Pick one: if it's a Google place not yet in Hoolala!, create the `places` row with the Google place id and the person's coordinates as the place's.
+- [x] ADD THIS PLACE: name (screened) and kind; saved at the person's location; public places only (no "home", no street addresses as names). Points pending until someone else checks in there.
+- [x] Search by name when location fails: "Your phone thinks you're in the lake. Search for the place instead."
 - [ ] Optional poster for partner places (A4 LCD PNG with QR and code); admin script, not a UI.
-- [ ] Peek (public): place name and up to 3 open topics before sign-in.
-- [ ] The person's coordinates live only in the request (or become a new place's coordinates); never in `checkins`, logs or analytics. `checkin_attempts` stores method, ok and reason only.
-- [ ] Tests: out of radius, search outside the city refused, coordinates never stored except as a new place, one active check-in, Google content not written to D1.
+- [x] Peek API (public): `GET /api/places/:slug/peek`, place name and up to 3 open topics. The PEEK screen comes with WP22.
+- [x] The person's coordinates live only in the request (or become a new place's coordinates); never in `checkins`, logs or analytics. `checkin_attempts` stores method, ok and reason only.
+- [x] Tests: out of radius, search outside the city refused, coordinates never stored except as a new place, one active check-in, Google content not written to D1.
+- [ ] Staging acceptance at a real café: nearby list shows OpenStreetMap places, check in, leave, repeat with location denied (search). Not testable from the agent's sandbox, which can't reach Overpass.
 
 ### WP24 FIND ME and the Personal Compass (Fri 30, afternoon)
 - [ ] Consent screen first; NO goes to three scripted questions. Inputs: name used online, city, optional links (max 3).

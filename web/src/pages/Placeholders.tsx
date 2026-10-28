@@ -1,18 +1,6 @@
 // Honest placeholders until their work package lands.
 import { Screen } from "../components/Screen";
 
-export function Arrive() {
-  return (
-    <Screen title="Where are you?">
-      <h1 class="screen-title">Where are you?</h1>
-      <div class="lcd-block">
-        <p>Share your location, pick the place, and you are in. Not listed? You will be able to add it. Location wrong? Search will always work.</p>
-      </div>
-      <p class="lcd-small">Check-in lands on Wed (WP20). Only to find the place you are in.</p>
-    </Screen>
-  );
-}
-
 export function Here() {
   return (
     <Screen title="What is here?">

@@ -8,7 +8,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc --noEmit -p web",
     "eval": "node evals/run.mjs",
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --infer-origin-from-routes=false",
     "db:migrate": "wrangler d1 migrations apply hoolala --remote",
     "db:migrate:local": "wrangler d1 migrations apply hoolala --local",
     "db:migrate:staging": "wrangler d1 migrations apply hoolala-staging --remote -c wrangler.staging.toml",
