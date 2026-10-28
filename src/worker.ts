@@ -13,6 +13,7 @@ import {
   handleReport,
 } from "./api/here";
 import { handleMe } from "./api/me";
+import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -106,6 +107,22 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (responseAction && method === "POST") {
     const [, id, action] = responseAction;
     return action === "accept" ? handleAccept(id, request, env) : handleDecline(id, request, env);
+  }
+  if (url.pathname === "/api/meet/start" && method === "POST") {
+    return handleMeetStart(request, env);
+  }
+  if (url.pathname === "/api/meet/join" && method === "POST") {
+    return handleMeetJoin(request, env);
+  }
+  const meet = /^\/api\/meet\/([0-9a-f-]{36})(?:\/(agree|stay-in-touch))?$/.exec(url.pathname);
+  if (meet) {
+    const [, id, action] = meet;
+    if (!action && method === "GET") return handleMeetState(id, request, env);
+    if (action === "agree" && method === "POST") return handleMeetAgree(id, request, env);
+    if (action === "stay-in-touch" && method === "POST") return handleStayInTouch(id, request, env);
+  }
+  if (url.pathname === "/api/live" && method === "GET") {
+    return handleLive(env);
   }
   if (url.pathname === "/api/block" && method === "POST") {
     return handleBlock(request, env);
