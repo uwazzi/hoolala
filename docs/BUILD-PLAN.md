@@ -174,12 +174,14 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Tests: model never rewrites silently; invented event dropped; PLAN IT only proposes real spots; never "sent"; model-off paths.
 
 ### WP5 Meet and the connection rate (Sat 31)
-- [ ] From an accepted signal: MEET > shows a QR (10 minutes) plus a short code; the other scans and both agree; writes `interactions` (kind `here`, place, signal), a private moment each: "You met an actual human."
-- [ ] STAY IN TOUCH: both choose, then a friendship; one-sided choices are never revealed.
-- [ ] Tests: expiry, self-scan, blocked, one per pair per day, stay-in-touch only when mutual.
+- [x] From an accepted signal: MEET > shows a QR (10 minutes) plus a short code; the other scans and both agree; writes `interactions` (kind `here`, place, signal), a private moment each: "You met an actual human."
+- [x] STAY IN TOUCH: both choose, then a friendship; one-sided choices are never revealed.
+- [x] Tests: expiry, self-scan, blocked, one per pair per day, stay-in-touch only when mutual.
+- [ ] Real-phone check: one phone shows the QR, the other's camera opens it, both tap WE MET.
 
 ### WP6 Live page (Sat 31)
-- [ ] Public `/live`: total real-life hellos since 27 Oct (both-confirmed), **real-world connection rate** ("7 of 9 accepted signals became a conversation"), check-in success rate, place details confirmed this week (collective), per place. Updates every 60 s. No names, no map, no leaderboard. Open Graph image.
+- [x] Public `/live`: total real-life hellos since 27 Oct (both-confirmed), **real-world connection rate** ("7 of 9 accepted signals became a conversation"), check-in success rate, place details confirmed this week (collective), per place. Updates every 60 s. No names, no map, no leaderboard. Open Graph image.
+- [ ] Open Graph image for `/live` and SAMPLE places excluded from the counts (both with WP9).
 
 ### WP14 CHECK IT and the evaluation set (Sun 1)
 - [ ] SHOW THE WORKINGS under every AI answer: capability (Web search, Screening, Tools, Vision), tools in call order, citations, the screening verdict and category, grounded count, reasoning effort. No personal text beyond what the person already sees.

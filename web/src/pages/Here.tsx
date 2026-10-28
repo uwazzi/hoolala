@@ -179,6 +179,9 @@ export function Here() {
             ))}
             <Replies replies={s.replies} />
             {accepted.length > 0 && <QuickReplies onSend={(kind) => act(`/api/here/signals/${s.id}/quick`, { kind })} />}
+            {accepted.length > 0 && (
+              <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href={`/meet?signal=${s.id}`}>Meet: show my QR</a></li></ul>
+            )}
             <div class="tiny-actions">
               <button type="button" onClick={() => act(`/api/here/signals/${s.id}/cancel`, {}, "Signal taken down.")}>Cancel signal</button>
             </div>
@@ -198,6 +201,7 @@ export function Here() {
               <p>Accepted. <strong>{j.ownerName ?? "Someone"}</strong> · {j.spot.toLowerCase()} · {whenText(j.whenAt).toLowerCase()}.</p>
               <Replies replies={j.replies} />
               <QuickReplies onSend={(kind) => act(`/api/here/signals/${j.signalId}/quick`, { kind })} />
+              <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/meet">Meet: scan or type their code</a></li></ul>
             </>
           )}
         </section>

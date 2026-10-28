@@ -240,3 +240,8 @@ select.lcd-field { appearance: none; }
   background: none; border: 0; padding: 8px 0; min-height: 32px; cursor: pointer;
   color: var(--lcd-ink-secondary); font: 12px/1 var(--font-body); text-decoration: underline;
 }
+
+/* MEET and LIVE (WP5, WP6) */
+.qr { display: block; width: min(100%, 260px); height: auto; margin: 16px auto; border: 2px solid var(--lcd-ink); }
+.meet-code { text-align: center; font: 700 28px/1 var(--font-display); letter-spacing: 0.2em; margin: 8px 0; }
+.live-number { font: 700 56px/1 var(--font-display); margin: 8px 0; }
