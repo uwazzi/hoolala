@@ -15,7 +15,8 @@
     "deploy": "npm run build && wrangler deploy",
     "deploy:staging": "npm run build && wrangler deploy -c wrangler.staging.toml",
     "build": "vite build web",
-    "dev:web": "vite web"
+    "dev:web": "vite web",
+    "check:secrets": "node scripts/check-secrets.mjs"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",

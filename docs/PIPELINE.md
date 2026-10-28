@@ -57,6 +57,8 @@ closes or assigns these issues; you do.
 
 ## Secrets and variables
 
+The full key inventory, rules and leak response are in `docs/SECRETS.md`.
+
 | Name | Kind | Used by |
 |---|---|---|
 | `CLOUDFLARE_API_TOKEN` | secret | staging and production deploys, PM token report |

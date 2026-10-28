@@ -65,7 +65,7 @@ npm run deploy
 2. Types in `src/types.ts` are the contract. Change them only with a note in `docs/DECISIONS.md`.
 3. Test first for anything in `src/rules/` and for every API permission check (who can see a signal, when names are revealed, blocked users).
 4. Every model call: timeout (4 s for SCREEN IT, 8 s otherwise, 15 s with web search), output validator, rule-based fallback, one `llm_calls` row with no prompt or user text, one `workings` row. Must work with `LLM_ENABLED=false`.
-5. Secrets only in `.dev.vars` and `wrangler secret put`. Never log emails, topics, replies, Telegram ids, coordinates, names searched by FIND ME or compass lines.
+5. Secrets only in `.dev.vars`, `wrangler secret put` and the keychain, as `docs/SECRETS.md` sets out; never in chat, issues, PRs, logs, URLs or `VITE_*` variables. Run `npm run check:secrets` before committing config. Never log emails, topics, replies, Telegram ids, coordinates, names searched by FIND ME or compass lines.
 6. Small commits: `WPn: what changed`, plus the agent trailer.
 7. UK English in all user-facing text. No em dashes. Copy from `docs/DESIGN.md` and `docs/SIGNALS-HERE.md`.
 8. Web layouts are mobile first and responsive, using the shared LCD styles in `web/src/styles.css`. Follow the layout rules in `docs/DESIGN.md`: fluid app container up to 960px, 42ch for prose/forms only, 16/24/32px gutters at base/640/960px. Check 320 to 1440px and 200% zoom. Never cap the entire app at a mobile text measure.
