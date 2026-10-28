@@ -66,7 +66,7 @@ The full key inventory, rules and leak response are in `docs/SECRETS.md`.
 | `D1_DATABASE_ID` | secret | PM token report (production database id) |
 | `LLM_TOKEN_BUDGET` | variable | PM budget warnings (optional; see below) |
 
-The token needs Workers deploy and D1 read permissions.
+The token needs Workers deploy and **D1 Edit**: every deploy workflow applies D1 migrations (`npm run db:migrate` / `db:migrate:staging`) before deploying the code, so the database is never behind the code. A failed migration stops the release. The smoke test reads `/api/live`, so a database the code can't use fails the run.
 
 ## Token consumption
 
