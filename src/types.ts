@@ -21,6 +21,8 @@ export interface D1PreparedStatement {
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
   exec(query: string): Promise<unknown>;
+  /** Runs the statements in one transaction (WP2: delete account). */
+  batch(statements: D1PreparedStatement[]): Promise<unknown[]>;
 }
 
 export interface KVNamespace {
@@ -369,4 +371,11 @@ export interface HealthResponse {
 
 export interface ApiError {
   error: string;
+}
+
+/** GET /api/me: only what the person needs about themselves. */
+export interface MeResponse {
+  id: string;
+  firstName: string | null;
+  isAdult: boolean;
 }

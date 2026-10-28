@@ -1,4 +1,6 @@
+import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleHealth, json } from "./api/health";
+import { handleMe } from "./api/me";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
 // No frame-ancestors / X-Frame-Options: the front end runs inside Telegram's
@@ -34,8 +36,23 @@ export function withSecurityHeaders(response: Response): Response {
 
 async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  if (url.pathname === "/api/health" && request.method === "GET") {
+  const { method } = request;
+  // Cookie-authenticated writes only from our own pages.
+  const origin = request.headers.get("origin");
+  if (method !== "GET" && origin && origin !== url.origin) {
+    return json({ error: "bad_origin" }, 403);
+  }
+  if (url.pathname === "/api/health" && method === "GET") {
     return handleHealth(request, env);
+  }
+  if (url.pathname === "/api/auth/start" && method === "POST") {
+    return handleAuthStart(request, env);
+  }
+  if (url.pathname === "/api/auth/logout" && method === "POST") {
+    return handleLogout(request, env);
+  }
+  if (url.pathname === "/api/me") {
+    return handleMe(request, env);
   }
   return json({ error: "not_found" }, 404);
 }
@@ -60,6 +77,9 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
       return withSecurityHeaders(await handleApi(request, env));
+    }
+    if (url.pathname === "/auth/verify" && request.method === "GET") {
+      return withSecurityHeaders(await handleAuthVerify(request, env));
     }
     return withSecurityHeaders(await env.ASSETS.fetch(request));
   },

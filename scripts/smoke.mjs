@@ -18,7 +18,7 @@ const healthRes = await fetch(base + "/api/health");
 check("GET /api/health is 200", healthRes.status === 200, `got ${healthRes.status}`);
 const health = await healthRes.json().catch(() => ({}));
 check("health body is {ok:true}", health.ok === true);
-for (const [name, url] of [["home", "/"], ["signin", "/signin.html"], ["live", "/live.html"]]) {
+for (const [name, url] of [["home", "/"], ["signin", "/signin"], ["live", "/live"]]) {
   const res = await fetch(base + url);
   const text = await res.text();
   check(`GET ${url} is 200 and mentions Hoolala!`, res.status === 200 && text.includes("Hoolala!"), `got ${res.status}`);

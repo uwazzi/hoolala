@@ -9,21 +9,62 @@
   <script src="/app.js" defer></script>
 </head>
 <body>
-  <main>
-    <h1 class="screen-title">Sign in</h1>
-    <form action="#" method="post" aria-describedby="signin-note">
-      <label class="lcd-label" for="email">Email</label>
-      <input class="lcd-field" type="email" id="email" name="email" autocomplete="email"
-        placeholder="you@example.com" disabled>
-      <div class="check-row">
-        <input type="checkbox" id="adult" name="adult" disabled>
-        <label for="adult">I am 18 or older.</label>
-      </div>
+  <main data-signin>
+    <h1 class="screen-title" id="signin-title">Sign in</h1>
+
+    <section data-step="email">
+      <form id="email-form" novalidate>
+        <label class="lcd-label" for="email">Email</label>
+        <input class="lcd-field" type="email" id="email" name="email" autocomplete="email"
+          placeholder="you@example.com" required>
+        <div class="check-row">
+          <input type="checkbox" id="adult" name="adult" required>
+          <label for="adult">I am 18 or older.</label>
+        </div>
+        <ul class="key-list">
+          <li><button class="lcd-key lcd-key--primary" type="submit">Send my link</button></li>
+        </ul>
+      </form>
+      <p class="lcd-small">We email you a link. No password, and we never show your email to anyone.</p>
+    </section>
+
+    <section data-step="sent" hidden>
+      <p class="lcd-block">Check your email. The link works once, for 15 minutes.</p>
       <ul class="key-list">
-        <li><button class="lcd-key lcd-key--primary" type="submit" disabled>Send my link</button></li>
+        <li><button class="lcd-key" type="button" data-goto="email">Use another email</button></li>
       </ul>
-    </form>
-    <p class="lcd-small" id="signin-note">Sign-in opens here this afternoon (WP2). Nothing is sent yet.</p>
+    </section>
+
+    <section data-step="name" hidden>
+      <form id="name-form" novalidate>
+        <label class="lcd-label" for="first-name">First name</label>
+        <input class="lcd-field" type="text" id="first-name" name="firstName" autocomplete="given-name"
+          maxlength="30" required>
+        <ul class="key-list">
+          <li><button class="lcd-key lcd-key--primary" type="submit">That's me</button></li>
+        </ul>
+      </form>
+      <p class="lcd-small">Only your first name. People see it only after you both say yes.</p>
+    </section>
+
+    <section data-step="signed-in" hidden>
+      <p class="lcd-block">Hello, <span data-first-name></span>. You're signed in.</p>
+      <ul class="key-list">
+        <li><a class="lcd-key lcd-key--primary" href="/arrive.html">Where are you?</a></li>
+        <li><button class="lcd-key" type="button" id="sign-out">Sign out</button></li>
+        <li><button class="lcd-key" type="button" data-goto="delete">Delete my account</button></li>
+      </ul>
+    </section>
+
+    <section data-step="delete" hidden>
+      <p class="lcd-block">This removes your check-ins, signals, replies, moments and friends. Anonymous counts stay. It can't be undone.</p>
+      <ul class="key-list">
+        <li><button class="lcd-key lcd-key--primary" type="button" id="delete-account">Delete it</button></li>
+        <li><button class="lcd-key" type="button" data-goto="signed-in">Keep it</button></li>
+      </ul>
+    </section>
+
+    <p class="lcd-small" id="signin-note" role="status" aria-live="polite"></p>
   </main>
   <nav class="lcd-softkeys" aria-label="Shortcuts">
     <a class="lcd-softkey" href="/">Back</a>

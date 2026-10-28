@@ -16,15 +16,18 @@ Both configs set `run_worker_first = true`, so every request (pages and API)
 passes through `src/worker.ts` and carries the security headers. Without it the
 platform serves `public/` directly and pages ship without a CSP.
 
-Staging has no D1 or KV bindings yet, so anything touching the database fails
-there. Before WP2 lands, create its own resources (never share prod data):
+Staging has its own D1 (`hoolala-staging`) and KV namespace (bound as `SESSIONS`),
+created 28 Oct and bound in `wrangler.staging.toml`. Never point staging at
+production data. Apply migrations with `npm run db:migrate:staging`.
+
+Agent and local wrangler access uses a scoped API token (D1, Workers KV and
+Workers Scripts: Edit; expires 5 Nov) kept in the macOS keychain, never in a
+file. Set `CLOUDFLARE_ACCOUNT_ID` too, or wrangler fails on its account lookup:
 
 ```bash
-npx wrangler d1 create hoolala-staging -c wrangler.staging.toml
-npx wrangler kv namespace create SESSIONS_STAGING
+export CLOUDFLARE_API_TOKEN="$(security find-generic-password -s cloudflare-api-token -w)"
+export CLOUDFLARE_ACCOUNT_ID=57b4d8690e875e205612a834a83915b4
 ```
-
-then add the bindings to `wrangler.staging.toml` and run `npm run db:migrate:staging`.
 
 ## Promoting to production
 
