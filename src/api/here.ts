@@ -50,11 +50,13 @@ import {
   whenAt,
 } from "../rules/here";
 import { writeWorking } from "../llm/client";
+import { suggestFor } from "../llm/suggest";
+import { sourceDomain } from "../rules/grounding";
 import { type ScreenVerdict, screenWithModel, translationFor } from "../llm/screen";
 import { SCREEN_MESSAGES, screenText } from "../rules/screening";
 import type { Env, UserRow } from "../types";
 import { json } from "./health";
-import { readJson } from "./request";
+import { overLimit, readJson } from "./request";
 import { getSessionUser } from "./session";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -222,6 +224,38 @@ export async function handlePostSignal(request: Request, env: Env, now = new Dat
     translation: topic.ai ? translationFor(topic.ai, topic.text) : null,
   });
   return json({ signal: { id, expiresAt: ends } });
+}
+
+const SUGGEST_LIMIT = { max: 10, windowS: 60 * 60 };
+
+/** SUGGEST IT: three ideas for this place now. Suggestions only; never posted for anyone. */
+export async function handleSuggest(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const checkin = await here(user, env, now);
+  if (!checkin) return json({ error: "not_checked_in" }, 403);
+  if (await overLimit(env, `rl:suggest:${user.id}`, SUGGEST_LIMIT)) return json({ error: "too_many" }, 429);
+  const place = await getPlace(env.DB, checkin.place_id);
+  if (!place) return json({ error: "not_found" }, 404);
+
+  const s = await suggestFor(env, place, placeSpots(place.spots_json), now);
+  const workingsId =
+    s.source === "ai"
+      ? await writeWorking(env, {
+          userId: user.id,
+          fn: "suggest",
+          tools: s.searched ? ["web_search"] : [],
+          citations: s.citations,
+          grounded: s.grounded,
+          total: s.total,
+          effort: "low",
+        })
+      : null;
+  return json({
+    source: s.source,
+    workingsId,
+    ideas: s.ideas.map((i) => ({ topic: i.topic, why: i.why, citationUrl: i.citationUrl, sourceDomain: i.citationUrl ? sourceDomain(i.citationUrl) : null })),
+  });
 }
 
 export async function handleCancelSignal(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {

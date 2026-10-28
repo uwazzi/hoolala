@@ -12,6 +12,7 @@ import {
   handlePostSignal,
   handleQuickReply,
   handleReport,
+  handleSuggest,
 } from "./api/here";
 import { handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
@@ -93,6 +94,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/here" && method === "GET") {
     return handleHere(request, env);
+  }
+  if (url.pathname === "/api/here/suggest" && method === "POST") {
+    return handleSuggest(request, env);
   }
   if (url.pathname === "/api/here/signals" && method === "POST") {
     return handlePostSignal(request, env);

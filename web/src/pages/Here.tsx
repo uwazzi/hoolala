@@ -11,6 +11,7 @@ interface Request { id: string; line: string | null; state: string; name: string
 interface Mine { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
 interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
 interface Found { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string }
+interface Idea { topic: string; why: string; citationUrl: string | null; sourceDomain: string | null }
 interface HereView { checkin: CheckinView | null; spots: string[]; mine: Mine[]; joined: Joined[]; discover: Found[] }
 
 const QUICK = [
@@ -67,6 +68,17 @@ export function Here() {
   const [at, setAt] = useState("");
   const [spot, setSpot] = useState("");
   const [capacity, setCapacity] = useState(1);
+  const [ideas, setIdeas] = useState<{ source: "ai" | "rules"; ideas: Idea[] } | null>(null);
+  const [thinking, setThinking] = useState(false);
+
+  async function needTopic() {
+    setThinking(true);
+    setNote("");
+    const res = await api<{ source: "ai" | "rules"; ideas: Idea[] }>("POST", "/api/here/suggest");
+    setThinking(false);
+    if (res.status !== 200) return setNote(ERRORS[res.data.error ?? ""] ?? "No ideas right now. Try your own?");
+    setIdeas(res.data);
+  }
 
   async function load() {
     const res = await api<HereView>("GET", "/api/here");
@@ -251,6 +263,26 @@ export function Here() {
           <input class="lcd-field" id="topic" maxLength={60} required value={topic} onInput={(e) => setTopic(e.currentTarget.value)}
             placeholder="Coffee break at 15:00. Small talk welcome." />
           <p class="lcd-small">{topic.length}/60 · Not dating, not selling. Just a chat.</p>
+          {!ideas && (
+            <ul class="key-list">
+              <li><button class="lcd-key" type="button" onClick={needTopic} disabled={thinking}>{thinking ? "Looking nearby..." : "Need a topic?"}</button></li>
+            </ul>
+          )}
+          {ideas && (
+            <ul class="lcd-menu" aria-label="Topic ideas">
+              {ideas.ideas.map((idea) => (
+                <li class="lcd-block idea" key={idea.topic}>
+                  <p class="lcd-kicker">{ideas.source === "ai" ? "AI / suggestion" : "Idea"}</p>
+                  <p class="signal-topic">{idea.topic}</p>
+                  <p class="lcd-small">{idea.why}</p>
+                  {idea.citationUrl && (
+                    <p class="lcd-small"><a href={idea.citationUrl} target="_blank" rel="noopener noreferrer">&gt; {idea.sourceDomain}</a></p>
+                  )}
+                  <button class="lcd-key" type="button" onClick={() => { setTopic(idea.topic.slice(0, 60)); setIdeas(null); }}>Use this</button>
+                </li>
+              ))}
+            </ul>
+          )}
           <fieldset class="chips">
             <legend class="lcd-label">When?</legend>
             {([["now", "Now"], ["in30", "In 30 min"], ["at", "At a time"]] as const).map(([id, label]) => (
