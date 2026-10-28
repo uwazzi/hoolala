@@ -19,11 +19,13 @@ type Env = ReturnType<typeof testEnv>;
 let overpass: unknown[] = [];
 let google: unknown[] = [];
 let providerCalls: string[] = [];
+let locality: Record<string, string> | null = null;
 
 beforeEach(() => {
   overpass = [];
   google = [];
   providerCalls = [];
+  locality = null;
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
@@ -35,6 +37,9 @@ beforeEach(() => {
           ? (overpass as { type: string; id: number }[]).filter((e) => e.type === byId[1] && String(e.id) === byId[2])
           : overpass;
         return Response.json({ elements });
+      }
+      if (String(url).includes("nominatim")) {
+        return locality ? Response.json({ address: locality }) : new Response("{}", { status: 503 });
       }
       if (String(url).includes("places.googleapis.com")) {
         if (String(url).endsWith(":searchNearby")) return Response.json({ places: google });
@@ -64,12 +69,12 @@ async function person(env: Env, name = "Ana") {
 }
 
 function addCafe(env: Env, extra: Record<string, unknown> = {}) {
-  const row = { id: "p-cafe", slug: "cafe-palud", name: "Café de la Palud", kind: "cafe", city: "lausanne", ...CAFE, code: null, poster_key_hash: null, osm_id: null, ...extra };
+  const row = { id: "p-cafe", slug: "cafe-palud", name: "Café de la Palud", kind: "cafe", city: "Lausanne", city_key: "lausanne", ...CAFE, code: null, poster_key_hash: null, osm_id: null, ...extra };
   env.DB.sqlite
     .prepare(
-      "INSERT INTO places (id, slug, name, kind, city, lat, lng, code, poster_key_hash, osm_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)",
+      "INSERT INTO places (id, slug, name, kind, city, city_key, lat, lng, code, poster_key_hash, osm_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)",
     )
-    .run(row.id, row.slug, row.name, row.kind, row.city, row.lat, row.lng, row.code, row.poster_key_hash, row.osm_id, NOW);
+    .run(row.id, row.slug, row.name, row.kind, row.city, row.city_key, row.lat, row.lng, row.code, row.poster_key_hash, row.osm_id, NOW);
   return row;
 }
 
@@ -116,7 +121,7 @@ describe("POST /api/places/nearby", () => {
     overpass = [{ type: "node", id: 42, lat: 46.52235, lon: 6.63395, tags: { amenity: "bar", name: "Le Bourg" } }];
     const res = await call(env, "POST", "/api/places/nearby", ana.cookie, NEAR);
     const body = await res.json();
-    expect(body.city).toBe("lausanne");
+    expect(body.city).toBe("Lausanne");
     expect(body.places.map((p: { name: string }) => p.name)).toEqual(["Café de la Palud", "Le Bourg"]);
     expect(body.places[0]).toEqual({ ref: { id: "p-cafe" }, name: "Café de la Palud", kind: "cafe", band: "here", source: "hoolala" });
     expect(body.places[1].ref).toEqual({ provider: "osm", externalId: "node/42" });
@@ -207,7 +212,7 @@ describe("picking a map place", () => {
     const res = await call(env, "POST", "/api/checkin", ana.cookie, { external: { provider: "osm", id: "node/42" }, ...NEAR });
     expect(res.status).toBe(200);
     const place = rows(env, "SELECT name, kind, city, lat, lng, osm_id, google_place_id, added_by FROM places")[0];
-    expect(place).toEqual({ name: "Le Bourg", kind: "bar", city: "lausanne", lat: 46.52235, lng: 6.63395, osm_id: "node/42", google_place_id: null, added_by: null });
+    expect(place).toEqual({ name: "Le Bourg", kind: "bar", city: "Lausanne", lat: 46.52235, lng: 6.63395, osm_id: "node/42", google_place_id: null, added_by: null });
     noPersonCoordinates(env, NEAR);
   });
 
@@ -246,7 +251,7 @@ describe("ADD THIS PLACE", () => {
     expect(res.status).toBe(200);
     expect((await res.json()).checkin.method).toBe("add");
     expect(rows(env, "SELECT name, city, lat, lng, added_by, status FROM places")[0]).toEqual({
-      name: "Impact Hub", city: "lausanne", lat: NEAR.lat, lng: NEAR.lng, added_by: ana.id, status: "new",
+      name: "Impact Hub", city: "Lausanne", lat: NEAR.lat, lng: NEAR.lng, added_by: ana.id, status: "new",
     });
     expect(rows(env, "SELECT action, points, state FROM place_contributions")).toEqual([{ action: "add_place", points: 10, state: "pending" }]);
   });
@@ -288,17 +293,17 @@ describe("search by name", () => {
     const env = testEnv();
     const ana = await person(env);
     addCafe(env);
-    addCafe(env, { id: "p-zh", slug: "zh", name: "Café Zurich", city: "zurich", lat: 47.37, lng: 8.54 });
+    addCafe(env, { id: "p-zh", slug: "zh", name: "Café Zurich", city: "Zurich", city_key: "zurich", lat: 47.37, lng: 8.54 });
     const res = await (await call(env, "GET", "/api/places/search?q=caf%C3%A9&city=lausanne", ana.cookie)).json();
     expect(res.places.map((p: { id: string }) => p.id)).toEqual(["p-cafe"]);
-    expect((await call(env, "GET", "/api/places/search?q=caf&city=paris", ana.cookie)).status).toBe(400);
+    expect((await call(env, "GET", "/api/places/search?q=caf&city=1003", ana.cookie)).status).toBe(400);
   });
 
   it("checks in without coordinates, but refuses a place outside the city", async () => {
     const env = testEnv();
     const ana = await person(env);
     addCafe(env);
-    addCafe(env, { id: "p-zh", slug: "zh", name: "Café Zurich", city: "zurich", lat: 47.37, lng: 8.54 });
+    addCafe(env, { id: "p-zh", slug: "zh", name: "Café Zurich", city: "Zurich", city_key: "zurich", lat: 47.37, lng: 8.54 });
     expect((await call(env, "POST", "/api/checkin", ana.cookie, { method: "search", placeId: "p-cafe", city: "lausanne" })).status).toBe(200);
     const out = await call(env, "POST", "/api/checkin", ana.cookie, { method: "search", placeId: "p-zh", city: "lausanne" });
     expect(out.status).toBe(403);
@@ -349,5 +354,46 @@ describe("leave and peek", () => {
     expect(body.topics).toHaveLength(2);
     expect(JSON.stringify(body)).not.toContain("Ana");
     expect((await call(env, "GET", "/api/places/nowhere/peek")).status).toBe(404);
+  });
+});
+
+describe("towns and villages", () => {
+  it("names the village the phone is in, and saves new places there", async () => {
+    const env = testEnv();
+    const ana = await person(env);
+    locality = { village: "Pully", municipality: "Pully", county: "District de Lavaux-Oron" };
+    expect((await (await call(env, "POST", "/api/places/nearby", ana.cookie, NEAR)).json()).city).toBe("Pully");
+    await call(env, "POST", "/api/places", ana.cookie, { name: "Café du Port", kind: "cafe", ...NEAR });
+    expect(rows(env, "SELECT city, city_key FROM places")[0]).toEqual({ city: "Pully", city_key: "pully" });
+  });
+
+  it("finds places by village, ignoring accents and case, and nowhere else", async () => {
+    const env = testEnv();
+    const ana = await person(env);
+    locality = { village: "Échallens" };
+    await call(env, "POST", "/api/places", ana.cookie, { name: "Tea Room du Bourg", kind: "cafe", ...NEAR });
+    const found = await (await call(env, "GET", "/api/places/search?q=tea&city=echallens", ana.cookie)).json();
+    expect(found.places.map((p: { name: string }) => p.name)).toEqual(["Tea Room du Bourg"]);
+    const elsewhere = await (await call(env, "GET", "/api/places/search?q=tea&city=Lausanne", ana.cookie)).json();
+    expect(elsewhere.places).toEqual([]);
+    const placeId = rows(env, "SELECT id FROM places")[0].id;
+    expect((await call(env, "POST", "/api/checkin", ana.cookie, { method: "search", placeId, city: "ÉCHALLENS" })).status).toBe(200);
+    expect((await call(env, "POST", "/api/checkin", ana.cookie, { method: "search", placeId, city: "Lausanne" })).status).toBe(403);
+  });
+
+  it("falls back to the known cities when the lookup is down", async () => {
+    const env = testEnv();
+    const ana = await person(env);
+    expect((await (await call(env, "POST", "/api/places/nearby", ana.cookie, NEAR)).json()).city).toBe("Lausanne");
+  });
+
+  it("sends Nominatim no key and only the rounded point", async () => {
+    const env = testEnv();
+    const ana = await person(env);
+    locality = { town: "Pully" };
+    await call(env, "POST", "/api/places/nearby", ana.cookie, NEAR);
+    const url = providerCalls.find((u) => u.includes("nominatim"))!;
+    expect(url).toContain("lat=46.52220&lon=6.63442");
+    expect(url).not.toMatch(/key=|email=/);
   });
 });

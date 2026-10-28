@@ -4,16 +4,17 @@
 // are only ever saved as a new place's own location.
 
 import { getPlaceBySlug, insertAddPlaceContribution, insertPlace, openTopics, placesInBox, searchPlaces } from "../db/places";
+import { localityFor } from "../places/geocode";
 import { mapNearby } from "../places/provider";
 import {
-  cityFor,
   distanceBand,
   distanceM,
-  isCity,
   isPlaceKind,
   MAX_NEARBY,
   MAX_SEARCH,
   NEARBY_RADIUS_M,
+  localityKey,
+  normalizeLocality,
   normalizePlaceName,
   normalizeQuery,
   parsePoint,
@@ -81,19 +82,19 @@ export async function handleNearby(request: Request, env: Env): Promise<Response
     })),
   ].slice(0, MAX_NEARBY);
 
-  return json({ places, city: cityFor(point) });
+  return json({ places, city: await localityFor(point) });
 }
 
 export async function handleSearch(request: Request, env: Env): Promise<Response> {
   const user = await getSessionUser(request, env);
   if (!user) return json({ error: "signed_out" }, 401);
   const url = new URL(request.url);
-  const city = url.searchParams.get("city");
+  const city = normalizeLocality(url.searchParams.get("city"));
   const q = normalizeQuery(url.searchParams.get("q"));
-  if (!isCity(city)) return json({ error: "bad_city" }, 400);
+  if (!city) return json({ error: "bad_city" }, 400);
   if (!q) return json({ error: "bad_query" }, 400);
   if (await overLimit(env, `rl:search:${user.id}`, PLACE_LIMITS.search)) return json({ error: "too_many" }, 429);
-  const places = await searchPlaces(env.DB, city, q, MAX_SEARCH);
+  const places = await searchPlaces(env.DB, localityKey(city), q, MAX_SEARCH);
   return json({ places: places.map(summary) });
 }
 
@@ -124,7 +125,7 @@ export async function handleAddPlace(request: Request, env: Env, now = new Date(
     slug: slugify(name, id.slice(0, 6)),
     name,
     kind: body.kind,
-    city: cityFor(point),
+    city: await localityFor(point),
     lat: point.lat,
     lng: point.lng,
     addedBy: user.id,

@@ -57,7 +57,7 @@ The stack at a glance (28 Oct 2026). `AGENTS.md` holds the folder-level rules; t
 
 ## Three flows
 
-**Check in (no model).** Web app asks for location once → Worker → `rules/checkin` picks places in radius from D1 (plus Google nearby, live) → person picks one → `checkins` row without coordinates. GPS denied: search by name. The model is never on this path.
+**Check in (no model).** Web app asks for location once → Worker → `rules/checkin` picks places in radius from D1, plus OpenStreetMap (or Google) nearby and the town or village from Nominatim, all live → person picks one → `checkins` row without coordinates. GPS denied: search by name within a town. The model is never on this path.
 
 **Post a signal (model as a checker).** Web app → Worker → `rules/screening` (code rules) → SCREEN IT (verdict, category, reason, translation; 4 s timeout) → saved in D1, or rejected with the reason. Model off or late: the code rules decide alone.
 

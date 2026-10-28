@@ -61,6 +61,35 @@ export function cityFor(point: Point): CityId | null {
   return best?.id ?? null;
 }
 
+/** The known city's display name, as a fallback when the locality lookup fails. */
+export function knownCityName(point: Point): string | null {
+  const id = cityFor(point);
+  return id ? CITIES.find((c) => c.id === id)!.name : null;
+}
+
+/**
+ * A town or village name as people write it: 2 to 60 letters, with spaces,
+ * hyphens, apostrophes and dots. Null when it can't be one.
+ */
+export function normalizeLocality(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const name = raw.trim().replace(/\s+/g, " ");
+  if (name.length < 2 || name.length > 60) return null;
+  if (!/^\p{L}[\p{L}\p{M} .'’()-]*$/u.test(name)) return null;
+  return name;
+}
+
+/** What search compares: no accents, no case, single spaces. "Échallens" and "echallens" match. */
+export function localityKey(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[’']/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function isCity(value: unknown): value is CityId {
   return typeof value === "string" && CITIES.some((c) => c.id === value);
 }

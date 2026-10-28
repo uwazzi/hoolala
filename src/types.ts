@@ -119,7 +119,8 @@ export interface PlaceRow {
   slug: string;
   name: string;
   kind: PlaceKind;
-  city: string | null;
+  city: string | null; // display name, e.g. "Échallens"
+  city_key: string | null; // search key, e.g. "echallens" (migration 0004)
   lat: number | null;
   lng: number | null;
   radius_m: number;
