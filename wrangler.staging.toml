@@ -24,6 +24,9 @@ migrations_dir = "src/db/migrations"
 binding = "SESSIONS"
 id = "b694f9efe9664e59a5fb586c15321c99"
 
+[triggers]
+crons = ["*/5 * * * *"]
+
 [vars]
 LLM_ENABLED = "false"
 PLACES_PROVIDER = "osm"
