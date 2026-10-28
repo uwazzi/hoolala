@@ -17,7 +17,9 @@ import {
   startCheckin,
 } from "../db/places";
 import { coordsStorable, mapLookup } from "../places/provider";
+import { ensureSample } from "../db/sample";
 import { localityFor } from "../places/geocode";
+import { SAMPLE_PLACE } from "../rules/sample";
 import { checkinEnds, distanceM, localityKey, NEARBY_RADIUS_M, normalizeCode, normalizeLocality, parsePoint, slugify } from "../rules/checkin";
 import type { CheckinAttemptReason, CheckinMethod, CheckinView, Env, PlaceRow } from "../types";
 import { json } from "./health";
@@ -63,6 +65,7 @@ export async function handleCheckin(request: Request, env: Env, now = new Date()
   // Partner code: four letters on the poster.
   if (body.code !== undefined) {
     const code = normalizeCode(body.code);
+    if (code === SAMPLE_PLACE.code) await ensureSample(env.DB, now);
     const place = code ? await getPlaceByCode(env.DB, code) : null;
     if (!place) return refuse(env, "code", "wrong_code", "wrong_code", now);
     return checkIn(env, user.id, place, "code", now);

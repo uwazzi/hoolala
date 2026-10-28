@@ -165,6 +165,18 @@ export function Arrive() {
     done(await api("POST", "/api/checkin", { method: "search", placeId: place.id, city }), "search");
   }
 
+  /** The demo café, open from anywhere with its code. */
+  async function trySample() {
+    go("checking");
+    const res = await api<{ checkin?: CheckinView }>("POST", "/api/checkin", { code: "DEMO" });
+    if (res.status === 200) {
+      location.href = "/here";
+      return;
+    }
+    go("ask");
+    failed(res.data.error);
+  }
+
   async function leave() {
     await api("POST", "/api/checkin/leave");
     setHere(null);
@@ -192,6 +204,10 @@ export function Arrive() {
           <ul class="key-list">
             <li><button class="lcd-key lcd-key--primary" type="button" onClick={shareLocation}>Share location</button></li>
             {searchLink}
+          </ul>
+          <p class="lcd-small">Just looking, or not near a café?</p>
+          <ul class="key-list">
+            <li><button class="lcd-key" type="button" onClick={trySample}>Try the SAMPLE place</button></li>
           </ul>
         </>
       )}

@@ -8,6 +8,8 @@
 // and lines pass the code screening rules (SCREEN IT joins in WP23).
 
 import { getActiveCheckin, getPlace } from "../db/places";
+import { ensureSample, isSampleUser } from "../db/sample";
+import { SAMPLE_PLACE } from "../rules/sample";
 import {
   acceptResponse,
   blockedIds,
@@ -80,6 +82,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
   const nowIso = now.toISOString();
   const checkin = await here(user, env, now);
   if (!checkin) return json({ checkin: null });
+  if (checkin.place_id === SAMPLE_PLACE.id) await ensureSample(env.DB, now);
 
   const place = await getPlace(env.DB, checkin.place_id);
   const blocked = await blockedIds(env.DB, user.id);
@@ -144,6 +147,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
       state: j.state,
       signalState: j.signal_state,
       ownerName: canSeeNames(user.id, j.owner_id, j) ? j.owner_name : null,
+      sample: j.owner_sample === 1,
       replies: j.state === "accepted" ? repliesFor(j.signal_id) : [],
     })),
     discover: discover.map((s) => ({
@@ -227,6 +231,12 @@ export async function handleCurious(id: string, request: Request, env: Env, now 
   }
   const responseId = crypto.randomUUID();
   await insertResponse(env.DB, { id: responseId, signalId: id, responderId: user.id, line, createdAt: now.toISOString() });
+  // Sample Sophie always says yes and heads to the spot, so the demo works alone.
+  if (await isSampleUser(env.DB, signal.owner_id)) {
+    await acceptResponse(env.DB, responseId, id, now.toISOString());
+    await insertQuickReply(env.DB, { id: crypto.randomUUID(), signalId: id, userId: signal.owner_id, kind: "at_spot", createdAt: now.toISOString() });
+    return json({ response: { id: responseId, state: "accepted" } });
+  }
   return json({ response: { id: responseId, state: "requested" } });
 }
 

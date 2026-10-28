@@ -1,6 +1,7 @@
 import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
 import { handleHealth, json } from "./api/health";
+import { ensureSample } from "./db/sample";
 import {
   handleAccept,
   handleBlock,
@@ -146,6 +147,11 @@ export async function runScheduled(env: Env, now: Date = new Date()): Promise<vo
   await env.DB.prepare("DELETE FROM workings WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .run();
+  try {
+    await ensureSample(env.DB, now);
+  } catch {
+    // The demo place is a nice-to-have; expiry above is not.
+  }
 }
 
 export default {

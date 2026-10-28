@@ -9,7 +9,7 @@ import { Screen } from "../components/Screen";
 interface Reply { from: string; text: string; at: string }
 interface Request { id: string; line: string | null; state: string; name: string | null }
 interface Mine { id: string; topic: string; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
-interface Joined { responseId: string; signalId: string; topic: string; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; replies: Reply[] }
+interface Joined { responseId: string; signalId: string; topic: string; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
 interface Found { id: string; topic: string; whenAt: string; spot: string; capacity: number; expiresAt: string }
 interface HereView { checkin: CheckinView | null; spots: string[]; mine: Mine[]; joined: Joined[]; discover: Found[] }
 
@@ -156,6 +156,9 @@ export function Here() {
   return (
     <Screen title="Here">
       <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)}</p>
+      {data.checkin.place.slug === "sample-cafe" && (
+        <p class="lcd-block">This is a SAMPLE place to try Hoolala! alone. Sample Sophie says yes to everything, and nothing here counts on the Live page.</p>
+      )}
 
       {data.mine.map((s) => {
         const accepted = s.requests.filter((r) => r.state === "accepted");
@@ -201,7 +204,15 @@ export function Here() {
               <p>Accepted. <strong>{j.ownerName ?? "Someone"}</strong> · {j.spot.toLowerCase()} · {whenText(j.whenAt).toLowerCase()}.</p>
               <Replies replies={j.replies} />
               <QuickReplies onSend={(kind) => act(`/api/here/signals/${j.signalId}/quick`, { kind })} />
-              <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/meet">Meet: scan or type their code</a></li></ul>
+              <ul class="key-list">
+                <li>
+                  {j.sample ? (
+                    <a class="lcd-key lcd-key--primary" href={`/meet?signal=${j.signalId}`}>Meet {j.ownerName ?? "them"}</a>
+                  ) : (
+                    <a class="lcd-key lcd-key--primary" href="/meet">Meet: scan or type their code</a>
+                  )}
+                </li>
+              </ul>
             </>
           )}
         </section>

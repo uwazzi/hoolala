@@ -88,13 +88,14 @@ export type JoinedRow = SignalResponseRow & {
   spot: string | null;
   expires_at: string;
   signal_state: SignalRow["state"];
+  owner_sample: number;
 };
 
 /** Signals this person said I'M CURIOUS to, still live or decided in the last 2 hours. */
 export async function ownResponses(db: D1Database, userId: string, sinceIso: string): Promise<JoinedRow[]> {
   const { results } = await db
     .prepare(
-      `SELECT r.*, s.owner_id, u.first_name AS owner_name, s.topic, s.when_at, s.spot, s.expires_at, s.state AS signal_state
+      `SELECT r.*, s.owner_id, u.first_name AS owner_name, u.is_sample AS owner_sample, s.topic, s.when_at, s.spot, s.expires_at, s.state AS signal_state
        FROM signal_responses r JOIN signals s ON s.id = r.signal_id JOIN users u ON u.id = s.owner_id
        WHERE r.responder_id = ? AND r.state != 'withdrawn' AND s.created_at > ?
        ORDER BY r.created_at DESC LIMIT 10`,

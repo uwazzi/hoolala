@@ -85,6 +85,10 @@ export async function firstName(db: D1Database, userId: string): Promise<string 
 
 // --- Live page (WP6): collective counts only ---------------------------------
 
+/** SAMPLE places (WP9) never count. A missing place (old rows) still counts. */
+const NOT_SAMPLE_PLACE = (column: string) =>
+  `(${column} IS NULL OR ${column} NOT IN (SELECT id FROM places WHERE is_sample = 1))`;
+
 export interface LiveCounts {
   hellos: number;
   acceptedSignals: number;
@@ -99,18 +103,26 @@ export async function liveCounts(db: D1Database, sinceIso: string, weekAgoIso: s
   const one = async (sql: string, ...binds: unknown[]) =>
     ((await db.prepare(sql).bind(...binds).first<number>("n")) as number | null) ?? 0;
   const [hellos, acceptedSignals, metSignals, checkinAttempts, checkinOk, factsConfirmedWeek] = await Promise.all([
-    one("SELECT COUNT(*) AS n FROM interactions WHERE kind = 'here' AND confirmed_at >= ?", sinceIso),
-    one("SELECT COUNT(DISTINCT signal_id) AS n FROM signal_responses WHERE state = 'accepted' AND created_at >= ?", sinceIso),
-    one("SELECT COUNT(DISTINCT signal_id) AS n FROM interactions WHERE kind = 'here' AND signal_id IS NOT NULL AND confirmed_at >= ?", sinceIso),
-    one("SELECT COUNT(*) AS n FROM checkin_attempts WHERE created_at >= ?", sinceIso),
-    one("SELECT COUNT(*) AS n FROM checkin_attempts WHERE ok = 1 AND created_at >= ?", sinceIso),
+    one(`SELECT COUNT(*) AS n FROM interactions WHERE kind = 'here' AND confirmed_at >= ? AND ${NOT_SAMPLE_PLACE("place_id")}`, sinceIso),
+    one(
+      `SELECT COUNT(DISTINCT r.signal_id) AS n FROM signal_responses r JOIN signals s ON s.id = r.signal_id
+       WHERE r.state = 'accepted' AND r.created_at >= ? AND ${NOT_SAMPLE_PLACE("s.place_id")}`,
+      sinceIso,
+    ),
+    one(
+      `SELECT COUNT(DISTINCT signal_id) AS n FROM interactions
+       WHERE kind = 'here' AND signal_id IS NOT NULL AND confirmed_at >= ? AND ${NOT_SAMPLE_PLACE("place_id")}`,
+      sinceIso,
+    ),
+    one(`SELECT COUNT(*) AS n FROM checkin_attempts WHERE created_at >= ? AND ${NOT_SAMPLE_PLACE("place_id")}`, sinceIso),
+    one(`SELECT COUNT(*) AS n FROM checkin_attempts WHERE ok = 1 AND created_at >= ? AND ${NOT_SAMPLE_PLACE("place_id")}`, sinceIso),
     one("SELECT COUNT(*) AS n FROM place_facts WHERE state = 'confirmed' AND updated_at >= ?", weekAgoIso),
   ]);
   // Places by name, not ranked: no leaderboards.
   const { results } = await db
     .prepare(
       `SELECT p.name AS name, COUNT(*) AS hellos FROM interactions i JOIN places p ON p.id = i.place_id
-       WHERE i.kind = 'here' AND i.confirmed_at >= ? AND p.status != 'hidden'
+       WHERE i.kind = 'here' AND i.confirmed_at >= ? AND p.status != 'hidden' AND p.is_sample = 0
        GROUP BY p.id ORDER BY p.name LIMIT 20`,
     )
     .bind(sinceIso)

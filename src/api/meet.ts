@@ -5,6 +5,7 @@
 // No model, on purpose: two people confirm, not an AI.
 
 import { getActiveCheckin } from "../db/places";
+import { isSampleUser } from "../db/sample";
 import { blockedIds, getSignal, responsesFor } from "../db/here";
 import {
   agree,
@@ -73,6 +74,12 @@ export async function handleMeetStart(request: Request, env: Env, now = new Date
   const id = crypto.randomUUID();
   const expiresAt = meetExpiry(now);
   await insertExchange(env.DB, { id, initiatorId: user.id, tokenHash: await sha256Hex(code), expiresAt, signalId: found.signal.id });
+  // Sample Sophie has no phone to scan with: her side joins and agrees at once.
+  if (found.signal.owner_id !== user.id && (await isSampleUser(env.DB, found.signal.owner_id))) {
+    await setJoiner(env.DB, id, found.signal.owner_id);
+    const ex = (await getExchange(env.DB, id))!;
+    await agree(env.DB, ex, found.signal.owner_id, now.toISOString());
+  }
   return json({ id, code, expiresAt, url: `${new URL(request.url).origin}/meet?code=${code}` });
 }
 

@@ -52,6 +52,8 @@ export function Meet() {
         if (res.status !== 200) return setNote("Meet works from a signal you've both accepted.");
         setShow({ code: res.data.code, url: res.data.url });
         setMeet({ id: res.data.id, state: "waiting", otherName: null, youAgreed: false, theyAgreed: false, expiresAt: res.data.expiresAt });
+        // The SAMPLE place's Sophie joins at once; don't show a QR she can't scan.
+        api<MeetState>("GET", `/api/meet/${res.data.id}`).then((s) => s.status === 200 && setMeet(s.data));
       });
     }
   }, []);
