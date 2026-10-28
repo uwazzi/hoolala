@@ -14,13 +14,13 @@ export interface Finding {
   url: string;
 }
 
-const FIND_INSTRUCTIONS = `You help one person describe what they like talking about, using only what is public about them.
+export const FIND_INSTRUCTIONS = `You help one person describe what they like talking about, using only what is public about them.
 Search only for this person, using the name, town and links given; at most 3 searches. Never search for anyone else.
-Return up to 6 short findings (one sentence each) about their public interests, work, projects, hobbies or activities, each with the URL of the page it came from, copied exactly from the search results.
+Return up to 6 short findings (one sentence each) about their public interests, work, projects, hobbies or activities, each with the full URL of the page it came from (starting with https://), copied exactly from the search results.
 Never include health, politics, religion, sexuality, family, age, home address, contact details or anything private. No opinions about the person, no personality traits.
 Namesakes are normal: if results seem to be about different people with the same name, include them anyway as separate findings; the person will tick which ones are really them.`;
 
-const FIND_SCHEMA = {
+export const FIND_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
@@ -44,7 +44,7 @@ export function validateFindings(value: unknown): Finding[] | null {
 export async function findMe(
   env: Env,
   who: { name: string; town: string | null; links: string[] },
-): Promise<{ findings: Finding[]; searches: number; total: number } | null> {
+): Promise<{ findings: Finding[]; searches: number; total: number; droppedNoSource: number; droppedLabel: number } | null> {
   const res = await searchStructured(env, {
     purpose: "findme",
     instructions: FIND_INSTRUCTIONS,
@@ -60,16 +60,25 @@ export async function findMe(
   if (!res.ok) return null;
   const seen = new Set<string>();
   const findings: Finding[] = [];
+  let droppedNoSource = 0;
+  let droppedLabel = 0;
   for (const f of res.value.value) {
     const text = f.text.trim().replace(/\s+/g, " ").slice(0, 160);
-    if (!text || hasBannedLabel(text) || seen.has(text.toLowerCase())) continue;
-    const url = resolveCitation(f.url, text, res.value.results, who.links);
-    if (!url) continue;
+    if (!text || seen.has(text.toLowerCase())) continue;
+    if (hasBannedLabel(text)) {
+      droppedLabel++;
+      continue;
+    }
+    const url = resolveCitation(f.url, text, res.value.results, who.links, { sameSiteFallback: true });
+    if (!url) {
+      droppedNoSource++;
+      continue;
+    }
     seen.add(text.toLowerCase());
     findings.push({ text, url });
     if (findings.length === MAX_FINDINGS) break;
   }
-  return { findings, searches: res.value.searches, total: res.value.value.length };
+  return { findings, searches: res.value.searches, total: res.value.value.length, droppedNoSource, droppedLabel };
 }
 
 const DRAFT_SYSTEM = `You turn what a person ticked as really them (findings with their source URL) and their own answers into a short Personal Compass: what they like talking about.

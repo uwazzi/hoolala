@@ -18,6 +18,9 @@ import {
 import { handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
+import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
+import { handleMeetingPoint, handlePlan } from "./api/plan";
+import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
 // No frame-ancestors / X-Frame-Options: the front end runs inside Telegram's
@@ -97,6 +100,21 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/places" && method === "POST") {
     return handleAddPlace(request, env);
   }
+  const placeCard = /^\/api\/places\/([a-z0-9-]{1,60})\/(card|fetch|facts)$/.exec(url.pathname);
+  if (placeCard) {
+    const [, id, action] = placeCard;
+    if (action === "card" && method === "GET") return handleCard(id, request, env);
+    if (action === "fetch" && method === "POST") return handleFetch(id, request, env);
+    if (action === "facts" && method === "POST") return handleAddFact(id, request, env);
+  }
+  const factAction = /^\/api\/places\/facts\/([0-9a-f-]{36})\/(confirm|dispute)$/.exec(url.pathname);
+  if (factAction && method === "POST") {
+    const [, id, action] = factAction;
+    return action === "confirm" ? handleFactConfirm(id, request, env) : handleDispute(id, request, env);
+  }
+  if (url.pathname === "/api/me/points" && method === "GET") {
+    return handlePoints(request, env);
+  }
   const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
   if (peek && method === "GET") {
     return handlePeek(peek[1], env);
@@ -126,6 +144,11 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     if (action === "curious") return handleCurious(id, request, env);
     return handleQuickReply(id, request, env);
   }
+  const planAction = /^\/api\/here\/signals\/([0-9a-f-]{36})\/(plan|meeting-point)$/.exec(url.pathname);
+  if (planAction && method === "POST") {
+    const [, id, action] = planAction;
+    return action === "plan" ? handlePlan(id, request, env) : handleMeetingPoint(id, request, env);
+  }
   const responseAction = /^\/api\/here\/responses\/([0-9a-f-]{36})\/(accept|decline)$/.exec(url.pathname);
   if (responseAction && method === "POST") {
     const [, id, action] = responseAction;
@@ -143,6 +166,10 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     if (!action && method === "GET") return handleMeetState(id, request, env);
     if (action === "agree" && method === "POST") return handleMeetAgree(id, request, env);
     if (action === "stay-in-touch" && method === "POST") return handleStayInTouch(id, request, env);
+  }
+  const workings = /^\/api\/workings\/([0-9a-f-]{36})$/.exec(url.pathname);
+  if (workings && method === "GET") {
+    return handleWorkings(workings[1], request, env);
   }
   if (url.pathname === "/api/live" && method === "GET") {
     return handleLive(env);

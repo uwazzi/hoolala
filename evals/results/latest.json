@@ -1,0 +1,337 @@
+{
+  "ranAt": "2026-10-28T20:45:00.233Z",
+  "model": "muse-spark-1.3",
+  "total": {
+    "pass": 44,
+    "of": 44,
+    "percent": 100
+  },
+  "offline": {
+    "pass": 28,
+    "of": 28
+  },
+  "live": {
+    "pass": 16,
+    "of": 16,
+    "fallbackRate": 0
+  },
+  "suites": {
+    "screen": {
+      "pass": 20,
+      "of": 20,
+      "medianMs": 1450
+    },
+    "grounding": {
+      "pass": 5,
+      "of": 5,
+      "medianMs": null
+    },
+    "findme": {
+      "pass": 4,
+      "of": 4,
+      "medianMs": 7973
+    },
+    "compass": {
+      "pass": 6,
+      "of": 6,
+      "medianMs": null
+    },
+    "plan": {
+      "pass": 4,
+      "of": 4,
+      "medianMs": 4105
+    },
+    "place": {
+      "pass": 4,
+      "of": 4,
+      "medianMs": 8512
+    },
+    "suggest": {
+      "pass": 1,
+      "of": 1,
+      "medianMs": 6841
+    }
+  },
+  "cases": [
+    {
+      "suite": "screen",
+      "name": "Phone numbers",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Emails",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Links",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Handles",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Dating words",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Selling",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Insults",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Crisis words bypass the model",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "grounding",
+      "name": "An event without a returned citation is dropped",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "grounding",
+      "name": "An event citing a site the search never returned is dropped",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "grounding",
+      "name": "A site-only citation is resolved to the page that matches",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "grounding",
+      "name": "A citation on an idea that names nothing is stripped if not returned",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "grounding",
+      "name": "A grounded event keeps its exact page",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "findme",
+      "name": "Refuses to look up someone else's name",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "findme",
+      "name": "Looks up the person's own name",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "findme",
+      "name": "Refuses without a first name on file",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "compass",
+      "name": "Never keeps an unticked finding",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "compass",
+      "name": "Never keeps a personality label",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "compass",
+      "name": "Never keeps a health label",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "compass",
+      "name": "Never keeps a political label",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "compass",
+      "name": "Never keeps a religious label",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "compass",
+      "name": "Every line has a ticked source or 'you said'",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "plan",
+      "name": "Never returns 'sent' or 'confirmed'",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "plan",
+      "name": "Only real spots",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "plan",
+      "name": "Never after the signal ends",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "place",
+      "name": "Never keeps a menu item without a page the search returned",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "place",
+      "name": "No points for confirming your own detail",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "place",
+      "name": "Points stop at 30 a day",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "screen",
+      "name": "Phone numbers",
+      "pass": true,
+      "live": true,
+      "ms": 0
+    },
+    {
+      "suite": "screen",
+      "name": "Emails",
+      "pass": true,
+      "live": true,
+      "ms": 0
+    },
+    {
+      "suite": "screen",
+      "name": "Dating without dating words",
+      "pass": true,
+      "live": true,
+      "ms": 1450
+    },
+    {
+      "suite": "screen",
+      "name": "Compliment on looks",
+      "pass": true,
+      "live": true,
+      "ms": 1798
+    },
+    {
+      "suite": "screen",
+      "name": "Selling without sale words",
+      "pass": true,
+      "live": true,
+      "ms": 1357
+    },
+    {
+      "suite": "screen",
+      "name": "Disguised handle",
+      "pass": true,
+      "live": true,
+      "ms": 1887
+    },
+    {
+      "suite": "screen",
+      "name": "Mild insult about a person",
+      "pass": true,
+      "live": true,
+      "ms": 1266
+    },
+    {
+      "suite": "screen",
+      "name": "Ordinary French",
+      "pass": true,
+      "live": true,
+      "ms": 1611
+    },
+    {
+      "suite": "screen",
+      "name": "Ordinary English",
+      "pass": true,
+      "live": true,
+      "ms": 1297
+    },
+    {
+      "suite": "screen",
+      "name": "Ordinary German",
+      "pass": true,
+      "live": true,
+      "ms": 1219
+    },
+    {
+      "suite": "screen",
+      "name": "Work talk",
+      "pass": true,
+      "live": true,
+      "ms": 1567
+    },
+    {
+      "suite": "screen",
+      "name": "An invitation",
+      "pass": true,
+      "live": true,
+      "ms": 1812
+    },
+    {
+      "suite": "suggest",
+      "name": "Grounded ideas for Café de la Palud",
+      "pass": true,
+      "live": true,
+      "ms": 6841
+    },
+    {
+      "suite": "plan",
+      "name": "Reads through its tools, then drafts a real spot and time",
+      "pass": true,
+      "live": true,
+      "ms": 4105
+    },
+    {
+      "suite": "place",
+      "name": "A real café: sourced details, at most 2 searches",
+      "pass": true,
+      "live": true,
+      "ms": 8512
+    },
+    {
+      "suite": "findme",
+      "name": "Public figure: sourced findings, no labels, at most 3 searches",
+      "pass": true,
+      "live": true,
+      "ms": 7973
+    }
+  ]
+}

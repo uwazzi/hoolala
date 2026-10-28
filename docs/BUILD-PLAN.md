@@ -139,11 +139,11 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests: unticked findings never stored; another person's name refused; compass never in any response to anyone else; delete account deletes it.
 
 ### WP25 PLACE IT and place points (Sat 31, morning)
-- [ ] `src/llm/place.ts` (PLACE IT): parallel tools `google_place_details` (live: hours, website, price level), `web_search` (menu on the place's website), `get_place_facts`; schema `{facts[{field, value, source, url}]}`; runs on first visit and when facts are over 30 days old.
-- [ ] Place card: CONFIRMED HERE facts first, then AI / FOUND facts with their source line; Google attribution shown; THAT'S RIGHT / FIX IT / NOT ANY MORE.
-- [ ] `src/rules/places.ts` (pure, tests first): points table (add place 10, add or fix 5, confirm 2), counted only on another person's confirmation or 24 h without dispute, only while checked in at that place, never for your own, max 30 a day, one confirm per fact per person per month; disputes revert to found.
-- [ ] Edits pass `screening.ts` and SCREEN IT. MY MOMENTS shows your points privately; the Live page shows only collective counts.
-- [ ] Tests: no self-confirm, cap, not checked in refused, Google rows never stored, points never public.
+- [x] `src/llm/place.ts` (PLACE IT): parallel tools `google_place_details` (live: hours, website, price level), `web_search` (menu on the place's website), `get_place_facts`; schema `{facts[{field, value, source, url}]}`; runs on first visit and when facts are over 30 days old.
+- [x] Place card: CONFIRMED HERE facts first, then AI / FOUND facts with their source line; Google attribution shown; THAT'S RIGHT / FIX IT / NOT ANY MORE.
+- [x] `src/rules/places.ts` (pure, tests first): points table (add place 10, add or fix 5, confirm 2), counted only on another person's confirmation or 24 h without dispute, only while checked in at that place, never for your own, max 30 a day, one confirm per fact per person per month; disputes revert to found.
+- [x] Edits pass `screening.ts` and SCREEN IT. MY MOMENTS shows your points privately; the Live page shows only collective counts.
+- [x] Tests: no self-confirm, cap, not checked in refused, Google rows never stored, points never public.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 - [ ] Location inside the Mini App: Telegram's location API where available, browser geolocation otherwise.
@@ -169,9 +169,9 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] `src/rules/screening.ts` first (pure, tests): length, links, emails, phone numbers, handles, crisis words, a short word list (dating, sexual, slurs, selling). Code rules decide alone when the model is off or times out.
 - [x] `src/llm/screen.ts` (SCREEN IT): structured output `{verdict, category, reason, fr, en}`, `reasoning_effort: minimal`, prompt caching on the house rules, 1.5 s target, 4 s timeout. Can approve or reject; never rewrites. Rejection screen: the reason in Hoolala! voice ("That sounds more like a date than a coffee break. Try again?") and EDIT.
 - [x] `src/llm/suggest.ts` (SUGGEST IT): place name, area, time of day, spots, plus at most one `web_search` ("events near <area> today"), cached per place for 1 hour. Returns 3 ideas `{topic, why, citation_url?}`; `src/rules/grounding.ts` drops ideas naming an event without a returned citation; every idea also passes SCREEN IT. Shown as AI / SUGGESTION with USE THIS; never posted automatically.
-- [ ] `src/llm/agent.ts` (PLAN IT): tools `get_signal`, `get_place_spots`, `get_quick_replies`, `get_place_hours`, `draft_meeting_point` (draft only); parallel calls, max 4; returns "Terrace at 15:10?" with CONFIRM (issues the confirmation token) and CHANGE.
-- [ ] Every AI answer writes a `workings` row and an `llm_calls` row.
-- [ ] Tests: model never rewrites silently; invented event dropped; PLAN IT only proposes real spots; never "sent"; model-off paths.
+- [x] `src/llm/agent.ts` (PLAN IT): tools `get_signal`, `get_place_spots`, `get_quick_replies`, `get_place_hours`, `draft_meeting_point` (draft only); parallel calls, max 4; returns "Terrace at 15:10?" with CONFIRM (issues the confirmation token) and CHANGE.
+- [x] Every AI answer writes a `workings` row and an `llm_calls` row.
+- [x] Tests: model never rewrites silently; invented event dropped; PLAN IT only proposes real spots; never "sent"; model-off paths.
 
 ### WP5 Meet and the connection rate (Sat 31)
 - [x] From an accepted signal: MEET > shows a QR (10 minutes) plus a short code; the other scans and both agree; writes `interactions` (kind `here`, place, signal), a private moment each: "You met an actual human."
@@ -184,14 +184,15 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Open Graph image for `/live` and SAMPLE places excluded from the counts (both with WP9).
 
 ### WP14 CHECK IT and the evaluation set (Sun 1)
-- [ ] SHOW THE WORKINGS under every AI answer: capability (Web search, Screening, Tools, Vision), tools in call order, citations, the screening verdict and category, grounded count, reasoning effort. No personal text beyond what the person already sees.
-- [ ] `evals/` with about 30 cases (see `MUSE-SPARK-BY-FUNCTION.md`); `npm run eval` prints a pass rate; run before each deploy. Pass rate, median latency per function and fallback rate go into the README.
+- [x] SHOW THE WORKINGS under every AI answer: capability (Web search, Screening, Tools, Vision), tools in call order, citations, the screening verdict and category, grounded count, reasoning effort. No personal text beyond what the person already sees.
+- [x] `evals/` with about 30 cases (see `MUSE-SPARK-BY-FUNCTION.md`); `npm run eval` prints a pass rate; run before each deploy. Pass rate, median latency per function and fallback rate go into the README.
 
 ### WP7 Share card, slim (Sun 1)
 - [ ] After a confirmed meet: "I went live." / "One of N real-life hellos on Hoolala!" / "You never know until you go." No names, no place unless the person ticks it. Web Share with the image, fallback links, COPY LINK.
 
 ### WP9 Safety, pilot and submission (Sun 1 to Wed 4)
 - [ ] Safety pass: 18+ gate, block and report both ways, house rules on the poster and the first screen, rate limits on every model endpoint and on posting, replying, adding places and points, crisis message everywhere, privacy page in plain English (FIND ME consent and what is kept, place-level check-in, the person's coordinates discarded, Google attribution, check-ins deleted after 24 h, anonymity until both accept, what the model sees).
+  - [x] Privacy page in plain English at `/privacy` (28 Oct), describing what the code does.
 - [x] Demo place for judges: a clearly labelled SAMPLE place with a sample signal from "Sample Sophie" who accepts automatically, so a judge alone can do the whole loop. Never counted on the Live page.
 - [ ] Dry run (Sat 31, café, friends) and pilot (Mon 2, place, 15 to 20 people). Measure the four metrics; observe whether people post or reply without help; ask "How comfortable was replying?" (1 to 5) and "What made you curious, uncomfortable or reluctant?"
 - [ ] README: what it is, live URL, how to run, architecture, "Muse Spark by function" table, evaluation results, pilot results (honest, small numbers), "Built during the hackathon" vs `prior-work/`, Muse Code usage, limitations, licence.

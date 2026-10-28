@@ -7,7 +7,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc --noEmit -p web",
-    "eval": "node evals/run.mjs",
+    "eval": "vite-node evals/run.ts",
     "dev": "wrangler dev --infer-origin-from-routes=false",
     "db:migrate": "wrangler d1 migrations apply hoolala --remote",
     "db:migrate:local": "wrangler d1 migrations apply hoolala --local",
@@ -16,7 +16,8 @@
     "deploy:staging": "npm run build && wrangler deploy -c wrangler.staging.toml",
     "build": "vite build web",
     "dev:web": "vite web",
-    "check:secrets": "node scripts/check-secrets.mjs"
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "eval:live": "vite-node evals/run.ts --live"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",

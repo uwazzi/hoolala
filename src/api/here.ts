@@ -27,6 +27,7 @@ import {
   insertQuickReply,
   insertResponse,
   insertSignal,
+  meetingPointsFor,
   ownResponses,
   ownSignals,
   quickRepliesFor,
@@ -90,14 +91,16 @@ async function screened(
   userId: string,
   text: unknown,
   max: number,
-): Promise<{ ok: true; text: string; ai: ScreenVerdict | null } | { ok: false; response: Response }> {
+): Promise<{ ok: true; text: string; ai: ScreenVerdict | null; workingsId: string | null } | { ok: false; response: Response }> {
   const result = screenText(text, max);
   if (!result.ok) return { ok: false, response: refused(result.category!) };
   const clean = (text as string).trim();
   const ai = await screenWithModel(env, clean);
-  if (ai) await writeWorking(env, { userId, fn: "screen", tools: [], verdict: ai.verdict === "approve" ? "approved" : `rejected: ${ai.category}`, effort: "minimal" });
+  const workingsId = ai
+    ? await writeWorking(env, { userId, fn: "screen", tools: [], verdict: ai.verdict === "approve" ? "approved" : `rejected: ${ai.category}`, effort: "minimal" })
+    : null;
   if (ai?.verdict === "reject") return { ok: false, response: refused(ai.category) };
-  return { ok: true, text: clean, ai };
+  return { ok: true, text: clean, ai, workingsId };
 }
 
 export async function handleHere(request: Request, env: Env, now = new Date()): Promise<Response> {
@@ -126,6 +129,9 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
         text: quickReplyText(q.kind, mine.find((s) => s.id === signalId)?.spot ?? joined.find((j) => j.signal_id === signalId)?.spot ?? null),
         at: q.created_at,
       }));
+
+  // Meeting points: on my own signals, and on ones where I was accepted. Never anyone else's.
+  const points = await meetingPointsFor(env.DB, [...mine.map((s) => s.id), ...joined.filter((j) => j.state === "accepted").map((j) => j.signal_id)]);
 
   // Discovery: three at a time, through canSee, skipping ones I already answered.
   // FITS YOU (the viewer's own compass) only puts matching ones first, for them.
@@ -165,6 +171,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
           name: canSeeNames(user.id, s.owner_id, r) ? r.responder_name : null,
         })),
       replies: repliesFor(s.id),
+      meetingPoint: points.get(s.id) ?? null,
     })),
     joined: joined.map((j) => ({
       responseId: j.id,
@@ -179,6 +186,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
       ownerName: canSeeNames(user.id, j.owner_id, j) ? j.owner_name : null,
       sample: j.owner_sample === 1,
       replies: j.state === "accepted" ? repliesFor(j.signal_id) : [],
+      meetingPoint: j.state === "accepted" ? points.get(j.signal_id) ?? null : null,
     })),
     discover: discover.map((s) => ({
       id: s.id,
@@ -230,7 +238,7 @@ export async function handlePostSignal(request: Request, env: Env, now = new Dat
     lang: topic.ai?.lang ?? null,
     translation: topic.ai ? translationFor(topic.ai, topic.text) : null,
   });
-  return json({ signal: { id, expiresAt: ends } });
+  return json({ signal: { id, expiresAt: ends }, workingsId: topic.workingsId });
 }
 
 const SUGGEST_LIMIT = { max: 10, windowS: 60 * 60 };

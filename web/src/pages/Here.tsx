@@ -5,11 +5,14 @@ import { useEffect, useState } from "preact/hooks";
 import type { CheckinView } from "../../../src/types";
 import { api } from "../api";
 import { Screen } from "../components/Screen";
+import { PlanBox } from "../components/PlanBox";
+import { Workings } from "../components/Workings";
 
 interface Reply { from: string; text: string; at: string }
 interface Request { id: string; line: string | null; state: string; name: string | null }
-interface Mine { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
-interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
+interface Point { spot: string; time: string; proposedBy: string }
+interface Mine { id: string; topic: string; translation?: string | null; meetingPoint?: Point | null; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
+interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; meetingPoint?: Point | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
 interface Found { id: string; topic: string; translation?: string | null; fitsYou?: boolean; whenAt: string; spot: string; capacity: number; expiresAt: string }
 interface Idea { topic: string; why: string; citationUrl: string | null; sourceDomain: string | null }
 interface HereView { checkin: CheckinView | null; spots: string[]; mine: Mine[]; joined: Joined[]; discover: Found[] }
@@ -68,13 +71,14 @@ export function Here() {
   const [at, setAt] = useState("");
   const [spot, setSpot] = useState("");
   const [capacity, setCapacity] = useState(1);
-  const [ideas, setIdeas] = useState<{ source: "ai" | "rules"; ideas: Idea[] } | null>(null);
+  const [ideas, setIdeas] = useState<{ source: "ai" | "rules"; ideas: Idea[]; workingsId: string | null } | null>(null);
+  const [postedWorkings, setPostedWorkings] = useState<string | null | undefined>(undefined);
   const [thinking, setThinking] = useState(false);
 
   async function needTopic() {
     setThinking(true);
     setNote("");
-    const res = await api<{ source: "ai" | "rules"; ideas: Idea[] }>("POST", "/api/here/suggest");
+    const res = await api<{ source: "ai" | "rules"; ideas: Idea[]; workingsId: string | null }>("POST", "/api/here/suggest");
     setThinking(false);
     if (res.status !== 200) return setNote(ERRORS[res.data.error ?? ""] ?? "No ideas right now. Try your own?");
     setIdeas(res.data);
@@ -108,12 +112,13 @@ export function Here() {
     const whenValue = when === "at" ? todayAt(at) : when;
     if (!whenValue) return setNote("Pick a time.");
     if (!spot) return setNote("Pick where in the place.");
-    const res = await api<{ signal: { expiresAt: string } }>("POST", "/api/here/signals", { topic, when: whenValue, spot, capacity });
+    const res = await api<{ signal: { expiresAt: string }; workingsId: string | null }>("POST", "/api/here/signals", { topic, when: whenValue, spot, capacity });
     if (res.status !== 200) {
       return setNote((res.data as { message?: string }).message ?? ERRORS[res.data.error ?? ""] ?? "Something went wrong. Try again.");
     }
     setTopic("");
     setPosting(false);
+    setPostedWorkings(res.data.workingsId);
     setNote(`Signal up. Visible to people here until ${time(res.data.signal.expiresAt)}.`);
     load();
   }
@@ -167,7 +172,7 @@ export function Here() {
 
   return (
     <Screen title="Here">
-      <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)}</p>
+      <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)} · <a href="/place">This place</a></p>
       {data.checkin.place.slug === "sample-cafe" && (
         <p class="lcd-block">This is a SAMPLE place to try Hoolala! alone. Sample Sophie says yes to everything, and nothing here counts on the Live page.</p>
       )}
@@ -195,6 +200,7 @@ export function Here() {
             ))}
             <Replies replies={s.replies} />
             {accepted.length > 0 && <QuickReplies onSend={(kind) => act(`/api/here/signals/${s.id}/quick`, { kind })} />}
+            {accepted.length > 0 && <PlanBox signalId={s.id} spots={data.spots} point={s.meetingPoint ?? null} onSaved={load} />}
             {accepted.length > 0 && (
               <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href={`/meet?signal=${s.id}`}>Meet: show my QR</a></li></ul>
             )}
@@ -217,6 +223,7 @@ export function Here() {
             <>
               <p>Accepted. <strong>{j.ownerName ?? "Someone"}</strong> · {j.spot.toLowerCase()} · {whenText(j.whenAt).toLowerCase()}.</p>
               <Replies replies={j.replies} />
+              <PlanBox signalId={j.signalId} spots={data.spots} point={j.meetingPoint ?? null} onSaved={load} />
               <QuickReplies onSend={(kind) => act(`/api/here/signals/${j.signalId}/quick`, { kind })} />
               <ul class="key-list">
                 <li>
@@ -282,6 +289,7 @@ export function Here() {
                   <button class="lcd-key" type="button" onClick={() => { setTopic(idea.topic.slice(0, 60)); setIdeas(null); }}>Use this</button>
                 </li>
               ))}
+              <li class="idea"><Workings id={ideas.workingsId} /></li>
             </ul>
           )}
           <fieldset class="chips">
@@ -321,6 +329,7 @@ export function Here() {
       )}
 
       <p class="lcd-small" role="status" aria-live="polite">{note}</p>
+      {postedWorkings !== undefined && <Workings id={postedWorkings} />}
       <ul class="key-list">
         <li><button class="lcd-key" type="button" onClick={async () => { await api("POST", "/api/checkin/leave"); location.href = "/arrive"; }}>I'm leaving</button></li>
       </ul>
