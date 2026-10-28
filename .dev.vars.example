@@ -1,4 +1,5 @@
-# Copy to .dev.vars (gitignored) and fill in. Never commit real secrets.
+# Copy to .dev.vars (gitignored) and fill in with test keys. Never commit real secrets.
+# Rules and where production keys live: docs/SECRETS.md
 EMAIL_API_KEY=
 EMAIL_FROM=
 TELEGRAM_BOT_TOKEN=

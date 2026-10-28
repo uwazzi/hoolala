@@ -4,13 +4,28 @@ compatibility_date = "2026-10-27"
 workers_dev = false
 
 [assets]
-directory = "public/"
+directory = "web/dist/"
+not_found_handling = "single-page-application"
 binding = "ASSETS"
 run_worker_first = true
 
 [[routes]]
 pattern = "staging.hoolala.hg-labs.io"
 custom_domain = true
+
+# Staging's own D1 and KV (created 28 Oct). Never point these at production.
+[[d1_databases]]
+binding = "DB"
+database_name = "hoolala-staging"
+database_id = "6d2b88a8-c645-46cb-ac1e-d2604bbe2346"
+migrations_dir = "src/db/migrations"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "b694f9efe9664e59a5fb586c15321c99"
+
+[triggers]
+crons = ["*/5 * * * *"]
 
 [vars]
 LLM_ENABLED = "false"

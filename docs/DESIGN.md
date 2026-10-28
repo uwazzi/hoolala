@@ -100,7 +100,11 @@ Three voices share one screen, so each has a fixed shape:
 
 ### Layout and shape
 
-- 8px grid with a 4px half step. Mobile first from 320px; fluid on desktop with a 42ch text measure.
+- 8px grid with a 4px half step. Mobile first from 320px. The web app is responsive at every width, including Telegram webviews; do not build a separate mobile version.
+- The app container is fluid (`width: 100%`) up to 960px, centred on `surround-bg`. Simple screens are one centred 42ch column (the measure sits on `main`); `.lcd-layout` screens and the softkey bar use the full width. Never put the measure on `body` or the entire app. Keep the LCD surface on desktop, without a phone bezel.
+- Base layout: one column, 16px gutters. At 640px use 24px gutters; at 960px use 32px gutters. Existing simple screens remain one column with more space. Use the shared `.lcd-layout` wrapper only for related task panels: one column by default, two equal columns from 960px. Never add content just to fill desktop space.
+- Keep one focal action, identical content and DOM order across widths. Forms and primary action lists stay at most 42ch wide. Allow labels, links and long text to wrap; grid children need `min-width: 0`. Keep controls at least 44px and body text at 16px; do not shrink the mobile UI to fit.
+- Use the shared `public/styles.css` layout for all new pages. Verify 320, 390, 768, 1024 and 1440px widths, plus 200% zoom: no horizontal scrolling or clipped controls, readable text, and usable softkeys. Respect safe-area insets and dynamic viewport height.
 - 2px borders, 2px squared corners on everything. Rounded corners only on the device shell in mockups.
 - One focal action per screen. More empty space than information.
 - Navigation through inverted selection bars and a softkey bar (left action, right BACK). They are real buttons.

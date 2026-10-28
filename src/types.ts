@@ -21,6 +21,8 @@ export interface D1PreparedStatement {
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
   exec(query: string): Promise<unknown>;
+  /** Runs the statements in one transaction (WP2: delete account). */
+  batch(statements: D1PreparedStatement[]): Promise<unknown[]>;
 }
 
 export interface KVNamespace {
@@ -122,6 +124,7 @@ export interface PlaceRow {
   lng: number | null;
   radius_m: number;
   google_place_id: string | null;
+  osm_id: string | null; // e.g. "node/123" (migration 0003)
   spots_json: string | null;
   code: string | null;
   poster_key_hash: string | null;
@@ -369,4 +372,35 @@ export interface HealthResponse {
 
 export interface ApiError {
   error: string;
+}
+
+/** A place as the web app sees it. Never coordinates. */
+export interface PlaceSummary {
+  id: string;
+  slug: string;
+  name: string;
+  kind: PlaceKind;
+}
+
+/** One row of POST /api/places/nearby: a Hoolala! place, or a map place to pick. */
+export interface NearbyPlace {
+  ref: { id: string } | { provider: "osm" | "google"; externalId: string };
+  name: string;
+  kind: PlaceKind;
+  band: "here" | "next_door";
+  source: "hoolala" | "osm" | "google";
+}
+
+/** GET /api/checkin and every successful check-in. */
+export interface CheckinView {
+  place: PlaceSummary;
+  method: CheckinMethod;
+  endsAt: IsoDateTime;
+}
+
+/** GET /api/me: only what the person needs about themselves. */
+export interface MeResponse {
+  id: string;
+  firstName: string | null;
+  isAdult: boolean;
 }

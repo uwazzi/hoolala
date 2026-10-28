@@ -1,4 +1,8 @@
+import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
+import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
 import { handleHealth, json } from "./api/health";
+import { handleMe } from "./api/me";
+import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
 // No frame-ancestors / X-Frame-Options: the front end runs inside Telegram's
@@ -34,8 +38,45 @@ export function withSecurityHeaders(response: Response): Response {
 
 async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  if (url.pathname === "/api/health" && request.method === "GET") {
+  const { method } = request;
+  // Cookie-authenticated writes only from our own pages.
+  const origin = request.headers.get("origin");
+  if (method !== "GET" && origin && origin !== url.origin) {
+    return json({ error: "bad_origin" }, 403);
+  }
+  if (url.pathname === "/api/health" && method === "GET") {
     return handleHealth(request, env);
+  }
+  if (url.pathname === "/api/auth/start" && method === "POST") {
+    return handleAuthStart(request, env);
+  }
+  if (url.pathname === "/api/auth/logout" && method === "POST") {
+    return handleLogout(request, env);
+  }
+  if (url.pathname === "/api/me") {
+    return handleMe(request, env);
+  }
+  if (url.pathname === "/api/places/nearby" && method === "POST") {
+    return handleNearby(request, env);
+  }
+  if (url.pathname === "/api/places/search" && method === "GET") {
+    return handleSearch(request, env);
+  }
+  if (url.pathname === "/api/places" && method === "POST") {
+    return handleAddPlace(request, env);
+  }
+  const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
+  if (peek && method === "GET") {
+    return handlePeek(peek[1], env);
+  }
+  if (url.pathname === "/api/checkin" && method === "POST") {
+    return handleCheckin(request, env);
+  }
+  if (url.pathname === "/api/checkin" && method === "GET") {
+    return handleGetCheckin(request, env);
+  }
+  if (url.pathname === "/api/checkin/leave" && method === "POST") {
+    return handleLeave(request, env);
   }
   return json({ error: "not_found" }, 404);
 }
@@ -60,6 +101,9 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
       return withSecurityHeaders(await handleApi(request, env));
+    }
+    if (url.pathname === "/auth/verify" && request.method === "GET") {
+      return withSecurityHeaders(await handleAuthVerify(request, env));
     }
     return withSecurityHeaders(await env.ASSETS.fetch(request));
   },
