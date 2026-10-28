@@ -5,6 +5,7 @@ import { useEffect, useState } from "preact/hooks";
 import type { CheckinView } from "../../../src/types";
 import { api } from "../api";
 import { Screen } from "../components/Screen";
+import { Workings } from "../components/Workings";
 
 interface Reply { from: string; text: string; at: string }
 interface Request { id: string; line: string | null; state: string; name: string | null }
@@ -68,13 +69,14 @@ export function Here() {
   const [at, setAt] = useState("");
   const [spot, setSpot] = useState("");
   const [capacity, setCapacity] = useState(1);
-  const [ideas, setIdeas] = useState<{ source: "ai" | "rules"; ideas: Idea[] } | null>(null);
+  const [ideas, setIdeas] = useState<{ source: "ai" | "rules"; ideas: Idea[]; workingsId: string | null } | null>(null);
+  const [postedWorkings, setPostedWorkings] = useState<string | null | undefined>(undefined);
   const [thinking, setThinking] = useState(false);
 
   async function needTopic() {
     setThinking(true);
     setNote("");
-    const res = await api<{ source: "ai" | "rules"; ideas: Idea[] }>("POST", "/api/here/suggest");
+    const res = await api<{ source: "ai" | "rules"; ideas: Idea[]; workingsId: string | null }>("POST", "/api/here/suggest");
     setThinking(false);
     if (res.status !== 200) return setNote(ERRORS[res.data.error ?? ""] ?? "No ideas right now. Try your own?");
     setIdeas(res.data);
@@ -108,12 +110,13 @@ export function Here() {
     const whenValue = when === "at" ? todayAt(at) : when;
     if (!whenValue) return setNote("Pick a time.");
     if (!spot) return setNote("Pick where in the place.");
-    const res = await api<{ signal: { expiresAt: string } }>("POST", "/api/here/signals", { topic, when: whenValue, spot, capacity });
+    const res = await api<{ signal: { expiresAt: string }; workingsId: string | null }>("POST", "/api/here/signals", { topic, when: whenValue, spot, capacity });
     if (res.status !== 200) {
       return setNote((res.data as { message?: string }).message ?? ERRORS[res.data.error ?? ""] ?? "Something went wrong. Try again.");
     }
     setTopic("");
     setPosting(false);
+    setPostedWorkings(res.data.workingsId);
     setNote(`Signal up. Visible to people here until ${time(res.data.signal.expiresAt)}.`);
     load();
   }
@@ -282,6 +285,7 @@ export function Here() {
                   <button class="lcd-key" type="button" onClick={() => { setTopic(idea.topic.slice(0, 60)); setIdeas(null); }}>Use this</button>
                 </li>
               ))}
+              <li class="idea"><Workings id={ideas.workingsId} /></li>
             </ul>
           )}
           <fieldset class="chips">
@@ -321,6 +325,7 @@ export function Here() {
       )}
 
       <p class="lcd-small" role="status" aria-live="polite">{note}</p>
+      {postedWorkings !== undefined && <Workings id={postedWorkings} />}
       <ul class="key-list">
         <li><button class="lcd-key" type="button" onClick={async () => { await api("POST", "/api/checkin/leave"); location.href = "/arrive"; }}>I'm leaving</button></li>
       </ul>

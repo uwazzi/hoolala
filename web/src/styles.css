@@ -251,3 +251,14 @@ select.lcd-field { appearance: none; }
 
 /* Stacked inputs, e.g. FIND ME links (no inline styles: the CSP blocks them). */
 .field-stack { display: flex; flex-direction: column; gap: 8px; }
+
+/* CHECK IT: SHOW THE WORKINGS */
+.workings { margin: 8px 0; }
+.workings-toggle {
+  background: none; border: 0; padding: 8px 0; min-height: 32px; cursor: pointer;
+  color: var(--lcd-ink); font: 700 12px/1 var(--font-display); text-transform: uppercase; text-decoration: underline;
+}
+.workings-list { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 4px 0; font-size: 13px; }
+.workings-list dt { font: 700 11px/1.6 var(--font-display); text-transform: uppercase; color: var(--lcd-ink-secondary); }
+.workings-list dd { margin: 0; overflow-wrap: anywhere; }
+.workings-off { color: var(--lcd-ink-secondary); }

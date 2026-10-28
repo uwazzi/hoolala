@@ -90,14 +90,16 @@ async function screened(
   userId: string,
   text: unknown,
   max: number,
-): Promise<{ ok: true; text: string; ai: ScreenVerdict | null } | { ok: false; response: Response }> {
+): Promise<{ ok: true; text: string; ai: ScreenVerdict | null; workingsId: string | null } | { ok: false; response: Response }> {
   const result = screenText(text, max);
   if (!result.ok) return { ok: false, response: refused(result.category!) };
   const clean = (text as string).trim();
   const ai = await screenWithModel(env, clean);
-  if (ai) await writeWorking(env, { userId, fn: "screen", tools: [], verdict: ai.verdict === "approve" ? "approved" : `rejected: ${ai.category}`, effort: "minimal" });
+  const workingsId = ai
+    ? await writeWorking(env, { userId, fn: "screen", tools: [], verdict: ai.verdict === "approve" ? "approved" : `rejected: ${ai.category}`, effort: "minimal" })
+    : null;
   if (ai?.verdict === "reject") return { ok: false, response: refused(ai.category) };
-  return { ok: true, text: clean, ai };
+  return { ok: true, text: clean, ai, workingsId };
 }
 
 export async function handleHere(request: Request, env: Env, now = new Date()): Promise<Response> {
@@ -230,7 +232,7 @@ export async function handlePostSignal(request: Request, env: Env, now = new Dat
     lang: topic.ai?.lang ?? null,
     translation: topic.ai ? translationFor(topic.ai, topic.text) : null,
   });
-  return json({ signal: { id, expiresAt: ends } });
+  return json({ signal: { id, expiresAt: ends }, workingsId: topic.workingsId });
 }
 
 const SUGGEST_LIMIT = { max: 10, windowS: 60 * 60 };

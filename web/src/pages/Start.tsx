@@ -5,6 +5,7 @@ import { useEffect, useState } from "preact/hooks";
 import type { MeResponse } from "../../../src/types";
 import { api } from "../api";
 import { Screen } from "../components/Screen";
+import { Workings } from "../components/Workings";
 
 type Step = "ask" | "who" | "looking" | "pick" | "questions" | "drafting" | "draft" | "saved";
 interface Finding { text: string; url: string; source: string }
@@ -29,6 +30,7 @@ export function Start() {
   const [town, setTown] = useState("");
   const [links, setLinks] = useState(["", "", ""]);
   const [findings, setFindings] = useState<Finding[]>([]);
+  const [findWorkings, setFindWorkings] = useState<string | null>(null);
   const [mine, setMine] = useState<Record<string, boolean | undefined>>({});
   const [answers, setAnswers] = useState({ talk: "", more: "", avoid: "" });
   const [lines, setLines] = useState<Line[]>([]);
@@ -50,7 +52,7 @@ export function Start() {
   async function lookMeUp(event: Event) {
     event.preventDefault();
     go("looking");
-    const res = await api<{ findings: Finding[] }>("POST", "/api/me/find", {
+    const res = await api<{ findings: Finding[]; workingsId: string | null }>("POST", "/api/me/find", {
       consent: true,
       name,
       town: town.trim() || undefined,
@@ -65,6 +67,7 @@ export function Start() {
       return go("questions", "Nothing public turned up. That's fine: tell us instead.");
     }
     setFindings(res.data.findings);
+    setFindWorkings(res.data.workingsId);
     setMine({});
     go("pick");
   }
@@ -146,6 +149,7 @@ export function Start() {
               );
             })}
           </ul>
+          <Workings id={findWorkings} />
           <ul class="key-list">
             <li><button class="lcd-key lcd-key--primary" type="button" onClick={() => go("questions")}>Next</button></li>
           </ul>

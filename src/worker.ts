@@ -18,6 +18,7 @@ import {
 import { handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
+import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
 // No frame-ancestors / X-Frame-Options: the front end runs inside Telegram's
@@ -143,6 +144,10 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     if (!action && method === "GET") return handleMeetState(id, request, env);
     if (action === "agree" && method === "POST") return handleMeetAgree(id, request, env);
     if (action === "stay-in-touch" && method === "POST") return handleStayInTouch(id, request, env);
+  }
+  const workings = /^\/api\/workings\/([0-9a-f-]{36})$/.exec(url.pathname);
+  if (workings && method === "GET") {
+    return handleWorkings(workings[1], request, env);
   }
   if (url.pathname === "/api/live" && method === "GET") {
     return handleLive(env);
