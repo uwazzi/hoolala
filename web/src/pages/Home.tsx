@@ -45,7 +45,7 @@ export function Home() {
         {me && hasCompass && <li><a class="lcd-key" href="/compass">My compass</a></li>}
         {me && <li><a class="lcd-key" href="/signin">Account</a></li>}
       </ul>
-      <p class="lcd-small">Not a dating app. Anonymous until you both say yes.</p>
+      <p class="lcd-small">Not a dating app. Anonymous until you both say yes. <a href="/privacy">Privacy</a></p>
     </Screen>
   );
 }

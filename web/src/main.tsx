@@ -10,6 +10,7 @@ import { Here } from "./pages/Here";
 import { Live } from "./pages/Live";
 import { Meet } from "./pages/Meet";
 import { NotFound } from "./pages/Placeholders";
+import { Privacy } from "./pages/Privacy";
 import { SignIn } from "./pages/SignIn";
 import { Start } from "./pages/Start";
 import "./styles.css";
@@ -53,6 +54,7 @@ function App() {
       <Route path="/here" component={Here} />
       <Route path="/meet" component={Meet} />
       <Route path="/live" component={Live} />
+      <Route path="/privacy" component={Privacy} />
       <Route default component={NotFound} />
     </Router>
   );

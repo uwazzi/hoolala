@@ -105,7 +105,7 @@ export function SignIn() {
               <li><button class="lcd-key lcd-key--primary" type="submit">Send my link</button></li>
             </ul>
           </form>
-          <p class="lcd-small">We email you a link. No password, and we never show your email to anyone.</p>
+          <p class="lcd-small">We email you a link. No password, and we never show your email to anyone. <a href="/privacy">Privacy</a></p>
         </>
       )}
 

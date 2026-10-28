@@ -192,6 +192,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 
 ### WP9 Safety, pilot and submission (Sun 1 to Wed 4)
 - [ ] Safety pass: 18+ gate, block and report both ways, house rules on the poster and the first screen, rate limits on every model endpoint and on posting, replying, adding places and points, crisis message everywhere, privacy page in plain English (FIND ME consent and what is kept, place-level check-in, the person's coordinates discarded, Google attribution, check-ins deleted after 24 h, anonymity until both accept, what the model sees).
+  - [x] Privacy page in plain English at `/privacy` (28 Oct), describing what the code does.
 - [x] Demo place for judges: a clearly labelled SAMPLE place with a sample signal from "Sample Sophie" who accepts automatically, so a judge alone can do the whole loop. Never counted on the Live page.
 - [ ] Dry run (Sat 31, café, friends) and pilot (Mon 2, place, 15 to 20 people). Measure the four metrics; observe whether people post or reply without help; ask "How comfortable was replying?" (1 to 5) and "What made you curious, uncomfortable or reluctant?"
 - [ ] README: what it is, live URL, how to run, architecture, "Muse Spark by function" table, evaluation results, pilot results (honest, small numbers), "Built during the hackathon" vs `prior-work/`, Muse Code usage, limitations, licence.
