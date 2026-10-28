@@ -163,12 +163,31 @@ main { flex: 1; }
 .check-row { display: flex; gap: 12px; align-items: flex-start; margin: 16px 0; }
 .check-row input { width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: var(--lcd-ink); }
 
+/* The status bar on every screen: signal, the wordmark (home), battery. */
+.lcd-status {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: -8px 0 8px; padding: 4px 0 8px;
+  border-bottom: 2px dashed var(--lcd-ink-secondary);
+}
+.lcd-wordmark { font: 700 14px/1 var(--font-display); color: var(--lcd-ink); text-decoration: none; text-transform: uppercase; letter-spacing: .02em; padding: 8px; }
+.lcd-wordmark:hover { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.lcd-wordmark:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 3px; }
+.lcd-bars { display: inline-flex; gap: 2px; align-items: flex-end; height: 13px; }
+.lcd-bars i { display: block; width: 4px; background: var(--lcd-ink); }
+.lcd-bars i:nth-child(1) { height: 4px; }
+.lcd-bars i:nth-child(2) { height: 7px; }
+.lcd-bars i:nth-child(3) { height: 10px; }
+.lcd-bars i:nth-child(4) { height: 13px; }
+.lcd-batt { display: inline-flex; gap: 2px; padding: 2px; border: 2px solid var(--lcd-ink); }
+.lcd-batt i { display: block; width: 4px; height: 6px; background: var(--lcd-ink); }
+
 .lcd-softkeys {
+  position: sticky; bottom: 0; z-index: 2; background: var(--lcd-bg);
   display: flex;
   justify-content: space-between;
   gap: 8px;
   border-top: 2px solid var(--lcd-ink);
-  padding: 4px 8px;
+  padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
   margin: 24px -16px 0;
 }
 .lcd-softkey {
@@ -272,3 +291,16 @@ select.lcd-field { appearance: none; }
 .prose p { margin: 8px 0; }
 .prose-list { margin: 8px 0; padding-left: 20px; }
 .prose-list li { margin: 4px 0; }
+
+/* WP26 Surprise Me: the pixel ball, scaled up with crisp pixels. */
+.ball-stage { display: flex; justify-content: center; margin: 16px auto; }
+.ball-button {
+  width: auto; padding: 8px; border: 0; background: none; color: inherit; cursor: pointer;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.ball-button:focus-visible { outline: 2px dashed var(--lcd-ink); outline-offset: 4px; }
+.pixel-ball { width: min(56vw, 224px); height: auto; aspect-ratio: 1; image-rendering: pixelated; }
+.ball-stage--small .pixel-ball { width: 112px; }
+.ball-question { margin: 8px auto; text-align: center; font-weight: 700; font-size: 18px; min-height: 3em; }
+.ball-hint { text-align: center; margin: 0 auto 8px; }
+textarea.lcd-field { resize: vertical; font: inherit; }

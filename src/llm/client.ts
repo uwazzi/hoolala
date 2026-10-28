@@ -29,9 +29,9 @@ export function llmEnabled(env: Env): boolean {
   return env.LLM_ENABLED === "true" && Boolean(env.META_API_KEY) && Boolean(env.META_API_BASE);
 }
 
-async function logCall(
+export async function logCall(
   env: Env,
-  row: { purpose: string; latencyMs: number; validated: boolean; fallback: boolean; promptTokens: number | null; completionTokens: number | null },
+  row: { purpose: string; latencyMs: number; validated: boolean; fallback: boolean; promptTokens: number | null; completionTokens: number | null; model?: string },
 ): Promise<void> {
   try {
     await env.DB.prepare(
@@ -41,7 +41,7 @@ async function logCall(
       .bind(
         crypto.randomUUID(),
         row.purpose,
-        env.MUSE_SPARK_MODEL ?? "unknown",
+        row.model ?? env.MUSE_SPARK_MODEL ?? "unknown",
         row.latencyMs,
         row.validated ? 1 : 0,
         row.fallback ? 1 : 0,

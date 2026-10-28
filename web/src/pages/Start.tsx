@@ -1,4 +1,5 @@
-// WP24 Get started: FIND ME with consent, or three questions without any AI.
+// WP24 Get started: FIND ME with consent, three questions without any AI,
+// or SURPRISE ME (WP26), a short spoken conversation.
 // IS THIS YOU? > a few questions (optional) > YOUR WORLD, ACCORDING TO YOU. >
 // LOOKS RIGHT. Nothing is saved before LOOKS RIGHT; the search itself never is.
 import { useEffect, useState } from "preact/hooks";
@@ -99,6 +100,7 @@ export function Start() {
           <ul class="key-list">
             <li><button class="lcd-key lcd-key--primary" type="button" onClick={() => { setOrigin("find_me"); go("who"); }}>Yes, have a look</button></li>
             <li><button class="lcd-key" type="button" onClick={() => { setOrigin("questions"); go("questions"); }}>No, I'll tell you</button></li>
+            <li><a class="lcd-key" href="/surprise">Surprise me</a></li>
           </ul>
           <p class="lcd-small">Only you see this. We keep the compass, not the search. We only look you up, at most three times, and never log in anywhere.</p>
         </>

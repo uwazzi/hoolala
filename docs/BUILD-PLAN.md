@@ -145,6 +145,13 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Edits pass `screening.ts` and SCREEN IT. MY MOMENTS shows your points privately; the Live page shows only collective counts.
 - [x] Tests: no self-confirm, cap, not checked in refused, Google rows never stored, points never public.
 
+### WP26 SURPRISE ME, a spoken head start (Wed 28, evening)
+- [x] `src/rules/surprise.ts` (pure, tests first): at most 5 turns, fixed opening and scripted fallback, question and observation checks, lines must echo the person's words, screened topic ideas, crisis stop, WAV format check.
+- [x] `src/llm/voice.ts` (HEAR IT, Muse Voice Transcribe) and `src/llm/surprise.ts` (follow-up questions and the surprise draft, Muse Spark), each with a no-model fallback.
+- [x] `POST /api/me/surprise/hear|next|draft`, signed-in only, rate-limited, stateless; nothing stored before LOOKS RIGHT; audio never kept.
+- [x] `/surprise`: pixel ball that ripples with Hoolala!'s voice (phone speech, VOICE ON/OFF) and the person's (hold to talk), typing fallback, the reveal (Passions, Projects, Inspiration, Rather not; AI / Surprise; two AI / Suggestion ideas). Third door on Get started.
+- [ ] Try it on a real phone on staging (iOS Safari and Android Chrome): microphone prompt, speech voice, hold to talk.
+
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 - [ ] Location inside the Mini App: Telegram's location API where available, browser geolocation otherwise.
 - [ ] A partner poster QR opens `t.me/<bot>/here?startapp=<slug>_<key>` on phones with Telegram, and the web URL otherwise (the web page shows both options).

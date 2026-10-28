@@ -20,6 +20,7 @@ import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMee
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
 import { handleMeetingPoint, handlePlan } from "./api/plan";
+import { handleHear, handleNext, handleSurpriseDraft } from "./api/surprise";
 import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -38,7 +39,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   ].join("; "),
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
-  "permissions-policy": "geolocation=(self), camera=(), microphone=()",
+  "permissions-policy": "geolocation=(self), camera=(), microphone=(self)",
   "strict-transport-security": "max-age=31536000; includeSubDomains",
 };
 
@@ -79,6 +80,15 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/me/compass/draft" && method === "POST") {
     return handleDraft(request, env);
+  }
+  if (url.pathname === "/api/me/surprise/hear" && method === "POST") {
+    return handleHear(request, env);
+  }
+  if (url.pathname === "/api/me/surprise/next" && method === "POST") {
+    return handleNext(request, env);
+  }
+  if (url.pathname === "/api/me/surprise/draft" && method === "POST") {
+    return handleSurpriseDraft(request, env);
   }
   if (url.pathname === "/api/me/compass/confirm" && method === "POST") {
     return handleConfirm(request, env);
