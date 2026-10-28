@@ -125,7 +125,7 @@ export async function suggestFor(
   });
   if (!res.ok) return fallback;
 
-  const grounded = ground(res.value.value, res.value.returnedUrls);
+  const grounded = ground(res.value.value, res.value.results);
   const ideas = (await screenIdeas(env, grounded.ideas)).slice(0, MAX_IDEAS);
   if (!ideas.length) return fallback;
   const result: Suggestions = {

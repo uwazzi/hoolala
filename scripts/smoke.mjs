@@ -1,5 +1,5 @@
 // Smoke test for a deployed Hoolala! URL. Usage: node scripts/smoke.mjs <base-url>
-// Checks health, the home page, and that every response carries the CSP.
+// Checks health, the pages, a database-backed read, and that every response carries the CSP.
 // Exit 1 on any failure.
 
 const base = (process.argv[2] || "").replace(/\/+$/, "");
@@ -25,6 +25,11 @@ for (const [name, url] of [["home", "/"], ["signin", "/signin"], ["live", "/live
   const csp = res.headers.get("content-security-policy") || "";
   check(`${name} carries the Telegram CSP`, csp.includes("script-src 'self' https://telegram.org"), "CSP missing");
 }
+// A database-backed read: catches code that's ahead of its database (a missing migration).
+const liveRes = await fetch(base + "/api/live");
+const live = await liveRes.json().catch(() => ({}));
+check("GET /api/live is 200 with collective numbers", liveRes.status === 200 && typeof live.hellos === "number", `got ${liveRes.status}`);
+
 const apiCsp = healthRes.headers.get("content-security-policy") || "";
 check("API carries the Telegram CSP", apiCsp.includes("script-src 'self' https://telegram.org"), "CSP missing");
 
