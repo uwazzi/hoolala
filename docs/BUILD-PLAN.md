@@ -131,12 +131,12 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Staging acceptance at a real café: nearby list shows OpenStreetMap places, check in, leave, repeat with location denied (search). Not testable from the agent's sandbox, which can't reach Overpass.
 
 ### WP24 FIND ME and the Personal Compass (Fri 30, afternoon)
-- [ ] Consent screen first; NO goes to three scripted questions. Inputs: name used online, city, optional links (max 3).
-- [ ] `src/llm/findme.ts`: at most 3 `web_search` calls about this person only; schema `{findings[{text, url}]}`; IS THIS YOU? with THAT'S ME / NOT ME.
-- [ ] Compass draft from ticked findings and answers: schema `{compass[{part, text, source_url}]}`; `src/rules/compass.ts` drops lines without a ticked source or "you said", and any personality, health, political, religious or sexuality label. LOOKS RIGHT / CHANGE SOMETHING / START AGAIN; nothing saved before LOOKS RIGHT.
-- [ ] MY COMPASS: lines with source, EDIT, REMOVE; plain-words change with BEFORE / AFTER and UNDO (cut first if late).
-- [ ] Compass used only by SUGGEST IT and to put matching signals first for the viewer (FITS YOU, visible only to them). Never exposed through any other endpoint.
-- [ ] Tests: unticked findings never stored; another person's name refused; compass never in any response to anyone else; delete account deletes it.
+- [x] Consent screen first; NO goes to three scripted questions. Inputs: name used online, city, optional links (max 3).
+- [x] `src/llm/findme.ts`: at most 3 `web_search` calls about this person only; schema `{findings[{text, url}]}`; IS THIS YOU? with THAT'S ME / NOT ME.
+- [x] Compass draft from ticked findings and answers: schema `{compass[{part, text, source_url}]}`; `src/rules/compass.ts` drops lines without a ticked source or "you said", and any personality, health, political, religious or sexuality label. LOOKS RIGHT / CHANGE SOMETHING / START AGAIN; nothing saved before LOOKS RIGHT.
+- [x] MY COMPASS: lines with source, REMOVE, delete all, redo. Plain-words change with BEFORE / AFTER and UNDO: cut for now.
+- [x] Compass used only to put matching signals first (FITS YOU). SUGGEST IT personalisation: later. Original item: Compass used only by SUGGEST IT and to put matching signals first for the viewer (FITS YOU, visible only to them). Never exposed through any other endpoint.
+- [x] Tests: unticked findings never stored; another person's name refused; compass never in any response to anyone else; delete account deletes it.
 
 ### WP25 PLACE IT and place points (Sat 31, morning)
 - [ ] `src/llm/place.ts` (PLACE IT): parallel tools `google_place_details` (live: hours, website, price level), `web_search` (menu on the place's website), `get_place_facts`; schema `{facts[{field, value, source, url}]}`; runs on first visit and when facts are over 30 days old.

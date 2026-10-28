@@ -7,7 +7,9 @@
 // and never a name before both have accepted. No model involved yet: posts
 // and lines pass the code screening rules (SCREEN IT joins in WP23).
 
+import { compassTexts } from "../db/compass";
 import { getActiveCheckin, getPlace } from "../db/places";
+import { fitsYou } from "../rules/compass";
 import { ensureSample, isSampleUser } from "../db/sample";
 import { SAMPLE_PLACE } from "../rules/sample";
 import {
@@ -126,12 +128,16 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
       }));
 
   // Discovery: three at a time, through canSee, skipping ones I already answered.
+  // FITS YOU (the viewer's own compass) only puts matching ones first, for them.
   const answered = new Set(joined.map((j) => j.signal_id));
+  const mineTexts = await compassTexts(env.DB, user.id);
   const discover = (await candidateSignals(env.DB, checkin.place_id, nowIso))
     .filter((s) => !answered.has(s.id))
     .filter((s) =>
       canSee(s, { viewerId: user.id, viewerPlaceId: checkin.place_id, ownerHere: s.owner_here === 1, blocked: blocked.has(s.owner_id), now }),
     )
+    .map((s) => ({ ...s, fits: mineTexts.length > 0 && fitsYou(s.topic, mineTexts) }))
+    .sort((a, b) => Number(b.fits) - Number(a.fits))
     .slice(0, DISCOVER_LIMIT);
 
   return json({
@@ -182,6 +188,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
       spot: s.spot,
       capacity: s.capacity,
       expiresAt: s.expires_at,
+      fitsYou: s.fits,
     })),
   });
 }

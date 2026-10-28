@@ -10,7 +10,7 @@ interface Reply { from: string; text: string; at: string }
 interface Request { id: string; line: string | null; state: string; name: string | null }
 interface Mine { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
 interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
-interface Found { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string }
+interface Found { id: string; topic: string; translation?: string | null; fitsYou?: boolean; whenAt: string; spot: string; capacity: number; expiresAt: string }
 interface Idea { topic: string; why: string; citationUrl: string | null; sourceDomain: string | null }
 interface HereView { checkin: CheckinView | null; spots: string[]; mine: Mine[]; joined: Joined[]; discover: Found[] }
 
@@ -235,6 +235,7 @@ export function Here() {
       <h1 class="screen-title">What's here?</h1>
       {data.discover.map((s) => (
         <section class="lcd-block" key={s.id} aria-label="A signal here">
+          {s.fitsYou && <p class="lcd-kicker">Fits you</p>}
           <p class="signal-topic">{s.topic}</p>
             <Translation text={s.translation} />
           <p class="lcd-small">Someone here · {whenText(s.whenAt)} · {s.spot} · for {s.capacity} · until {time(s.expiresAt)}</p>

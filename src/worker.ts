@@ -1,5 +1,6 @@
 import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
+import { handleCompass, handleConfirm, handleDeleteCompass, handleDraft, handleFind, handleRemoveLine } from "./api/compass";
 import { handleHealth, json } from "./api/health";
 import { ensureSample } from "./db/sample";
 import {
@@ -69,6 +70,23 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/me") {
     return handleMe(request, env);
+  }
+  if (url.pathname === "/api/me/find" && method === "POST") {
+    return handleFind(request, env);
+  }
+  if (url.pathname === "/api/me/compass/draft" && method === "POST") {
+    return handleDraft(request, env);
+  }
+  if (url.pathname === "/api/me/compass/confirm" && method === "POST") {
+    return handleConfirm(request, env);
+  }
+  if (url.pathname === "/api/me/compass") {
+    if (method === "GET") return handleCompass(request, env);
+    if (method === "DELETE") return handleDeleteCompass(request, env);
+  }
+  const compassLine = /^\/api\/me\/compass\/([0-9a-f-]{36})$/.exec(url.pathname);
+  if (compassLine && method === "DELETE") {
+    return handleRemoveLine(compassLine[1], request, env);
   }
   if (url.pathname === "/api/places/nearby" && method === "POST") {
     return handleNearby(request, env);

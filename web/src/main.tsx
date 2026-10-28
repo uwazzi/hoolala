@@ -5,11 +5,13 @@ import { LocationProvider, Route, Router, useLocation } from "preact-iso";
 import { useEffect } from "preact/hooks";
 import { Home } from "./pages/Home";
 import { Arrive } from "./pages/Arrive";
+import { Compass } from "./pages/Compass";
 import { Here } from "./pages/Here";
 import { Live } from "./pages/Live";
 import { Meet } from "./pages/Meet";
 import { NotFound } from "./pages/Placeholders";
 import { SignIn } from "./pages/SignIn";
+import { Start } from "./pages/Start";
 import "./styles.css";
 
 declare global {
@@ -46,6 +48,8 @@ function App() {
       <Route path="/" component={Home} />
       <Route path="/signin" component={SignIn} />
       <Route path="/arrive" component={Arrive} />
+      <Route path="/start" component={Start} />
+      <Route path="/compass" component={Compass} />
       <Route path="/here" component={Here} />
       <Route path="/meet" component={Meet} />
       <Route path="/live" component={Live} />

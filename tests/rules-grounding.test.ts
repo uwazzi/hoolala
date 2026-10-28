@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { canonicalUrl, ground, sourceDomain, starterIdeas } from "../src/rules/grounding";
+import { canonicalUrl, ground, resolveCitation, sourceDomain, starterIdeas } from "../src/rules/grounding";
 
-const returned = ["https://www.lausanne-tourisme.ch/fr/agenda/jazz-onze-plus/?utm_source=x", "https://example.org/talk"];
+const page = (url: string, title = "", snippet = "") => ({ url, title, snippet });
+const returned = [page("https://www.lausanne-tourisme.ch/fr/agenda/jazz-onze-plus/?utm_source=x", "Jazz Onze+ festival", "Jazz in Lausanne"), page("https://example.org/talk")];
 
 describe("ground", () => {
   it("keeps an event only with a citation the search returned", () => {
@@ -15,7 +16,7 @@ describe("ground", () => {
       returned,
     );
     expect(res.ideas.map((i) => i.topic)).toEqual(["Jazz Onze+ tonight. Anyone going?", "Coffee break now. Small talk welcome."]);
-    expect(res.ideas[0].citationUrl).toBe(returned[0]);
+    expect(res.ideas[0].citationUrl).toBe(returned[0].url);
     expect(res.grounded).toBe(1);
     expect(res.total).toBe(4);
   });
@@ -48,5 +49,35 @@ describe("helpers", () => {
       expect(ideas).toHaveLength(3);
       for (const i of ideas) expect(i.topic.length).toBeLessThanOrEqual(60);
     }
+  });
+});
+
+describe("resolveCitation", () => {
+  // Shaped like the real FIND ME call on 28 Oct: the model cited only the site.
+  const pages = [
+    page("https://en.wikipedia.org/wiki/Linus_Torvalds", "Linus Torvalds - Wikipedia", "Finnish software engineer, creator of the Linux kernel; lives in Portland, Oregon"),
+    page("https://en.wikipedia.org/wiki/Git", "Git - Wikipedia", "Git is a distributed version control system created by Linus Torvalds in 2005"),
+    page("https://www.linuxfoundation.org/about/leadership", "Leadership", "Linux Foundation Fellow"),
+  ];
+
+  it("keeps an exact match", () => {
+    expect(resolveCitation("https://en.wikipedia.org/wiki/Git/", "Git", pages)).toBe("https://en.wikipedia.org/wiki/Git");
+  });
+
+  it("repairs a site-only citation to the returned page that matches the claim", () => {
+    expect(resolveCitation("https://en.wikipedia.org", "Created the distributed version control system Git", pages)).toBe("https://en.wikipedia.org/wiki/Git");
+    expect(resolveCitation("https://en.wikipedia.org", "Moved to Portland, Oregon", pages)).toBe("https://en.wikipedia.org/wiki/Linus_Torvalds");
+    expect(resolveCitation("https://linuxfoundation.org", "Linux Foundation Fellow", pages)).toBe("https://www.linuxfoundation.org/about/leadership");
+  });
+
+  it("never accepts a site the search didn't return, or a page that shares nothing with the claim", () => {
+    expect(resolveCitation("https://bbntimes.com", "Created Git", pages)).toBeNull();
+    expect(resolveCitation("https://en.wikipedia.org", "Plays the cello", pages)).toBeNull();
+    expect(resolveCitation(null, "anything", pages)).toBeNull();
+  });
+
+  it("accepts the person's own links", () => {
+    expect(resolveCitation("https://ana.example/blog/", "Writes about chess", [], ["https://ana.example/blog"])).toBe("https://ana.example/blog");
+    expect(resolveCitation("https://ana.example", "Writes about chess", [], ["https://ana.example/blog"])).toBe("https://ana.example/blog");
   });
 });

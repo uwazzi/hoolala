@@ -120,6 +120,7 @@ describe("who sees a signal", () => {
       spot: "The big table",
       capacity: 1,
       expiresAt: "2026-10-28T14:30:00.000Z",
+      fitsYou: false,
     });
     const text = JSON.stringify(v);
     expect(text).not.toContain("Ana");

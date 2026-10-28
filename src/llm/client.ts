@@ -148,19 +148,26 @@ export interface SearchCall<T> {
   location?: { country: string; city?: string; timezone?: string };
 }
 
+/** One page the web search returned: what grounding checks citations against. */
+export interface SearchResult {
+  url: string;
+  title: string;
+  snippet: string;
+}
+
 /**
  * One Responses API call with web search and a strict JSON answer. Returns the
- * URLs the search actually returned, so grounding can check every citation.
+ * pages the search actually returned, so grounding can check every citation.
  */
 export async function searchStructured<T>(
   env: Env,
   call: SearchCall<T>,
-): Promise<CallResult<{ value: T; returnedUrls: string[]; searches: number }>> {
+): Promise<CallResult<{ value: T; results: SearchResult[]; searches: number }>> {
   if (!llmEnabled(env)) return { ok: false, reason: "off", latencyMs: 0 };
   const started = Date.now();
   let usage: { input_tokens?: number; output_tokens?: number } | undefined;
   let searches = 0;
-  let result: CallResult<{ value: T; returnedUrls: string[]; searches: number }>;
+  let result: CallResult<{ value: T; results: SearchResult[]; searches: number }>;
   try {
     const res = await fetch(`${env.META_API_BASE}/responses`, {
       method: "POST",
@@ -188,14 +195,16 @@ export async function searchStructured<T>(
       result = { ok: false, reason: "http", latencyMs: Date.now() - started };
     } else {
       const body = (await res.json()) as {
-        output?: { type?: string; results?: { url?: string }[]; content?: { type?: string; text?: string }[] }[];
+        output?: { type?: string; results?: { url?: string; title?: string; snippet?: string }[]; content?: { type?: string; text?: string }[] }[];
         usage?: typeof usage;
       };
       usage = body.usage;
       const output = body.output ?? [];
       const calls = output.filter((o) => o.type === "web_search_call");
       searches = calls.length;
-      const returnedUrls = calls.flatMap((c) => (c.results ?? []).map((r) => r.url).filter((u): u is string => typeof u === "string"));
+      const results = calls.flatMap((c) =>
+        (c.results ?? []).flatMap((r): SearchResult[] => (typeof r.url === "string" ? [{ url: r.url, title: r.title ?? "", snippet: r.snippet ?? "" }] : [])),
+      );
       // The JSON answer is the last message; earlier ones are the model's preamble.
       const texts = output
         .filter((o) => o.type === "message")
@@ -212,7 +221,7 @@ export async function searchStructured<T>(
       result =
         value === null
           ? { ok: false, reason: "invalid", latencyMs: Date.now() - started }
-          : { ok: true, value: { value, returnedUrls, searches }, latencyMs: Date.now() - started };
+          : { ok: true, value: { value, results, searches }, latencyMs: Date.now() - started };
     }
   } catch (err) {
     const timedOut = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");

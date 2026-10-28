@@ -1,7 +1,8 @@
-// Grounding rules for AI ideas. Pure. An idea that names an event must cite a
-// URL the model's own web search returned in that same call; otherwise it is
-// dropped. Citations not in that set are removed. Nothing the model claims
-// about the world reaches people without a source they can open.
+// Grounding rules for AI output. Pure. A claim about the world (an event for
+// SUGGEST IT, a finding for FIND ME) must cite a page the model's own web
+// search returned in that same call (or a link the person gave); otherwise it
+// is dropped. Nothing the model claims reaches people without a source they
+// can open.
 
 export const MAX_IDEAS = 3;
 
@@ -31,6 +32,61 @@ export function canonicalUrl(raw: string): string | null {
   }
 }
 
+/** A page the search returned (structural copy of SearchResult, kept pure here). */
+export interface ReturnedPage {
+  url: string;
+  title: string;
+  snippet: string;
+}
+
+const STOP = new Set(["about", "after", "their", "there", "these", "this", "that", "with", "from", "have", "your", "what", "when", "where", "which", "while", "will", "into", "they", "them", "were", "been", "also", "more", "most", "some", "here", "just", "like", "than", "then", "over", "very"]);
+
+function words(text: string): Set<string> {
+  return new Set(
+    text
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length >= 4 && !STOP.has(w)),
+  );
+}
+
+function host(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The page a claim really comes from, or null. Exact match with a returned
+ * page (or a link the person gave) first. Models often cite only the site
+ * ("https://en.wikipedia.org"); then the returned page on that site whose
+ * title and snippet share the most words with the claim is used, if any does.
+ * A site the search never returned is never accepted.
+ */
+export function resolveCitation(cited: string | null, claim: string, pages: ReturnedPage[], given: string[] = []): string | null {
+  if (!cited) return null;
+  const c = canonicalUrl(cited);
+  if (!c) return null;
+  for (const u of [...pages.map((p) => p.url), ...given]) if (canonicalUrl(u) === c) return u;
+  const h = host(cited);
+  if (!h) return null;
+  const claimWords = words(claim);
+  let best: { url: string; score: number } | null = null;
+  for (const p of pages) {
+    if (host(p.url) !== h) continue;
+    const pageWords = words(`${p.title} ${p.snippet}`);
+    let score = 0;
+    for (const w of claimWords) if (pageWords.has(w)) score++;
+    if (score > 0 && (!best || score > best.score)) best = { url: p.url, score };
+  }
+  if (best) return best.url;
+  return given.find((g) => host(g) === h) ?? null;
+}
+
 export interface GroundingResult {
   ideas: Idea[];
   grounded: number;
@@ -41,8 +97,7 @@ export interface GroundingResult {
  * Keeps at most three ideas: events only with a citation the search returned,
  * general ideas without any citation the search didn't return. Drops repeats.
  */
-export function ground(raw: RawIdea[], returnedUrls: string[]): GroundingResult {
-  const returned = new Map(returnedUrls.map((u) => [canonicalUrl(u), u]).filter((e): e is [string, string] => e[0] !== null));
+export function ground(raw: RawIdea[], pages: ReturnedPage[]): GroundingResult {
   const seen = new Set<string>();
   const ideas: Idea[] = [];
   let grounded = 0;
@@ -50,8 +105,7 @@ export function ground(raw: RawIdea[], returnedUrls: string[]): GroundingResult 
     const topic = r.topic.trim().replace(/\s+/g, " ");
     const key = topic.toLowerCase();
     if (!topic || seen.has(key)) continue;
-    const cited = r.citation_url ? canonicalUrl(r.citation_url) : null;
-    const known = cited ? returned.get(cited) ?? null : null;
+    const known = resolveCitation(r.citation_url, `${topic} ${r.why}`, pages);
     if (r.kind === "event" && !known) continue;
     if (known) grounded++;
     seen.add(key);
