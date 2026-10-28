@@ -110,13 +110,14 @@ Telegram: `POST /telegram/webhook` (secret header; only notifications the person
 
 ### WP27 Web app on Vite + Preact (Wed 28, morning)
 Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more screens are built. API, rules, data and tests stay as they are.
-- [ ] `web/`: Vite + Preact + TypeScript; LCD styles and layout rules carried over from `public/styles.css`; no new runtime dependencies beyond Preact and a small router.
-- [ ] Worker serves the Vite build (`[assets] directory = "web/dist"` in both wrangler configs, `run_worker_first` kept); `npm run build` before deploy in CI and the deploy workflows.
-- [ ] Port home, sign-in (email, sent, first name, signed in, delete) and the ARRIVE/HERE/MEET/LIVE placeholders; `/auth/verify` redirects keep working.
-- [ ] CSP still holds: no inline scripts, Telegram's script allowed; the build works inside the Telegram webview.
-- [ ] One small API client in `web/` (JSON, same-origin cookies, typed with `src/types.ts` type-only imports).
+- [x] `web/`: Vite + Preact + TypeScript; LCD styles and layout rules carried over from `public/styles.css`; no new runtime dependencies beyond Preact and a small router.
+- [x] Worker serves the Vite build (`[assets] directory = "web/dist"` in both wrangler configs, `run_worker_first` kept); `npm run build` before deploy in CI and the deploy workflows.
+- [x] Port home, sign-in (email, sent, first name, signed in, delete) and the ARRIVE/HERE/MEET/LIVE placeholders; `/auth/verify` redirects keep working.
+- [x] CSP still holds: no inline scripts, Telegram's script allowed; the build works inside the Telegram webview.
+- [x] One small API client in `web/` (JSON, same-origin cookies, typed with `src/types.ts` type-only imports).
 - [ ] Remove `public/` once the port is live on staging; update `AGENTS.md`.
-- [ ] Tests: worker tests pass against the new asset directory; a smoke check that `/`, `/signin` and `/live` load with the CSP.
+- [ ] Check inside the real Telegram webview once the Mini App exists (WP21).
+- [x] Tests: worker tests pass against the new asset directory; a smoke check that `/`, `/signin` and `/live` load with the CSP.
 
 ### WP20 Places and check-in (Wed 28, morning)
 - [ ] `src/rules/checkin.ts` (pure, tests first): places within radius (haversine); search only within the person's city; optional poster key and code; check-in lasts 4 h or until leave; one active check-in per person.

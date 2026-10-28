@@ -120,7 +120,7 @@ describe("GET /auth/verify", () => {
     const env = testEnv();
     const { res } = await signIn(env);
     expect(res.status).toBe(303);
-    expect(res.headers.get("location")).toBe("/signin.html?step=name");
+    expect(res.headers.get("location")).toBe("/signin?step=name");
     const cookie = res.headers.get("set-cookie")!;
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("Secure");
@@ -136,7 +136,7 @@ describe("GET /auth/verify", () => {
     const url = `${BASE}/auth/verify?token=${lastToken()}`;
     expect((await handleAuthVerify(new Request(url), env)).headers.get("set-cookie")).not.toBeNull();
     const again = await handleAuthVerify(new Request(url), env);
-    expect(again.headers.get("location")).toBe("/signin.html?error=link");
+    expect(again.headers.get("location")).toBe("/signin?error=link");
     expect(again.headers.get("set-cookie")).toBeNull();
   });
 
@@ -146,7 +146,7 @@ describe("GET /auth/verify", () => {
     await handleAuthStart(start({ email: "a@example.com", adult: true }), env, now);
     const later = new Date(now.getTime() + 15 * 60 * 1000 + 1);
     const res = await handleAuthVerify(new Request(`${BASE}/auth/verify?token=${lastToken()}`), env, later);
-    expect(res.headers.get("location")).toBe("/signin.html?error=link");
+    expect(res.headers.get("location")).toBe("/signin?error=link");
     expect(res.headers.get("set-cookie")).toBeNull();
   });
 
@@ -155,7 +155,7 @@ describe("GET /auth/verify", () => {
     await handleAuthStart(start({ email: "a@example.com", adult: true }), env);
     for (const url of [`${BASE}/auth/verify?token=made-up`, `${BASE}/auth/verify`]) {
       const res = await handleAuthVerify(new Request(url), env);
-      expect(res.headers.get("location")).toBe("/signin.html?error=link");
+      expect(res.headers.get("location")).toBe("/signin?error=link");
       expect(res.headers.get("set-cookie")).toBeNull();
     }
   });

@@ -64,15 +64,15 @@ function redirect(location: string, cookie?: string): Response {
 
 export async function handleAuthVerify(request: Request, env: Env, now = new Date()): Promise<Response> {
   const token = new URL(request.url).searchParams.get("token");
-  if (!token) return redirect("/signin.html?error=link");
+  if (!token) return redirect("/signin?error=link");
   const email = await consumeLoginToken(env.DB, await sha256Hex(token), now.toISOString());
-  if (!email) return redirect("/signin.html?error=link");
+  if (!email) return redirect("/signin?error=link");
 
   const user =
     (await findUserByEmail(env.DB, email)) ??
     (await createEmailUser(env.DB, crypto.randomUUID(), email, now.toISOString()));
   const session = await createSession(env, user.id, now);
-  return redirect(user.first_name ? "/" : "/signin.html?step=name", sessionCookie(session));
+  return redirect(user.first_name ? "/" : "/signin?step=name", sessionCookie(session));
 }
 
 export async function handleLogout(request: Request, env: Env): Promise<Response> {

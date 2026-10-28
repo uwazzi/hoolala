@@ -84,4 +84,4 @@ The stack at a glance (28 Oct 2026). `AGENTS.md` holds the folder-level rules; t
 
 ## Moving from today's code
 
-`public/` holds plain HTML pages from WP1 and WP2. They move to `web/` (Vite + Preact) before more screens are built; the Worker then serves the Vite build from `web/dist`. The API, rules, data and tests stay as they are.
+Done in WP27 (28 Oct): the WP1/WP2 pages now live in `web/` (Vite + Preact) and the Worker serves the build from `web/dist`, with single-page routing and old `.html` links redirected. `public/` stays until the port is live on staging, then goes. The API, rules, data and tests did not change.

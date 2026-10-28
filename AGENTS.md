@@ -30,7 +30,7 @@ A finite, place-based social product with a Nokia LCD look. People get a head st
 | `src/share/` | Share cards and place posters (SVG to PNG) | Includes other people's names |
 | `evals/` | About 30 evaluation cases and `npm run eval` | Contains real people's data |
 | `web/` | The Mono LCD web app: Vite + Preact PWA, also the Telegram Mini App | Holds secrets, business rules or calls the model directly |
-| `public/` | WP1/WP2 plain HTML pages, until they move to `web/` | Gets new screens |
+| `public/` | Old WP1/WP2 pages, no longer served; deleted once `web/` is live on staging | Gets new screens |
 | `prior-work/` | Pre-hackathon design system, read-only | Changes after the `pre-hackathon` tag |
 
 If a task seems to need breaking this table, stop and write the question in `docs/DECISIONS.md`.
@@ -52,7 +52,9 @@ npm install
 npm test
 npm run typecheck
 npm run eval          # evaluation set, prints the pass rate
-npm run dev           # wrangler dev, uses .dev.vars
+npm run dev           # wrangler dev (API and the built web app), uses .dev.vars
+npm run dev:web       # Vite with hot reload, proxies /api to npm run dev
+npm run build         # web app into web/dist (deploy runs it)
 npm run db:migrate
 npm run deploy
 ```
@@ -66,7 +68,7 @@ npm run deploy
 5. Secrets only in `.dev.vars` and `wrangler secret put`. Never log emails, topics, replies, Telegram ids, coordinates, names searched by FIND ME or compass lines.
 6. Small commits: `WPn: what changed`, plus the agent trailer.
 7. UK English in all user-facing text. No em dashes. Copy from `docs/DESIGN.md` and `docs/SIGNALS-HERE.md`.
-8. Web layouts are mobile first and responsive, using the shared LCD styles (`public/styles.css` until the move to `web/`). Follow the layout rules in `docs/DESIGN.md`: fluid app container up to 960px, 42ch for prose/forms only, 16/24/32px gutters at base/640/960px. Check 320 to 1440px and 200% zoom. Never cap the entire app at a mobile text measure.
+8. Web layouts are mobile first and responsive, using the shared LCD styles in `web/src/styles.css`. Follow the layout rules in `docs/DESIGN.md`: fluid app container up to 960px, 42ch for prose/forms only, 16/24/32px gutters at base/640/960px. Check 320 to 1440px and 200% zoom. Never cap the entire app at a mobile text measure.
 
 ## Product rules agents must not break
 
