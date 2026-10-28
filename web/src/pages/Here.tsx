@@ -8,9 +8,9 @@ import { Screen } from "../components/Screen";
 
 interface Reply { from: string; text: string; at: string }
 interface Request { id: string; line: string | null; state: string; name: string | null }
-interface Mine { id: string; topic: string; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
-interface Joined { responseId: string; signalId: string; topic: string; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
-interface Found { id: string; topic: string; whenAt: string; spot: string; capacity: number; expiresAt: string }
+interface Mine { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string; state: string; requests: Request[]; replies: Reply[] }
+interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
+interface Found { id: string; topic: string; translation?: string | null; whenAt: string; spot: string; capacity: number; expiresAt: string }
 interface HereView { checkin: CheckinView | null; spots: string[]; mine: Mine[]; joined: Joined[]; discover: Found[] }
 
 const QUICK = [
@@ -166,6 +166,7 @@ export function Here() {
           <section class="lcd-block" key={s.id} aria-label="Your signal">
             <p class="lcd-kicker">Your signal</p>
             <p class="signal-topic">{s.topic}</p>
+            <Translation text={s.translation} />
             <p class="lcd-small">{whenText(s.whenAt)} · {s.spot} · for {s.capacity} · until {time(s.expiresAt)}</p>
             {s.requests.filter((r) => r.state === "requested").map((r) => (
               <div class="request" key={r.id}>
@@ -196,6 +197,7 @@ export function Here() {
         <section class="lcd-block" key={j.responseId} aria-label="A signal you answered">
           <p class="lcd-kicker">You're curious</p>
           <p class="signal-topic">{j.topic}</p>
+          <Translation text={j.translation} />
           {j.state === "requested" && (j.signalState === "open" || j.signalState === "full") && <p>Sent. Waiting for them.</p>}
           {j.state === "requested" && j.signalState !== "open" && j.signalState !== "full" && <p>They had to go.</p>}
           {j.state === "declined" && <p>Not this time. No hard feelings.</p>}
@@ -222,6 +224,7 @@ export function Here() {
       {data.discover.map((s) => (
         <section class="lcd-block" key={s.id} aria-label="A signal here">
           <p class="signal-topic">{s.topic}</p>
+            <Translation text={s.translation} />
           <p class="lcd-small">Someone here · {whenText(s.whenAt)} · {s.spot} · for {s.capacity} · until {time(s.expiresAt)}</p>
           {curiousFor === s.id ? (
             <form onSubmit={(e) => { e.preventDefault(); sendCurious(s.id); }}>
@@ -290,6 +293,12 @@ export function Here() {
       </ul>
     </Screen>
   );
+}
+
+/** The AI translation, labelled as AI and always under the person's own words. */
+function Translation({ text }: { text?: string | null }) {
+  if (!text) return null;
+  return <p class="lcd-small"><span class="lcd-kicker">AI / translation</span> {text}</p>;
 }
 
 function QuickReplies({ onSend }: { onSend: (kind: string) => void }) {

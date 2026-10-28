@@ -84,6 +84,7 @@ export type JoinedRow = SignalResponseRow & {
   owner_id: string;
   owner_name: string | null;
   topic: string;
+  translation: string | null;
   when_at: string | null;
   spot: string | null;
   expires_at: string;
@@ -95,7 +96,7 @@ export type JoinedRow = SignalResponseRow & {
 export async function ownResponses(db: D1Database, userId: string, sinceIso: string): Promise<JoinedRow[]> {
   const { results } = await db
     .prepare(
-      `SELECT r.*, s.owner_id, u.first_name AS owner_name, u.is_sample AS owner_sample, s.topic, s.when_at, s.spot, s.expires_at, s.state AS signal_state
+      `SELECT r.*, s.owner_id, u.first_name AS owner_name, u.is_sample AS owner_sample, s.topic, s.translation, s.when_at, s.spot, s.expires_at, s.state AS signal_state
        FROM signal_responses r JOIN signals s ON s.id = r.signal_id JOIN users u ON u.id = s.owner_id
        WHERE r.responder_id = ? AND r.state != 'withdrawn' AND s.created_at > ?
        ORDER BY r.created_at DESC LIMIT 10`,
@@ -122,14 +123,17 @@ export async function findResponse(db: D1Database, signalId: string, responderId
 
 export async function insertSignal(
   db: D1Database,
-  s: { id: string; ownerId: string; placeId: string; topic: string; whenAt: string; spot: string; capacity: number; createdAt: string; expiresAt: string; verdict: string },
+  s: {
+    id: string; ownerId: string; placeId: string; topic: string; whenAt: string; spot: string; capacity: number;
+    createdAt: string; expiresAt: string; verdict: string; category?: string | null; lang?: string | null; translation?: string | null;
+  },
 ): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO signals (id, owner_id, audience, place_id, topic, when_at, spot, capacity, screening_verdict, created_at, expires_at, state)
-       VALUES (?, ?, 'place', ?, ?, ?, ?, ?, ?, ?, ?, 'open')`,
+      `INSERT INTO signals (id, owner_id, audience, place_id, topic, when_at, spot, capacity, screening_verdict, screening_category, lang, translation, created_at, expires_at, state)
+       VALUES (?, ?, 'place', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open')`,
     )
-    .bind(s.id, s.ownerId, s.placeId, s.topic, s.whenAt, s.spot, s.capacity, s.verdict, s.createdAt, s.expiresAt)
+    .bind(s.id, s.ownerId, s.placeId, s.topic, s.whenAt, s.spot, s.capacity, s.verdict, s.category ?? null, s.lang ?? null, s.translation ?? null, s.createdAt, s.expiresAt)
     .run();
 }
 

@@ -19,6 +19,7 @@ How every key for Hoolala! is kept, who may use it and what to do if one leaks. 
 | Resend setup key | Keychain `resend-api-key` | Agent, during Resend setup only | Full access | **Delete at resend.com/api-keys once setup is done** |
 | `EMAIL_FROM` | Worker secret | `src/channels/email.ts` | Not secret; kept with the key so they change together | |
 | `META_API_KEY` | Worker secret | `src/llm/client.ts` | Meta Model API, with a $150 spend-limit alert | After 4 Nov |
+| Meta key for agents | Keychain `meta-api-key` | Agents' test calls and evals | Same key as the Worker's | Delete the keychain entry after 4 Nov |
 | `GOOGLE_MAPS_KEY` | Worker secret | `src/places/google.ts` | Places API (New) only, budget alert | After 4 Nov |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` | Worker secrets | `src/channels/telegram.ts` | One bot | Revoke with @BotFather if exposed |
 | `CLOUDFLARE_API_TOKEN` (CI) | GitHub Actions secret | Deploy workflows, PM report | Workers deploy, D1 read | Reviewed 4 Nov |

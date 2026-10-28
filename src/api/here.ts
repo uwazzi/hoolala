@@ -49,6 +49,8 @@ import {
   TOPIC_MAX,
   whenAt,
 } from "../rules/here";
+import { writeWorking } from "../llm/client";
+import { type ScreenVerdict, screenWithModel, translationFor } from "../llm/screen";
 import { SCREEN_MESSAGES, screenText } from "../rules/screening";
 import type { Env, UserRow } from "../types";
 import { json } from "./health";
@@ -68,12 +70,30 @@ async function here(user: UserRow, env: Env, now: Date) {
   return checkin;
 }
 
-function screened(text: unknown, max: number): { ok: true; text: string } | { ok: false; response: Response } {
+const OTHER_MESSAGE = "That one doesn't fit the house rules here. Try again?";
+
+function refused(category: string): Response {
+  const message = (SCREEN_MESSAGES as Record<string, string>)[category] ?? OTHER_MESSAGE;
+  return json({ error: "screened", category, message }, 422);
+}
+
+/**
+ * Code rules first; they decide alone when the model is off or late. Then
+ * SCREEN IT may add a refusal, never overrule one, never change the words.
+ */
+async function screened(
+  env: Env,
+  userId: string,
+  text: unknown,
+  max: number,
+): Promise<{ ok: true; text: string; ai: ScreenVerdict | null } | { ok: false; response: Response }> {
   const result = screenText(text, max);
-  if (!result.ok) {
-    return { ok: false, response: json({ error: "screened", category: result.category, message: SCREEN_MESSAGES[result.category!] }, 422) };
-  }
-  return { ok: true, text: (text as string).trim() };
+  if (!result.ok) return { ok: false, response: refused(result.category!) };
+  const clean = (text as string).trim();
+  const ai = await screenWithModel(env, clean);
+  if (ai) await writeWorking(env, { userId, fn: "screen", tools: [], verdict: ai.verdict === "approve" ? "approved" : `rejected: ${ai.category}`, effort: "minimal" });
+  if (ai?.verdict === "reject") return { ok: false, response: refused(ai.category) };
+  return { ok: true, text: clean, ai };
 }
 
 export async function handleHere(request: Request, env: Env, now = new Date()): Promise<Response> {
@@ -122,6 +142,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
     mine: mine.map((s) => ({
       id: s.id,
       topic: s.topic,
+      translation: s.translation,
       whenAt: s.when_at,
       spot: s.spot,
       capacity: s.capacity,
@@ -141,6 +162,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
       responseId: j.id,
       signalId: j.signal_id,
       topic: j.topic,
+      translation: j.translation,
       whenAt: j.when_at,
       spot: j.spot,
       expiresAt: j.expires_at,
@@ -153,6 +175,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
     discover: discover.map((s) => ({
       id: s.id,
       topic: s.topic,
+      translation: s.translation,
       whenAt: s.when_at,
       spot: s.spot,
       capacity: s.capacity,
@@ -168,7 +191,7 @@ export async function handlePostSignal(request: Request, env: Env, now = new Dat
   if (!checkin) return json({ error: "not_checked_in" }, 403);
   const body = await readJson(request);
 
-  const topic = screened(body.topic, TOPIC_MAX);
+  const topic = await screened(env, user.id, body.topic, TOPIC_MAX);
   if (!topic.ok) return topic.response;
   const place = await getPlace(env.DB, checkin.place_id);
   const spot = normalizeSpot(body.spot, placeSpots(place?.spots_json ?? null));
@@ -193,7 +216,10 @@ export async function handlePostSignal(request: Request, env: Env, now = new Dat
     capacity,
     createdAt: now.toISOString(),
     expiresAt: ends,
-    verdict: "approved_by_rules",
+    verdict: topic.ai ? "approved_by_model" : "approved_by_rules",
+    category: topic.ai?.category ?? null,
+    lang: topic.ai?.lang ?? null,
+    translation: topic.ai ? translationFor(topic.ai, topic.text) : null,
   });
   return json({ signal: { id, expiresAt: ends } });
 }
@@ -225,7 +251,7 @@ export async function handleCurious(id: string, request: Request, env: Env, now 
   const body = await readJson(request);
   let line: string | null = null;
   if (typeof body.line === "string" && body.line.trim()) {
-    const checked = screened(body.line, LINE_MAX);
+    const checked = await screened(env, user.id, body.line, LINE_MAX);
     if (!checked.ok) return checked.response;
     line = checked.text;
   }

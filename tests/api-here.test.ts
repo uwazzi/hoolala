@@ -115,6 +115,7 @@ describe("who sees a signal", () => {
     expect(v.discover[0]).toEqual({
       id: signalId,
       topic: "Chess at the big table?",
+      translation: null,
       whenAt: NOW,
       spot: "The big table",
       capacity: 1,

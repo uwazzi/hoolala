@@ -91,10 +91,10 @@ Telegram: `POST /telegram/webhook` (secret header; only notifications the person
 ## Work packages
 
 ### WP0 Kickoff and setup (done Mon 26)
-- [ ] Log in `docs/DECISIONS.md`: Meta Model API base URL, auth, model id, which features are on our key (web_search, structured output, parallel tools, image input, prompt caching), access from Switzerland.
+- [x] Log in `docs/DECISIONS.md`: Meta Model API base URL, auth, model id, which features are on our key (web_search, structured output, parallel tools, image input, prompt caching), access from Switzerland.
 - [x] Public repo with MIT `LICENSE`, commit 1 `Pre-hackathon work`, tag `pre-hackathon`.
 - [ ] Commit 2: `AGENTS.md`, `CLAUDE.md`, `docs/` (DESIGN, BUILD-PLAN, DECISIONS, HACKATHON-RULES, SIGNALS-HERE, MUSE-SPARK-BY-FUNCTION, COMPETITOR-REVIEWS), `src/types.ts`, README stub.
-- [ ] One Muse Spark test call with a tool definition and a structured output schema.
+- [x] One Muse Spark test call with a tool definition and a structured output schema.
 
 ### WP1 Skeleton and deploy (Tue 27, morning)
 - [x] Responsive shared web layout: mobile first, fluid desktop container, readable text measure and documented rules for future screens.
@@ -166,8 +166,8 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Staging acceptance with real people: two phones at one place, post, curious, accept, quick replies, block and report.
 
 ### WP23 SCREEN IT, SUGGEST IT and PLAN IT (Fri 30)
-- [ ] `src/rules/screening.ts` first (pure, tests): length, links, emails, phone numbers, handles, crisis words, a short word list (dating, sexual, slurs, selling). Code rules decide alone when the model is off or times out.
-- [ ] `src/llm/screen.ts` (SCREEN IT): structured output `{verdict, category, reason, fr, en}`, `reasoning_effort: minimal`, prompt caching on the house rules, 1.5 s target, 4 s timeout. Can approve or reject; never rewrites. Rejection screen: the reason in Hoolala! voice ("That sounds more like a date than a coffee break. Try again?") and EDIT.
+- [x] `src/rules/screening.ts` first (pure, tests): length, links, emails, phone numbers, handles, crisis words, a short word list (dating, sexual, slurs, selling). Code rules decide alone when the model is off or times out.
+- [x] `src/llm/screen.ts` (SCREEN IT): structured output `{verdict, category, reason, fr, en}`, `reasoning_effort: minimal`, prompt caching on the house rules, 1.5 s target, 4 s timeout. Can approve or reject; never rewrites. Rejection screen: the reason in Hoolala! voice ("That sounds more like a date than a coffee break. Try again?") and EDIT.
 - [ ] `src/llm/suggest.ts` (SUGGEST IT): place name, area, time of day, spots, plus at most one `web_search` ("events near <area> today"), cached per place for 1 hour. Returns 3 ideas `{topic, why, citation_url?}`; `src/rules/grounding.ts` drops ideas naming an event without a returned citation; every idea also passes SCREEN IT. Shown as AI / SUGGESTION with USE THIS; never posted automatically.
 - [ ] `src/llm/agent.ts` (PLAN IT): tools `get_signal`, `get_place_spots`, `get_quick_replies`, `get_place_hours`, `draft_meeting_point` (draft only); parallel calls, max 4; returns "Terrace at 15:10?" with CONFIRM (issues the confirmation token) and CHANGE.
 - [ ] Every AI answer writes a `workings` row and an `llm_calls` row.
