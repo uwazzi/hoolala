@@ -4,27 +4,11 @@
 
 import { sendMagicLink } from "../channels/email";
 import { consumeLoginToken, createEmailUser, findUserByEmail, insertLoginToken } from "../db/auth";
-import { clearSessionCookie, isOverLimit, loginTokenExpiry, normalizeEmail, sessionCookie, START_LIMITS } from "../rules/auth";
+import { clearSessionCookie, loginTokenExpiry, normalizeEmail, sessionCookie, START_LIMITS } from "../rules/auth";
 import type { Env } from "../types";
 import { json } from "./health";
+import { overLimit, readJson } from "./request";
 import { createSession, endSession, randomToken, sha256Hex } from "./session";
-
-async function readJson(request: Request): Promise<Record<string, unknown>> {
-  try {
-    const body = await request.json();
-    return body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-  } catch {
-    return {};
-  }
-}
-
-/** Counts one attempt against a KV window; true when already over the limit. */
-async function overLimit(env: Env, key: string, limit: { max: number; windowS: number }): Promise<boolean> {
-  const count = Number((await env.SESSIONS.get(key, { type: "text" })) ?? "0");
-  if (isOverLimit(count, limit.max)) return true;
-  await env.SESSIONS.put(key, String(count + 1), { expirationTtl: limit.windowS });
-  return false;
-}
 
 export async function handleAuthStart(request: Request, env: Env, now = new Date()): Promise<Response> {
   const body = await readJson(request);
