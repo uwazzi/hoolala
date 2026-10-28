@@ -20,7 +20,8 @@ const KINDS: { id: PlaceKind; label: string }[] = [
 const ERRORS: Record<string, string> = {
   too_far: "That place is a bit far from you. Pick one nearby, or search instead.",
   not_found: "We couldn't find that place. Pick another, or search instead.",
-  out_of_city: "That place is in another city. Check the city and search again.",
+  out_of_city: "That place is in another town. Check the town and search again.",
+  bad_city: "Type the town or village you're in.",
   name_home: "Public places only. Homes stay private.",
   name_address: "Give the place's name, not its address.",
   name_contact: "Just the name, no links, emails or numbers.",
@@ -38,11 +39,12 @@ function until(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
+/** The last town this phone used; empty the first time, never assumed. */
 function savedCity(): string {
   try {
-    return localStorage.getItem(CITY_KEY) ?? "lausanne";
+    return localStorage.getItem(CITY_KEY) ?? "";
   } catch {
-    return "lausanne";
+    return "";
   }
 }
 
@@ -153,7 +155,7 @@ export function Arrive() {
     event.preventDefault();
     saveCity(city);
     const res = await api<{ places: PlaceSummary[] }>("GET", `/api/places/search?city=${encodeURIComponent(city)}&q=${encodeURIComponent(query)}`);
-    if (res.status !== 200) return failed(res.data.error === "bad_query" ? undefined : res.data.error, "Type at least two letters of the name.");
+    if (res.status !== 200) return failed(res.data.error === "bad_query" ? undefined : res.data.error, "Type at least two letters of the place's name.");
     setResults(res.data.places);
     setNote(res.data.places.length ? "" : "No place by that name here yet. Share your location to add it.");
   }
@@ -161,6 +163,18 @@ export function Arrive() {
   async function pickSearched(place: PlaceSummary) {
     go("checking");
     done(await api("POST", "/api/checkin", { method: "search", placeId: place.id, city }), "search");
+  }
+
+  /** The demo café, open from anywhere with its code. */
+  async function trySample() {
+    go("checking");
+    const res = await api<{ checkin?: CheckinView }>("POST", "/api/checkin", { code: "DEMO" });
+    if (res.status === 200) {
+      location.href = "/here";
+      return;
+    }
+    go("ask");
+    failed(res.data.error);
   }
 
   async function leave() {
@@ -190,6 +204,10 @@ export function Arrive() {
           <ul class="key-list">
             <li><button class="lcd-key lcd-key--primary" type="button" onClick={shareLocation}>Share location</button></li>
             {searchLink}
+          </ul>
+          <p class="lcd-small">Just looking, or not near a café?</p>
+          <ul class="key-list">
+            <li><button class="lcd-key" type="button" onClick={trySample}>Try the SAMPLE place</button></li>
           </ul>
         </>
       )}
@@ -252,10 +270,12 @@ export function Arrive() {
       {step === "search" && (
         <>
           <form onSubmit={search} noValidate>
-            <label class="lcd-label" for="city">City</label>
-            <select class="lcd-field" id="city" value={city} onChange={(e) => setCity(e.currentTarget.value)}>
-              {CITIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <label class="lcd-label" for="city">Town or village</label>
+            <input class="lcd-field" id="city" list="known-cities" autocomplete="address-level2" maxLength={60} required
+              value={city} onInput={(e) => setCity(e.currentTarget.value)} placeholder="Lausanne, Pully, Échallens..." />
+            <datalist id="known-cities">
+              {CITIES.map((c) => <option key={c.id} value={c.name} />)}
+            </datalist>
             <label class="lcd-label" for="place-query">The place's name</label>
             <input class="lcd-field" id="place-query" type="search" maxLength={40} required value={query}
               onInput={(e) => setQuery(e.currentTarget.value)} />

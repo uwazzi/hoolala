@@ -72,6 +72,7 @@ export interface UserRow {
   is_adult: number;
   created_at: IsoDateTime;
   deleted_at: IsoDateTime | null;
+  is_sample?: number; // migration 0005
 }
 
 export interface SessionRow {
@@ -119,7 +120,8 @@ export interface PlaceRow {
   slug: string;
   name: string;
   kind: PlaceKind;
-  city: string | null;
+  city: string | null; // display name, e.g. "Échallens"
+  city_key: string | null; // search key, e.g. "echallens" (migration 0004)
   lat: number | null;
   lng: number | null;
   radius_m: number;
@@ -132,6 +134,7 @@ export interface PlaceRow {
   status: PlaceStatus;
   first_other_checkin_at: IsoDateTime | null;
   created_at: IsoDateTime;
+  is_sample: number; // migration 0005
 }
 
 export type FactField =

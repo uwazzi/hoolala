@@ -7,6 +7,9 @@ import {
   isActive,
   isCity,
   isPlaceKind,
+  knownCityName,
+  localityKey,
+  normalizeLocality,
   normalizeCode,
   normalizeQuery,
   parsePoint,
@@ -130,5 +133,27 @@ describe("small formats", () => {
   it("knows place kinds", () => {
     expect(isPlaceKind("coworking")).toBe(true);
     expect(isPlaceKind("home")).toBe(false);
+  });
+});
+
+describe("localities", () => {
+  it("reads town and village names", () => {
+    expect(normalizeLocality("  Échallens ")).toBe("Échallens");
+    expect(normalizeLocality("Saint-Légier-La Chiésaz")).toBe("Saint-Légier-La Chiésaz");
+    expect(normalizeLocality("Villars-sur-Glâne")).toBe("Villars-sur-Glâne");
+  });
+
+  it("refuses things that aren't place names", () => {
+    for (const bad of ["", "A", "1003", "Lausanne 1003", "x".repeat(61), null]) expect(normalizeLocality(bad)).toBeNull();
+  });
+
+  it("matches without accents or case", () => {
+    expect(localityKey("Échallens")).toBe(localityKey("echallens"));
+    expect(localityKey("Saint-Légier-La  Chiésaz")).toBe("saint-legier-la chiesaz");
+  });
+
+  it("falls back to the known city's name", () => {
+    expect(knownCityName(palud)).toBe("Lausanne");
+    expect(knownCityName({ lat: 46.8, lng: 7.15 })).toBeNull();
   });
 });

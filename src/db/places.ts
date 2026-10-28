@@ -1,6 +1,7 @@
 // WP20: places and check-ins. The only place their SQL lives.
 // Coordinates are only ever written as a new place's own location.
 
+import { localityKey } from "../rules/checkin";
 import type { CheckinAttemptReason, CheckinMethod, CheckinRow, D1Database, PlaceKind, PlaceRow } from "../types";
 
 const LIVE = "status != 'hidden'";
@@ -40,14 +41,14 @@ export async function getPlaceByExternal(
   return db.prepare(`SELECT * FROM places WHERE ${column} = ?`).bind(externalId).first<PlaceRow>();
 }
 
-/** Name search inside one city, for when location fails. */
-export async function searchPlaces(db: D1Database, city: string, query: string, limit: number): Promise<PlaceRow[]> {
+/** Name search inside one town or village (compared by its key), for when location fails. */
+export async function searchPlaces(db: D1Database, cityKey: string, query: string, limit: number): Promise<PlaceRow[]> {
   const like = `%${query.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
   const { results } = await db
     .prepare(
-      `SELECT * FROM places WHERE ${LIVE} AND city = ? AND name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?`,
+      `SELECT * FROM places WHERE ${LIVE} AND city_key = ? AND name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?`,
     )
-    .bind(city, like, limit)
+    .bind(cityKey, like, limit)
     .all<PlaceRow>();
   return results;
 }
@@ -69,10 +70,10 @@ export interface NewPlace {
 export async function insertPlace(db: D1Database, p: NewPlace): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO places (id, slug, name, kind, city, lat, lng, google_place_id, osm_id, added_by, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`,
+      `INSERT INTO places (id, slug, name, kind, city, city_key, lat, lng, google_place_id, osm_id, added_by, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`,
     )
-    .bind(p.id, p.slug, p.name, p.kind, p.city, p.lat, p.lng, p.googlePlaceId ?? null, p.osmId ?? null, p.addedBy, p.createdAt)
+    .bind(p.id, p.slug, p.name, p.kind, p.city, p.city ? localityKey(p.city) : null, p.lat, p.lng, p.googlePlaceId ?? null, p.osmId ?? null, p.addedBy, p.createdAt)
     .run();
 }
 

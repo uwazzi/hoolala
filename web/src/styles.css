@@ -228,3 +228,20 @@ main { flex: 1; }
 .chip input:checked + span { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
 .chip input:focus-visible + span { outline: 3px solid var(--lcd-ink); outline-offset: 2px; }
 select.lcd-field { appearance: none; }
+
+/* HERE (WP22): signal cards, curious requests, replies, small safety actions. */
+.signal-topic { margin: 4px 0; font-weight: 700; font-size: 17px; overflow-wrap: anywhere; }
+.request { border-top: 2px dashed var(--lcd-ink-secondary); margin-top: 12px; padding-top: 8px; }
+.reply-list { list-style: none; margin: 8px 0; padding: 0; font-size: 14px; }
+.reply-list li { padding: 2px 0; }
+.chips .lcd-key { width: auto; flex: 1 1 auto; }
+.tiny-actions { display: flex; gap: 16px; margin-top: 8px; }
+.tiny-actions button {
+  background: none; border: 0; padding: 8px 0; min-height: 32px; cursor: pointer;
+  color: var(--lcd-ink-secondary); font: 12px/1 var(--font-body); text-decoration: underline;
+}
+
+/* MEET and LIVE (WP5, WP6) */
+.qr { display: block; width: min(100%, 260px); height: auto; margin: 16px auto; border: 2px solid var(--lcd-ink); }
+.meet-code { text-align: center; font: 700 28px/1 var(--font-display); letter-spacing: 0.2em; margin: 8px 0; }
+.live-number { font: 700 56px/1 var(--font-display); margin: 8px 0; }

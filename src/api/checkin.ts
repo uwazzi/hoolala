@@ -17,7 +17,10 @@ import {
   startCheckin,
 } from "../db/places";
 import { coordsStorable, mapLookup } from "../places/provider";
-import { checkinEnds, cityFor, distanceM, isCity, NEARBY_RADIUS_M, normalizeCode, parsePoint, slugify } from "../rules/checkin";
+import { ensureSample } from "../db/sample";
+import { localityFor } from "../places/geocode";
+import { SAMPLE_PLACE } from "../rules/sample";
+import { checkinEnds, distanceM, localityKey, NEARBY_RADIUS_M, normalizeCode, normalizeLocality, parsePoint, slugify } from "../rules/checkin";
 import type { CheckinAttemptReason, CheckinMethod, CheckinView, Env, PlaceRow } from "../types";
 import { json } from "./health";
 import { overLimit, readJson } from "./request";
@@ -62,6 +65,7 @@ export async function handleCheckin(request: Request, env: Env, now = new Date()
   // Partner code: four letters on the poster.
   if (body.code !== undefined) {
     const code = normalizeCode(body.code);
+    if (code === SAMPLE_PLACE.code) await ensureSample(env.DB, now);
     const place = code ? await getPlaceByCode(env.DB, code) : null;
     if (!place) return refuse(env, "code", "wrong_code", "wrong_code", now);
     return checkIn(env, user.id, place, "code", now);
@@ -79,7 +83,8 @@ export async function handleCheckin(request: Request, env: Env, now = new Date()
   if (body.method === "search") {
     const place = typeof body.placeId === "string" ? await getPlace(env.DB, body.placeId) : null;
     if (!place) return refuse(env, "search", "out_of_city", "not_found", now);
-    if (!isCity(body.city) || place.city !== body.city) return refuse(env, "search", "out_of_city", "out_of_city", now, place.id);
+    const city = normalizeLocality(body.city);
+    if (!city || place.city_key !== localityKey(city)) return refuse(env, "search", "out_of_city", "out_of_city", now, place.id);
     return checkIn(env, user.id, place, "search", now);
   }
 
@@ -114,7 +119,7 @@ export async function handleCheckin(request: Request, env: Env, now = new Date()
     const place = { id, slug: slugify(found.name, id.slice(0, 6)), name: found.name, kind: found.kind };
     await insertPlace(env.DB, {
       ...place,
-      city: cityFor(where),
+      city: await localityFor(where),
       lat: where.lat,
       lng: where.lng,
       osmId: found.provider === "osm" ? found.id : null,

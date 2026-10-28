@@ -1,7 +1,20 @@
 import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
 import { handleHealth, json } from "./api/health";
+import { ensureSample } from "./db/sample";
+import {
+  handleAccept,
+  handleBlock,
+  handleCancelSignal,
+  handleCurious,
+  handleDecline,
+  handleHere,
+  handlePostSignal,
+  handleQuickReply,
+  handleReport,
+} from "./api/here";
 import { handleMe } from "./api/me";
+import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -78,6 +91,46 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/checkin/leave" && method === "POST") {
     return handleLeave(request, env);
   }
+  if (url.pathname === "/api/here" && method === "GET") {
+    return handleHere(request, env);
+  }
+  if (url.pathname === "/api/here/signals" && method === "POST") {
+    return handlePostSignal(request, env);
+  }
+  const signalAction = /^\/api\/here\/signals\/([0-9a-f-]{36})\/(cancel|curious|quick)$/.exec(url.pathname);
+  if (signalAction && method === "POST") {
+    const [, id, action] = signalAction;
+    if (action === "cancel") return handleCancelSignal(id, request, env);
+    if (action === "curious") return handleCurious(id, request, env);
+    return handleQuickReply(id, request, env);
+  }
+  const responseAction = /^\/api\/here\/responses\/([0-9a-f-]{36})\/(accept|decline)$/.exec(url.pathname);
+  if (responseAction && method === "POST") {
+    const [, id, action] = responseAction;
+    return action === "accept" ? handleAccept(id, request, env) : handleDecline(id, request, env);
+  }
+  if (url.pathname === "/api/meet/start" && method === "POST") {
+    return handleMeetStart(request, env);
+  }
+  if (url.pathname === "/api/meet/join" && method === "POST") {
+    return handleMeetJoin(request, env);
+  }
+  const meet = /^\/api\/meet\/([0-9a-f-]{36})(?:\/(agree|stay-in-touch))?$/.exec(url.pathname);
+  if (meet) {
+    const [, id, action] = meet;
+    if (!action && method === "GET") return handleMeetState(id, request, env);
+    if (action === "agree" && method === "POST") return handleMeetAgree(id, request, env);
+    if (action === "stay-in-touch" && method === "POST") return handleStayInTouch(id, request, env);
+  }
+  if (url.pathname === "/api/live" && method === "GET") {
+    return handleLive(env);
+  }
+  if (url.pathname === "/api/block" && method === "POST") {
+    return handleBlock(request, env);
+  }
+  if (url.pathname === "/api/report" && method === "POST") {
+    return handleReport(request, env);
+  }
   return json({ error: "not_found" }, 404);
 }
 
@@ -94,6 +147,11 @@ export async function runScheduled(env: Env, now: Date = new Date()): Promise<vo
   await env.DB.prepare("DELETE FROM workings WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .run();
+  try {
+    await ensureSample(env.DB, now);
+  } catch {
+    // The demo place is a nice-to-have; expiry above is not.
+  }
 }
 
 export default {

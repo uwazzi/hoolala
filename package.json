@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "preact": "^11.1.0",
-    "preact-iso": "^2.12.2"
+    "preact-iso": "^2.12.2",
+    "uqr": "^0.1.3"
   }
 }
