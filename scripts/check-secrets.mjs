@@ -14,6 +14,14 @@ const PATTERNS = [
   ["Key assigned in a file", /\b[A-Z0-9_]*(API_KEY|_TOKEN|_SECRET|PASSWORD)\s*[=:]\s*["']?[A-Za-z0-9_\-./+]{16,}/],
 ];
 
+const ASSIGNED = /\b[A-Z0-9_]*(?:API_KEY|_TOKEN|_SECRET|PASSWORD)\s*[=:]\s*["']?([A-Za-z0-9_\-./+]{16,})/g;
+
+/** True when every key-like assignment on the line reads from the environment. */
+function onlyReadsEnv(line) {
+  const values = [...line.matchAll(ASSIGNED)].map((m) => m[1]);
+  return values.length > 0 && values.every((v) => /^(process\.env|import\.meta\.env|env)\./.test(v));
+}
+
 // Lock files hold integrity hashes; this script holds the patterns themselves.
 const SKIP = new Set(["package-lock.json", "scripts/check-secrets.mjs"]);
 
@@ -32,7 +40,10 @@ for (const file of files) {
   if (text.includes("\0")) continue; // binary
   text.split("\n").forEach((line, i) => {
     for (const [name, re] of PATTERNS) {
-      if (re.test(line)) findings.push(`${file}:${i + 1}  ${name}`);
+      if (!re.test(line)) continue;
+      // Reading a key from the environment is how it should be done, not a leak.
+      if (name === "Key assigned in a file" && onlyReadsEnv(line)) continue;
+      findings.push(`${file}:${i + 1}  ${name}`);
     }
   });
 }
