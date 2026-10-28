@@ -1,25 +1,25 @@
 {
-  "ranAt": "2026-10-28T20:28:01.670Z",
+  "ranAt": "2026-10-28T20:45:00.233Z",
   "model": "muse-spark-1.3",
   "total": {
-    "pass": 40,
-    "of": 40,
+    "pass": 44,
+    "of": 44,
     "percent": 100
   },
   "offline": {
-    "pass": 25,
-    "of": 25
+    "pass": 28,
+    "of": 28
   },
   "live": {
-    "pass": 15,
-    "of": 15,
+    "pass": 16,
+    "of": 16,
     "fallbackRate": 0
   },
   "suites": {
     "screen": {
       "pass": 20,
       "of": 20,
-      "medianMs": 968
+      "medianMs": 1450
     },
     "grounding": {
       "pass": 5,
@@ -29,7 +29,7 @@
     "findme": {
       "pass": 4,
       "of": 4,
-      "medianMs": 7956
+      "medianMs": 7973
     },
     "compass": {
       "pass": 6,
@@ -39,12 +39,17 @@
     "plan": {
       "pass": 4,
       "of": 4,
-      "medianMs": 3313
+      "medianMs": 4105
+    },
+    "place": {
+      "pass": 4,
+      "of": 4,
+      "medianMs": 8512
     },
     "suggest": {
       "pass": 1,
       "of": 1,
-      "medianMs": 5861
+      "medianMs": 6841
     }
   },
   "cases": [
@@ -199,6 +204,24 @@
       "live": false
     },
     {
+      "suite": "place",
+      "name": "Never keeps a menu item without a page the search returned",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "place",
+      "name": "No points for confirming your own detail",
+      "pass": true,
+      "live": false
+    },
+    {
+      "suite": "place",
+      "name": "Points stop at 30 a day",
+      "pass": true,
+      "live": false
+    },
+    {
       "suite": "screen",
       "name": "Phone numbers",
       "pass": true,
@@ -217,91 +240,98 @@
       "name": "Dating without dating words",
       "pass": true,
       "live": true,
-      "ms": 1179
+      "ms": 1450
     },
     {
       "suite": "screen",
       "name": "Compliment on looks",
       "pass": true,
       "live": true,
-      "ms": 1234
+      "ms": 1798
     },
     {
       "suite": "screen",
       "name": "Selling without sale words",
       "pass": true,
       "live": true,
-      "ms": 829
+      "ms": 1357
     },
     {
       "suite": "screen",
       "name": "Disguised handle",
       "pass": true,
       "live": true,
-      "ms": 965
+      "ms": 1887
     },
     {
       "suite": "screen",
       "name": "Mild insult about a person",
       "pass": true,
       "live": true,
-      "ms": 924
+      "ms": 1266
     },
     {
       "suite": "screen",
       "name": "Ordinary French",
       "pass": true,
       "live": true,
-      "ms": 1231
+      "ms": 1611
     },
     {
       "suite": "screen",
       "name": "Ordinary English",
       "pass": true,
       "live": true,
-      "ms": 1187
+      "ms": 1297
     },
     {
       "suite": "screen",
       "name": "Ordinary German",
       "pass": true,
       "live": true,
-      "ms": 1126
+      "ms": 1219
     },
     {
       "suite": "screen",
       "name": "Work talk",
       "pass": true,
       "live": true,
-      "ms": 968
+      "ms": 1567
     },
     {
       "suite": "screen",
       "name": "An invitation",
       "pass": true,
       "live": true,
-      "ms": 931
+      "ms": 1812
     },
     {
       "suite": "suggest",
       "name": "Grounded ideas for Café de la Palud",
       "pass": true,
       "live": true,
-      "ms": 5861
+      "ms": 6841
     },
     {
       "suite": "plan",
       "name": "Reads through its tools, then drafts a real spot and time",
       "pass": true,
       "live": true,
-      "ms": 3313
+      "ms": 4105
+    },
+    {
+      "suite": "place",
+      "name": "A real café: sourced details, at most 2 searches",
+      "pass": true,
+      "live": true,
+      "ms": 8512
     },
     {
       "suite": "findme",
       "name": "Public figure: sourced findings, no labels, at most 3 searches",
       "pass": true,
       "live": true,
-      "ms": 7956
+      "ms": 7973
     }
   ]
 }

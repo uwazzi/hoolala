@@ -5,12 +5,14 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { planMeeting } from "../src/llm/agent";
+import { placeIt } from "../src/llm/place";
 import { findMe } from "../src/llm/findme";
 import { screenWithModel } from "../src/llm/screen";
 import { suggestFor } from "../src/llm/suggest";
 import { cleanCompass, hasBannedLabel, isOwnName } from "../src/rules/compass";
 import { ground, resolveCitation } from "../src/rules/grounding";
 import { checkDraft, claimsAction } from "../src/rules/plan";
+import { confirmProblem, underCap } from "../src/rules/places";
 import { screenText } from "../src/rules/screening";
 import type { Env } from "../src/types";
 import { FINDME_PUBLIC, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES } from "./cases";
@@ -102,6 +104,15 @@ record({ suite: "plan", name: "Never returns 'sent' or 'confirmed'", live: false
 record({ suite: "plan", name: "Only real spots", live: false, pass: checkDraft("Rooftop", "2026-10-28T14:10:00.000Z", planCtx) === null });
 record({ suite: "plan", name: "Never after the signal ends", live: false, pass: checkDraft("Terrace", "2026-10-28T15:30:00.000Z", planCtx) === null });
 
+record({
+  suite: "place",
+  name: "Never keeps a menu item without a page the search returned",
+  live: false,
+  pass: resolveCitation("https://made-up.example/menu", "Truffle croissant CHF 9", pages, [], { sameSiteFallback: true }) === null,
+});
+record({ suite: "place", name: "No points for confirming your own detail", live: false, pass: confirmProblem({ added_by: "ana", state: "found" }, "ana", true, false) === "own" });
+record({ suite: "place", name: "Points stop at 30 a day", live: false, pass: underCap(28, 5) === 2 && underCap(30, 2) === 0 });
+
 // --- Live: Muse Spark ---------------------------------------------------------
 
 const live = process.argv.includes("--live");
@@ -175,6 +186,21 @@ if (live) {
       fallback: d?.source !== "ai",
       pass: ok,
       detail: d ? `${d.source}: ${d.toolOrder.join(" > ")}` : "no draft",
+    });
+  }
+
+  {
+    const started = Date.now();
+    const p = await placeIt(env, { name: "Café Le Barbare", kind: "cafe", city: "Lausanne" });
+    const ok = p !== null && p.facts.length > 0 && p.facts.every((x) => x.url.startsWith("https://")) && p.searches <= 2;
+    record({
+      suite: "place",
+      name: "A real café: sourced details, at most 2 searches",
+      live: true,
+      ms: Date.now() - started,
+      fallback: p === null,
+      pass: ok,
+      detail: p ? `${p.facts.length} kept of ${p.total}, ${p.searches} searches` : "no answer",
     });
   }
 

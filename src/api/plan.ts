@@ -3,6 +3,7 @@
 // meeting point. The agent drafts; a person confirms with a tap, either the
 // exact draft (with its one-time confirmation token) or their own choice.
 
+import { factsForPlace } from "../db/facts";
 import { getPlace } from "../db/places";
 import { getSignal, meetingPointsFor, repliesByRole, responsesFor, saveMeetingPoint } from "../db/here";
 import { planMeeting } from "../llm/agent";
@@ -24,7 +25,8 @@ async function pairContext(env: Env, user: UserRow, signalId: string, now: Date)
   const inPair = accepted.length > 0 && (signal.owner_id === user.id || accepted.some((r) => r.responder_id === user.id));
   if (!inPair) return null;
   const place = signal.place_id ? await getPlace(env.DB, signal.place_id) : null;
-  return { signal, accepted: accepted.length, spots: placeSpots(place?.spots_json ?? null) };
+  const hours = place ? (await factsForPlace(env.DB, place.id, now)).find((f) => f.field === "hours")?.value ?? null : null;
+  return { signal, accepted: accepted.length, spots: placeSpots(place?.spots_json ?? null), hours };
 }
 
 export async function handlePlan(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
@@ -38,7 +40,7 @@ export async function handlePlan(id: string, request: Request, env: Env, now = n
     signal: pair.signal,
     accepted: pair.accepted,
     spots: pair.spots,
-    hours: null, // PLACE IT (WP25) will fill opening hours.
+    hours: pair.hours,
     replies: await repliesByRole(env.DB, pair.signal.id, pair.signal.owner_id),
     now,
   });

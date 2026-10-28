@@ -24,7 +24,7 @@ Muse Spark does the work in between: it gets to know you from what's public (onl
 5. **Plan the meeting point**: PLAN IT drafts one; you confirm. Then **Meet Sample Sophie** → **We met**.
 6. Under every AI answer: **Show the workings**.
 
-The SAMPLE place never counts on the [Live page](https://hoolala.hg-labs.io/live). With two phones at a real café, the same loop runs between real people.
+Then **This place** (at a real café) shows details with their sources. The SAMPLE place never counts on the [Live page](https://hoolala.hg-labs.io/live). With two phones at a real café, the same loop runs between real people.
 
 ## How it works
 
@@ -33,6 +33,7 @@ The SAMPLE place never counts on the [Live page](https://hoolala.hg-labs.io/live
 | Get started | "Want a head start?" With your OK, Hoolala! searches the web for you (only you, at most 3 searches). You tick what's really you; your private Personal Compass is drafted. Or three questions, no AI. | **FIND ME**: web search, grounded citations, structured output |
 | Arrive | Share location and pick the place (Hoolala! places, then OpenStreetMap), add it, or search by name in your town. | None, on purpose |
 | Post | A topic, when, where in the place, for how many (1 to 3). "Need a topic?" gives three ideas, one maybe about something on nearby tonight, with its source. | **SUGGEST IT**: web search, grounded; **SCREEN IT**: verdict and FR/EN translation |
+| The place | THIS PLACE: hours, menu, wifi and spots, AI / FOUND with their source, then confirmed by people here; THAT'S RIGHT, FIX IT, NOT ANY MORE; private place points | **PLACE IT**: web search, grounded |
 | Discover | Three signals at a time, "Someone here", translated; ones that fit your compass first, marked only for you. | **SCREEN IT** translation |
 | Respond | I'M CURIOUS; the poster accepts; first names only after both say yes; quick replies, no chat. | |
 | Plan | A meeting point drafted from the place's real spots; a person confirms or changes it. | **PLAN IT**: parallel tool calls, draft only |
@@ -50,14 +51,15 @@ All on `muse-spark-1.3` (standard mode: what we send isn't used for training). E
 | SCREEN IT | Chat Completions, strict JSON schema; approve/reject with a category, FR/EN translation; never rewrites | minimal | 1.0 s | Code rules decide alone |
 | SUGGEST IT | Responses API, 1 web search, strict JSON; every event must cite a page the search returned | low | 5.9 s | Three fixed ideas for the hour |
 | FIND ME | Responses API, up to 3 web searches; findings resolved to returned pages; then a compass draft | low | 8.0 s | Three questions |
-| PLAN IT | Chat Completions tool loop: 4 read-only tools in parallel, then `draft_meeting_point` limited to real spots | medium | 3.3 s | The poster's own spot and time |
+| PLACE IT | Responses API, up to 2 web searches; every detail resolved to a returned page | low | 8.5 s | People's own details only |
+| PLAN IT | Chat Completions tool loop: 4 read-only tools in parallel, then `draft_meeting_point` limited to real spots | medium | 4.1 s | The poster's own spot and time |
 | CHECK IT | `workings` rows: tools, sources, verdicts, grounding; owner only, no personal text | | | "Model off: rules only." |
 
 What real calls taught us (and the code now handles): the JSON answer arrives after a preamble message; the model cites a site's home page or a bare domain instead of the page it found, so citations are resolved against the pages the search actually returned, and invented sites are dropped. Details in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-## Evaluation: 40 cases, 40 passing
+## Evaluation: 44 cases, 44 passing
 
-`npm run eval` (25 offline cases, run in CI before every deploy) and `npm run eval:live` (15 cases against Muse Spark). Latest results: [`evals/results/latest.json`](evals/results/latest.json).
+`npm run eval` (28 offline cases, run in CI before every deploy) and `npm run eval:live` (16 cases against Muse Spark). Latest results: [`evals/results/latest.json`](evals/results/latest.json).
 
 | Suite | Pass | What it checks |
 |---|---|---|
@@ -67,8 +69,9 @@ What real calls taught us (and the code now handles): the JSON answer arrives af
 | Compass | 6/6 | Never keeps an unticked finding, or a personality, health, political or religious label; every line has a source or "you said" |
 | PLAN IT | 4/4 | Never "sent" or "confirmed"; only real spots; never after the signal ends; live tool loop drafts a valid point |
 | SUGGEST IT | 1/1 | Live: grounded ideas for a real café |
+| PLACE IT | 4/4 | Never a menu item without a returned page; no points for your own detail; 30 a day; live: sourced details for a real Lausanne café |
 
-Live fallback rate: 0 of 15. The live eval caught a real bug before users did (FIND ME was dropping every finding because the model cites bare domains).
+Live fallback rate: 0 of 16. The live eval caught a real bug before users did (FIND ME was dropping every finding because the model cites bare domains).
 
 ## Privacy, in short
 
@@ -80,19 +83,19 @@ One Cloudflare Worker (TypeScript) serves a Vite + Preact web app and a JSON API
 
 | Path | What |
 |---|---|
-| `src/rules/` | Pure rules: visibility, anonymity, check-in, screening, grounding, compass, meet, plan |
+| `src/rules/` | Pure rules: visibility, anonymity, check-in, screening, grounding, compass, meet, plan, place points |
 | `src/api/` | One file per resource; every permission check |
 | `src/llm/` | The Meta Model API client and the four functions |
 | `src/db/` | D1 migrations and repositories |
 | `web/` | The Mono LCD web app |
 | `evals/` | The evaluation set |
-| `tests/` | 231 tests, including three-person permission scenarios on a real SQLite schema |
+| `tests/` | 249 tests, including three-person permission scenarios on a real SQLite schema |
 
 ## Run it
 
 ```bash
 npm install
-npm test            # 231 tests
+npm test            # 249 tests
 npm run typecheck
 npm run eval        # offline evaluation set
 npm run dev         # wrangler dev; without EMAIL_API_KEY the sign-in link prints to the console
@@ -113,7 +116,7 @@ Building started 27 Oct 2026. Before that: brainstorming, the design system and 
 | Signals here: post, discover, I'M CURIOUS, accept, quick replies, block, report | Done |
 | MEET (mutual QR), STAY IN TOUCH, Live page, SAMPLE place | Done |
 | SCREEN IT, SUGGEST IT, FIND ME and the Personal Compass, PLAN IT, CHECK IT, evaluation set | Done |
-| PLACE IT and place points | Not yet |
+| PLACE IT and place points | Done |
 | Telegram Mini App | Started, paused to finish the web app first |
 | Pilot at a real place | Planned for Mon 2 Nov |
 
@@ -121,7 +124,6 @@ Building started 27 Oct 2026. Before that: brainstorming, the design system and 
 
 ## Limitations, honestly
 
-- PLACE IT (place details with sources, place points) isn't built yet, so PLAN IT doesn't know opening hours.
 - Translation covers English and French; other languages are detected but shown as written.
 - Only OpenStreetMap for nearby places; Google Places is coded but off.
 - The pilot with real people hasn't happened yet; the Live page shows real numbers, so far small ones.

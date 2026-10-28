@@ -139,11 +139,11 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests: unticked findings never stored; another person's name refused; compass never in any response to anyone else; delete account deletes it.
 
 ### WP25 PLACE IT and place points (Sat 31, morning)
-- [ ] `src/llm/place.ts` (PLACE IT): parallel tools `google_place_details` (live: hours, website, price level), `web_search` (menu on the place's website), `get_place_facts`; schema `{facts[{field, value, source, url}]}`; runs on first visit and when facts are over 30 days old.
-- [ ] Place card: CONFIRMED HERE facts first, then AI / FOUND facts with their source line; Google attribution shown; THAT'S RIGHT / FIX IT / NOT ANY MORE.
-- [ ] `src/rules/places.ts` (pure, tests first): points table (add place 10, add or fix 5, confirm 2), counted only on another person's confirmation or 24 h without dispute, only while checked in at that place, never for your own, max 30 a day, one confirm per fact per person per month; disputes revert to found.
-- [ ] Edits pass `screening.ts` and SCREEN IT. MY MOMENTS shows your points privately; the Live page shows only collective counts.
-- [ ] Tests: no self-confirm, cap, not checked in refused, Google rows never stored, points never public.
+- [x] `src/llm/place.ts` (PLACE IT): parallel tools `google_place_details` (live: hours, website, price level), `web_search` (menu on the place's website), `get_place_facts`; schema `{facts[{field, value, source, url}]}`; runs on first visit and when facts are over 30 days old.
+- [x] Place card: CONFIRMED HERE facts first, then AI / FOUND facts with their source line; Google attribution shown; THAT'S RIGHT / FIX IT / NOT ANY MORE.
+- [x] `src/rules/places.ts` (pure, tests first): points table (add place 10, add or fix 5, confirm 2), counted only on another person's confirmation or 24 h without dispute, only while checked in at that place, never for your own, max 30 a day, one confirm per fact per person per month; disputes revert to found.
+- [x] Edits pass `screening.ts` and SCREEN IT. MY MOMENTS shows your points privately; the Live page shows only collective counts.
+- [x] Tests: no self-confirm, cap, not checked in refused, Google rows never stored, points never public.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 - [ ] Location inside the Mini App: Telegram's location API where available, browser geolocation otherwise.

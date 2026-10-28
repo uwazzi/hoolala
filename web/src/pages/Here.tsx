@@ -172,7 +172,7 @@ export function Here() {
 
   return (
     <Screen title="Here">
-      <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)}</p>
+      <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)} · <a href="/place">This place</a></p>
       {data.checkin.place.slug === "sample-cafe" && (
         <p class="lcd-block">This is a SAMPLE place to try Hoolala! alone. Sample Sophie says yes to everything, and nothing here counts on the Live page.</p>
       )}
