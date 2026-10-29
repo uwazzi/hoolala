@@ -10,7 +10,7 @@ Decisions (23 Oct): email magic link sign-in; the Live counter counts both-confi
 Decisions (26 Oct, official guide): Indie Developer track, Build for Your World; public repo, MIT licence; prior work committed once and tagged `pre-hackathon`; pitched as a social product, never mental-health or coaching AI.
 Decisions (27 Oct, Signals here): Signals here is the hero. Audience: everyone checked in at the same place, anonymous until both accept. Check-in ladder: QR poster first, location optional and never stored, place code as fallback. Telegram Mini App as the main entry at the place (Telegram login), email magic link for the web. Go App-Free (onboarding, Personal Compass, briefings, Telegram bot briefings), SAY IT and FIND IT-as-briefing move to after 4 Nov. Place host still to confirm; fallback place planned.
 Decisions (27 Oct, v5): a venue is now **any public place** (café, bar, coworking, library), no host needed. Check-in is share location and pick the place, ADD THIS PLACE saves a new one at the person's location, search by name as fallback, QR poster optional. Onboarding **FIND ME** reads the person's public footprint with their OK and drafts the Personal Compass (back in scope, private, used only for their own suggestions and ordering). **PLACE IT** fetches place details (Google Maps live, web search for the menu); people confirm or fix them and earn private **place points**. Share card image moves to "if time".
-Decisions (29 Oct, v6): tiny tries lead (GET OUTSIDE. MEET PEOPLE.), Signals here second; TRY IT drafts inside code-set bounds; Friends slim (invite and crew); spec in `docs/HANDOFF-v6.md`.
+Decisions (29 Oct, v6): tiny tries lead (GET OUTSIDE. MEET PEOPLE. GROW INSIDE.), Signals here second; TRY IT drafts inside code-set bounds; Friends slim (invite and crew); spec in `docs/HANDOFF-v6.md`.
 
 ## Before the build (owner)
 
@@ -31,7 +31,7 @@ Decisions (29 Oct, v6): tiny tries lead (GET OUTSIDE. MEET PEOPLE.), Signals her
 | Thu 29 | DOCS-v6, issues, close the merged ones | Office hours 15:00; **pilot place and filming permission decided** | Docs diff reviewed; pilot place confirmed |
 | Fri 30 | WP28 home v6 and tiny tries; WP31 staging fixes | Fireworks 17:00 (optional) | A new person completes one try in under a minute; tagline fixed, quiet empty state |
 | Sat 31 | WP29 TRY IT (morning); **friends dry run (afternoon)** on the new home | | 15/15 TRY IT evals; friends try the new home at a café |
-| Sun 1 | WP30 friends slim; WP9 safety pass | | Invite link opens WhatsApp prefilled; safety checklist ticked |
+| Sun 1 | WP32 Around me (full); WP9 safety pass | | Radar scan with fit and why on staging; safety checklist ticked |
 | Mon 2 | **Pilot in Lausanne, 11:00 to 16:00**; film demo shots on site; evening fixes | Office hours 16:00 | Metrics captured: try completion, signal-to-response, response-to-accept, connection rate |
 | Tue 3 | Fixes from the pilot; film and edit the video; README results | Last day for submission questions | Video watched once by someone else |
 | Wed 4 | Private-window check; WP9 submit by 18:00, post on X | Official deadline Thu 5 Nov 03:00 | Submitted; repo and video open while signed out |
@@ -164,6 +164,14 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 ### WP30 Friends, slim (Sun 1)
 - [x] INVITE A FRIEND: share sheet with the invite text and a crew invite link (WhatsApp `wa.me` and Messenger share URLs, copy link); one private crew per person; timeline posts (outcome tag + text, screened), NICE ONE. Seed file at `scripts/demo-crew.sql` (owner runs once on staging). Replaces WP7.
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
+
+### WP32 Around me (Sun 1)
+- [ ] Consent screen ("used for this scan only, never stored or shown", skip link); radar with sweep, pins placed by bearing and fit (never exact addresses); 500 m, then 1 km and 2 km widening on tap only; code fit (GOOD/OK/LOW from compass, features, visits) and talking rating (median from 3+ verified visits); `src/llm/whygo.ts` + `src/llm/readit.ts` (schemas, low effort, validators, template/link fallbacks, `llm_calls` and `workings` rows); `place_ratings` table; rating capture on I'M LEAVING (QUIET / CHATTY / LIVELY); 10 scans an hour.
+- [ ] Evals: 10 WHY GO + 5 READ IT cases. Seed: pilot place + 5 to 8 around it with SAMPLE-marked ratings; OSM stays the provider. Acceptance: HANDOFF-v6-around-me phone tests (consent, sweep, tap pin, widen, leave-rating) pass on staging.
+
+### WP31 add-on: compact header and Around softkeys
+- [ ] Compact brand bar on every screen (44 px, HOOLALA! left, tagline right, dashed bottom border); softkeys TODAY · AROUND · FRIENDS on top-level screens; Here sits under AROUND.
+- [ ] Here live fix: one POST THE FIRST ONE key in the empty state, no duplicate.
 
 ### WP31 Staging fixes (Fri 30)
 - [x] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.

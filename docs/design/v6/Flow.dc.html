@@ -23,14 +23,14 @@ a{color:#182513}
 </style>
 </helmet>
 <div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; overflow: hidden">
-  <div style="padding: 16px 24px 0 24px; display: flex; flex-direction: column; gap: 2px">
-    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 28px; line-height: 1.1; letter-spacing: 1px">HOOLALA!</div>
-    <div style="font-size: 13px; line-height: 1.4; color: #304327">You never know until you go.</div>
-  </div>
+  <header style="flex-shrink: 0; margin: 0 24px; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px dashed #304327">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 11px; line-height: 1.3; color: #304327; text-align: right">You never know until you go.</div>
+  </header>
 
   <sc-if value="{{ isIntro }}" hint-placeholder-val="{{ true }}">
     <div style="flex-grow: 1; padding: 32px 24px 20px 24px; display: flex; flex-direction: column; gap: 20px">
-      <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 40px; line-height: 1.05">GET OUTSIDE.<br>MEET PEOPLE.</div>
+      <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 40px; line-height: 1.05">GET OUTSIDE.<br>MEET PEOPLE.<br>GROW INSIDE.</div>
       <p style="margin: 0; font-size: 16px; line-height: 1.5">One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always.</p>
       <a href="Moments.dc.html" style="display: flex; align-items: flex-end; gap: 16px; text-decoration: none; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 12px 16px">
         <div style="display: grid; grid-template-columns: repeat(14, 8px); grid-auto-rows: 8px; flex-shrink: 0">
@@ -54,7 +54,7 @@ a{color:#182513}
   <sc-if value="{{ inFlow }}" hint-placeholder-val="{{ false }}">
   <div style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0">
   <div style="margin: 10px 24px 0 24px; display: flex; flex-direction: column; gap: 4px">
-    <div style="background: #182513; color: #DDE7C6; border-radius: 2px; padding: 8px 12px; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; line-height: 1.2; letter-spacing: 0.5px">GET OUTSIDE. MEET PEOPLE.</div>
+    <div style="background: #182513; color: #DDE7C6; border-radius: 2px; padding: 8px 12px; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 15px; line-height: 1.2; letter-spacing: 0.5px">GET OUTSIDE. MEET PEOPLE. GROW INSIDE.</div>
   </div>
 
   <div style="margin: 12px 24px 0 24px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 10px 16px; display: flex; align-items: flex-end; gap: 16px">
@@ -116,7 +116,7 @@ a{color:#182513}
     </sc-if>
 
     <div style="flex-grow: 1"></div>
-    <a href="Here.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 12px; border: 2px dashed #304327; border-radius: 2px; text-decoration: none; font-size: 12px; margin-bottom: 10px">
+    <a href="Around.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 12px; border: 2px dashed #304327; border-radius: 2px; text-decoration: none; font-size: 12px; margin-bottom: 10px">
       <span>At a café or coworking? See who here would like to talk</span><span style="font-family: 'Silkscreen', monospace">&gt;</span>
     </a>
   </div>
@@ -125,8 +125,9 @@ a{color:#182513}
   </sc-if>
 
   <nav aria-label="Softkeys" style="display: flex; border-top: 2px solid #182513; flex-shrink: 0">
-    <div class="hl-key" onClick="{{ restart }}" style="flex: 1; display: flex; align-items: center; padding: 0 24px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 14px; background: #182513; color: #DDE7C6">TODAY</div>
-    <a href="Friends.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 24px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 14px; text-decoration: none">FRIENDS</a>
+    <div class="hl-key" onClick="{{ restart }}" style="font-family: 'Silkscreen', monospace; font-size: 13px; min-height: 52px; display: flex; align-items: center; flex: 1; padding: 0 20px; background: #182513; color: #DDE7C6; text-decoration: none">TODAY</div>
+    <a href="Around.dc.html" style="font-family: 'Silkscreen', monospace; font-size: 13px; min-height: 52px; display: flex; align-items: center; flex: 1; justify-content: center; text-decoration: none">AROUND</a>
+    <a href="Friends.dc.html" style="font-family: 'Silkscreen', monospace; font-size: 13px; min-height: 52px; display: flex; align-items: center; flex: 1; justify-content: flex-end; padding: 0 20px; text-decoration: none">FRIENDS</a>
   </nav>
 </div>
 </x-dc>
