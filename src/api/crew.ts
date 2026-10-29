@@ -1,5 +1,5 @@
 // WP30: friends. POST /api/crew (start one), GET /api/crew (mine),
-// POST /api/crew/join (by link), GET /api/crew/join/:token (dare preview),
+// POST /api/crew/join (by link), GET /api/crew/join/:token (invite preview),
 // POST /api/crew/invite (a fresh link; the old one retires),
 // POST /api/crew/posts, POST /api/crew/posts/:id/nice (toggle),
 // POST /api/crew/leave, POST /api/crew/remove. Members only: outsiders get
@@ -140,7 +140,7 @@ export async function handleJoin(request: Request, env: Env, now = new Date()): 
   return json({ crew: { id: crew.id, name: crew.name } });
 }
 
-/** The dare preview for link holders; the token is the only key. No sign-in. */
+/** The invite preview for link holders; the token is the only key. No sign-in. */
 export async function handleJoinPreview(token: string, env: Env, now = new Date()): Promise<Response> {
   const invite = await getInvite(env.DB, await sha256Hex(token));
   if (!invite || invite.expires_at <= now.toISOString()) return json({ error: "not_found" }, 404);

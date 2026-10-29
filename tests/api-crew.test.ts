@@ -102,7 +102,7 @@ describe("friends: the private crew", () => {
     expect((await call(env, "GET", `/api/crew/join/${made.invite.token}`)).status).toBe(404);
   });
 
-  it("previews the dare to link holders without signing in", async () => {
+  it("previews the invite to link holders without signing in", async () => {
     const env = testEnv();
     const ana = await person(env, "Ana");
     const made = await createCrew(env, ana);

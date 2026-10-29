@@ -1,4 +1,4 @@
-// WP30: joining a crew from a dare link. The preview is public (the token
+// WP30: joining a crew from an invite link. The preview is public (the token
 // is the key); joining needs a sign-in. Signed-out visitors keep the token
 // on their phone; the Friends page completes the join after sign-in.
 import { useEffect, useState } from "preact/hooks";
@@ -54,7 +54,7 @@ export function Join() {
       </div>
       {invalid ? (
         <>
-          <h1 class="screen-title">No dare here</h1>
+          <h1 class="screen-title">No invite here</h1>
           <p class="lcd-block">That invite has expired or was replaced. Ask your friend for a new link.</p>
           <ul class="key-list">
             <li>
@@ -66,9 +66,9 @@ export function Join() {
         <p class="lcd-kicker" role="status">Loading...</p>
       ) : (
         <>
-          <h1 class="screen-title">You've been dared</h1>
+          <h1 class="screen-title">You've been invited</h1>
           <p class="lcd-block">
-            {preview.inviter} dared you: {preview.sharedTry.title.toLowerCase().replace(/\.$/, "")} this week. Hoolala! gives you one tiny try a day, then you swap what
+            {preview.inviter} invited you: {preview.sharedTry.title.toLowerCase().replace(/\.$/, "")} this week. Hoolala! gives you one tiny try a day, then you swap what
             happened with {preview.crewName}. You never know until you go.
           </p>
           {signedIn ? (
@@ -81,7 +81,7 @@ export function Join() {
             </ul>
           ) : (
             <>
-              <p class="lcd-small">Sign in first. Your dare is saved on this phone and joins automatically.</p>
+              <p class="lcd-small">Sign in first. Your invite is saved on this phone and joins automatically.</p>
               <ul class="key-list">
                 <li>
                   <a class="lcd-key lcd-key--primary" href="/signin" onClick={keepForLater}>
