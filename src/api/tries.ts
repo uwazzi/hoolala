@@ -5,6 +5,7 @@
 
 import { triesFor, tryById, type TryPlace } from "../content/tries";
 import { compassTexts } from "../db/compass";
+import { pickedTodayTry } from "./game";
 import { getTry, lastOutcomes, recordTry, setUserStep, tryCounts, userStep } from "../db/tries";
 import { draftTry, timeOfDay, validateDraft } from "../llm/tryit";
 import { llmEnabled } from "../llm/client";
@@ -32,6 +33,9 @@ function metaFor(minutes: number, wordsMax: number): string {
 export async function handleTodayTry(request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
   if (!user) return json({ error: "signed_out" }, 401);
+  // WP37: the picked game try is today's try when there is one.
+  const picked = await pickedTodayTry(env.DB, user.id);
+  if (picked) return json({ try: picked, step: picked.step });
   const url = new URL(request.url);
   const place = url.searchParams.get("place") ?? "anywhere";
   if (!isPlace(place)) return json({ error: "bad_place" }, 400);

@@ -8,6 +8,7 @@ import { useLocation } from "preact-iso";
 import { api } from "../api";
 import { type BallMode, PixelBall } from "../components/PixelBall";
 import { Screen } from "../components/Screen";
+import { Stages } from "../components/Stages";
 import { Typed } from "../components/Typed";
 import { checkCells, checkHeadline, checkPeople, savePayload } from "../personal";
 import { canRecord, holdRelease, isMuted, type Level, type Recording, record, setMuted, speak } from "../voice";
@@ -35,7 +36,7 @@ const PART_LABEL: Record<string, string> = {
   action: "NEXT TIME",
 };
 const MAX_TURNS = 3;
-const STAGES = ["SURPRISE ME", "COMPASS", "GAME", "AROUND?"];
+
 
 const BALL: Record<Mic, BallMode> = {
   speaking: "speaking",
@@ -466,15 +467,7 @@ export function Surprise() {
       }
     >
       <div class="sm-flow">
-        {(inVoice || phase === "check") && (
-          <div class="sm-stages" aria-hidden="true">
-            {STAGES.map((label, i) => (
-              <span key={label} class={`sm-stage${i === stage ? " is-now" : i < stage ? " is-done" : ""}`}>
-                {label}
-              </span>
-            ))}
-          </div>
-        )}
+        {(inVoice || phase === "check") && <Stages now={stage} />}
         <div class="sm-progress">
           {phase === "ask" && question ? (
             <div class="sm-dots" role="status">

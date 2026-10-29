@@ -15,7 +15,7 @@ import { ground, resolveCitation } from "../src/rules/grounding";
 import { checkDraft, claimsAction } from "../src/rules/plan";
 import { confirmProblem, underCap } from "../src/rules/places";
 import { screenText } from "../src/rules/screening";
-import { validateTry } from "../src/rules/tries";
+import { validateGameMix, validateGameTry, validateTry, type GameCtx } from "../src/rules/tries";
 import type { Env } from "../src/types";
 import { READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
 
@@ -99,6 +99,52 @@ for (const [label, text] of [
 ] as const) {
   record({ suite: "compassdraft", name: `Never keeps a ${label} label`, live: false, pass: validateDraft("interest", { part: "interest", line: text }) === null });
 }
+
+const gameCtx: GameCtx = {
+  roles: [
+    { role: "brother", roleClass: "close" },
+    { role: "barista", roleClass: "service" },
+  ],
+  lessOf: ["crowded bars"],
+};
+for (const [name, t] of [
+  ["Soft talk with a role", { title: "Say good morning to your brother.", level: "soft", kind: "talk", who_role: "brother" }],
+  ["Soft kind, no role", { title: "Hold the door for someone at the café.", level: "soft", kind: "kind", who_role: null }],
+  ["Brave talk with a light service role", { title: "Ask the barista what they would pick today.", level: "brave", kind: "talk", who_role: "barista" }],
+  ["Brave kind with a role", { title: "Tell your brother one thing they do that helps you.", level: "brave", kind: "kind", who_role: "brother" }],
+  ["Bold talk with a role", { title: "Ask your brother to show you something they are good at.", level: "bold", kind: "talk", who_role: "brother" }],
+] as const) {
+  record({ suite: "game", name: `Passes: ${name}`, live: false, pass: validateGameTry({ ...t, place_kind: null }, gameCtx) === "ok" });
+}
+for (const [name, t, verdict] of [
+  ["Buying", { title: "Buy a coffee for the person behind you.", level: "soft", kind: "kind", who_role: null }, "buying"],
+  ["A service role asked about their family", { title: "Ask the barista about their family.", level: "brave", kind: "talk", who_role: "barista" }, "service_heavy"],
+  ["A BOLD try at home with a stranger", { title: "Visit someone at their home this week.", level: "bold", kind: "talk", who_role: null }, "off_limits"],
+  ["A name", { title: "Ask Tom to show you his board games.", level: "brave", kind: "talk", who_role: "brother" }, "off_limits"],
+  ["A looks compliment", { title: "Tell your neighbour she looks beautiful.", level: "soft", kind: "kind", who_role: null }, "off_limits"],
+  ["A phone-number ask", { title: "Ask your brother for their phone number.", level: "brave", kind: "talk", who_role: "brother" }, "off_limits"],
+  ["A LESS OF item", { title: "Ask someone at a crowded bar for a tip.", level: "soft", kind: "talk", who_role: null }, "less_of"],
+  ["A step set by the model", { title: "Smile and nod at the park.", level: "soft", kind: "talk", who_role: null, step: 5 }, "model_step"],
+  ["An em dash", { title: "Ask your brother — gently — about board games.", level: "brave", kind: "talk", who_role: "brother" }, "off_limits"],
+] as const) {
+  record({ suite: "game", name: `Rejects: ${name}`, live: false, pass: validateGameTry({ ...t, place_kind: null }, gameCtx) === verdict });
+}
+record({
+  suite: "game",
+  name: "Rejects: a level with only talk",
+  live: false,
+  pass: validateGameMix([
+    { level: "soft", kind: "talk" },
+    { level: "soft", kind: "talk" },
+    { level: "soft", kind: "talk" },
+    { level: "brave", kind: "talk" },
+    { level: "brave", kind: "kind" },
+    { level: "brave", kind: "talk" },
+    { level: "bold", kind: "talk" },
+    { level: "bold", kind: "kind" },
+    { level: "bold", kind: "talk" },
+  ]) === false,
+});
 
 const planCtx = { spots: ["Terrace", "The big table"], now: new Date("2026-10-28T14:00:00.000Z"), expiresAt: "2026-10-28T15:00:00.000Z" };
 record({ suite: "plan", name: "Never returns 'sent' or 'confirmed'", live: false, pass: claimsAction("Sent to Ben, confirmed for 15:10") && !claimsAction("Quieter and near the counter") });

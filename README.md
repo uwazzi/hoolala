@@ -72,6 +72,7 @@ What real calls taught us (and the code now handles): the JSON answer arrives af
 | SUGGEST IT | 1/1 | Live: grounded ideas for a real café |
 | PLACE IT | 4/4 | Never a menu item without a returned page; no points for your own detail; 30 a day; live: sourced details for a real Lausanne café |
 | TRY IT | 15/15 | Drafts live or die by the validator: right step and place, inside the talking, minutes and ask bounds, and never flirting, contacts, streak shame or advice |
+| GAME | 15/15 | Five passes (talk and kind in each level, with roles); ten rejections (buying, heavy service tries, BOLD at home, names, looks, contact asks, LESS OF, single-kind levels, model-set steps, em dashes) |
 
 Live fallback rate: 0 of 16. The live eval caught a real bug before users did (FIND ME was dropping every finding because the model cites bare domains).
 

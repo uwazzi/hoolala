@@ -22,6 +22,7 @@ import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDi
 import { handleMeetingPoint, handlePlan } from "./api/plan";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
+import { handleNewGame, handleNewOne, handlePick } from "./api/game";
 import { handleRate, handleScan } from "./api/around";
 import {
   handleCreateCrew,
@@ -167,6 +168,15 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/tries/step" && method === "POST") {
     return handleStep(request, env);
   }
+  if (url.pathname === "/api/game" && method === "POST") {
+    return handleNewGame(request, env);
+  }
+  if (url.pathname === "/api/game/new-one" && method === "POST") {
+    return handleNewOne(request, env);
+  }
+  if (url.pathname === "/api/game/pick" && method === "POST") {
+    return handlePick(request, env);
+  }
   if (url.pathname === "/api/me/plant" && method === "GET") {
     return handlePlant(request, env);
   }
@@ -283,6 +293,9 @@ export async function runScheduled(env: Env, now: Date = new Date()): Promise<vo
     .bind(nowIso)
     .run();
   await env.DB.prepare("DELETE FROM checkins WHERE started_at < ?").bind(dayAgoIso).run();
+  await env.DB.prepare("DELETE FROM game_tries WHERE created_at < ?")
+    .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .run();
   await env.DB.prepare("DELETE FROM workings WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .run();

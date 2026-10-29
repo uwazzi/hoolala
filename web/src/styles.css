@@ -501,6 +501,37 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .sm-cellsrc { font: 9px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }
 .sm-people { display: flex; flex-direction: column; gap: 4px; padding: 10px; box-sizing: border-box; border-radius: var(--radius-control); background: var(--lcd-surface); border: 2px solid var(--lcd-ink); }
 .sm-people.is-empty { background: transparent; border-color: var(--lcd-ink-secondary); border-style: dashed; }
+
+/* WP37 the game (v6.2): the build checklist, level tabs, try cards. */
+.gm-build { display: flex; flex-direction: column; gap: 16px; padding-top: 20px; }
+.gm-spinrow { display: flex; align-items: center; gap: 14px; }
+.gm-face { display: inline-flex; color: var(--lcd-ink); }
+.gm-face.is-spinning { animation: gm-spin 1.2s steps(8) infinite; }
+@keyframes gm-spin { to { transform: rotate(360deg); } }
+.gm-head { margin: 0; font: 700 24px/1.15 var(--font-display); }
+.gm-lines { display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); }
+.gm-line { font: 11px/1.4 var(--font-display); color: var(--lcd-ink-secondary); opacity: 0.5; }
+.gm-line.is-ticked { color: var(--lcd-ink); opacity: 1; }
+.gm-foot { margin: 0; font-size: 12px; line-height: 1.5; color: var(--lcd-ink-secondary); }
+.gm-game { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; }
+.gm-gamehead { margin: 0; font: 700 22px/1.15 var(--font-display); min-height: 52px; }
+.gm-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.gm-tab { min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: transparent; color: var(--lcd-ink); cursor: pointer; }
+.gm-tab.is-now { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.gm-tabname { font: 700 14px/1.2 var(--font-display); }
+.gm-tabtag { font-size: 10px; line-height: 1.2; }
+.gm-levelline { margin: 0; font-size: 12px; line-height: 1.4; }
+.gm-cards { display: flex; flex-direction: column; gap: 8px; }
+.gm-card { display: flex; align-items: stretch; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); color: var(--lcd-ink); }
+.gm-card.is-chosen { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.gm-card.is-writing { background: transparent; color: var(--lcd-ink-secondary); border-style: dashed; }
+.gm-pick { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; padding: 10px 0 10px 12px; background: transparent; border: 0; color: inherit; cursor: pointer; }
+.gm-title { font: 700 12px/1.35 var(--font-display); }
+.gm-info { font-size: 10px; line-height: 1.4; }
+.gm-newone { flex-shrink: 0; width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: 0; border-left: 2px dashed currentColor; color: inherit; font: 9px/1.3 var(--font-display); cursor: pointer; }
+.gm-safe { margin: 0; font-size: 10px; line-height: 1.4; color: var(--lcd-ink-secondary); }
+.gm-nopick { display: flex; align-items: center; justify-content: center; min-height: 56px; border: 2px dashed var(--lcd-ink-secondary); border-radius: var(--radius-control); font: 14px/1 var(--font-display); color: var(--lcd-ink-secondary); }
+.gm-saved { margin: 0 0 8px; font-size: 12px; line-height: 1.4; }
 .sm-roles { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .sm-roles li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .sm-note { margin: 0; font-size: 13px; line-height: 1.5; }

@@ -120,6 +120,7 @@ export async function deleteAccount(db: D1Database, userId: string, email: strin
     `UPDATE interactions SET signal_id = NULL WHERE signal_id IN (${own})`,
     "DELETE FROM moments WHERE user_id = ?1",
     "DELETE FROM tries WHERE user_id = ?1",
+    "DELETE FROM game_tries WHERE user_id = ?1",
     "DELETE FROM crew_nice WHERE user_id = ?1",
     "DELETE FROM crew_nice WHERE post_id IN (SELECT id FROM crew_posts WHERE user_id = ?1)",
     "DELETE FROM crew_posts WHERE user_id = ?1",
