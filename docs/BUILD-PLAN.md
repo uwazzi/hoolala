@@ -158,8 +158,8 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Acceptance: on a real phone, a new person understands the goal without help and completes one try in under a minute of screen time; works with LLM_ENABLED=false.
 
 ### WP29 TRY IT, adaptive tries with guardrails (Sat 31, morning)
-- [ ] `src/rules/tries.ts` with tests first (HANDOFF-v6 section 4); `src/llm/tryit.ts` (schema, low effort, 8 s timeout, validator, library fallback, `llm_calls` and `workings` rows); SCREEN IT second verdict; "why this one" in the flow; 15 new eval cases.
-- [ ] Acceptance: 15/15 evals; a step never changes without a tap.
+- [x] `src/rules/tries.ts` with tests first (HANDOFF-v6 section 4); `src/llm/tryit.ts` (schema, low effort, 8 s timeout, validator, library fallback, `llm_calls` and `workings` rows); SCREEN IT second verdict; "why this one" in the flow; 15 new eval cases.
+- [x] Acceptance: 15/15 evals; a step never changes without a tap.
 
 ### WP30 Friends, slim (Sun 1)
 - [x] INVITE A FRIEND: share sheet with the invite text and a crew invite link (WhatsApp `wa.me` and Messenger share URLs, copy link); one private crew per person; timeline posts (outcome tag + text, screened), NICE ONE. Seed file at `scripts/demo-crew.sql` (owner runs once on staging). Replaces WP7.

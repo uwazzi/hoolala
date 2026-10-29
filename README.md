@@ -57,9 +57,9 @@ All on `muse-spark-1.3` (standard mode: what we send isn't used for training). E
 
 What real calls taught us (and the code now handles): the JSON answer arrives after a preamble message; the model cites a site's home page or a bare domain instead of the page it found, so citations are resolved against the pages the search actually returned, and invented sites are dropped. Details in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-## Evaluation: 44 cases, 44 passing
+## Evaluation: 59 cases, 59 passing
 
-`npm run eval` (28 offline cases, run in CI before every deploy) and `npm run eval:live` (16 cases against Muse Spark). Latest results: [`evals/results/latest.json`](evals/results/latest.json).
+`npm run eval` (43 offline cases, run in CI before every deploy) and `npm run eval:live` (16 cases against Muse Spark). Latest results: [`evals/results/latest.json`](evals/results/latest.json).
 
 | Suite | Pass | What it checks |
 |---|---|---|
@@ -70,6 +70,7 @@ What real calls taught us (and the code now handles): the JSON answer arrives af
 | PLAN IT | 4/4 | Never "sent" or "confirmed"; only real spots; never after the signal ends; live tool loop drafts a valid point |
 | SUGGEST IT | 1/1 | Live: grounded ideas for a real café |
 | PLACE IT | 4/4 | Never a menu item without a returned page; no points for your own detail; 30 a day; live: sourced details for a real Lausanne café |
+| TRY IT | 15/15 | Drafts live or die by the validator: right step and place, inside the talking, minutes and ask bounds, and never flirting, contacts, streak shame or advice |
 
 Live fallback rate: 0 of 16. The live eval caught a real bug before users did (FIND ME was dropping every finding because the model cites bare domains).
 

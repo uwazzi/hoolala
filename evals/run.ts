@@ -14,8 +14,9 @@ import { ground, resolveCitation } from "../src/rules/grounding";
 import { checkDraft, claimsAction } from "../src/rules/plan";
 import { confirmProblem, underCap } from "../src/rules/places";
 import { screenText } from "../src/rules/screening";
+import { validateTry } from "../src/rules/tries";
 import type { Env } from "../src/types";
-import { FINDME_PUBLIC, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES } from "./cases";
+import { FINDME_PUBLIC, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES } from "./cases";
 
 interface Result {
   suite: string;
@@ -112,6 +113,11 @@ record({
 });
 record({ suite: "place", name: "No points for confirming your own detail", live: false, pass: confirmProblem({ added_by: "ana", state: "found" }, "ana", true, false) === "own" });
 record({ suite: "place", name: "Points stop at 30 a day", live: false, pass: underCap(28, 5) === 2 && underCap(30, 2) === 0 });
+
+for (const c of TRY_CASES) {
+  const got = validateTry(c.draft, c.ask);
+  record({ suite: "tryit", name: c.name, live: false, pass: got === c.expect, detail: `got ${got}` });
+}
 
 // --- Live: Muse Spark ---------------------------------------------------------
 

@@ -79,6 +79,9 @@ One line per decision: date, decision, why. Newest at the bottom.
 
 - 2026-10-29 (WP31 add-on): Compact brand bar in `Screen` (all screens), trio softkeys TODAY · AROUND · FRIENDS on Today/Here/Friends with the active one filled. AROUND points at /here until WP32 builds /around. Per-page brand blocks removed.
 
+- 2026-10-29 (WP29): TRY IT drafts inside code-set bounds (`src/rules/tries.ts`: step/place match, talking/minutes/ask caps, title/hint/why lengths, shared code rules plus tries lists for streak shame and advice). Readings: asks are cumulative (a gentler ask than the step's own always passes); a wrong place verdicts `wrong_step`. `try_it` joins the workings function set (migration 0008 rebuilds the CHECK; tries keeps draft text). POST re-checks shape, code rules and bounds; no second model verdict there (only the author could have tampered). The NEXT TIME suggestion moved from the inline API version into `suggestNext` as planned.
+- 2026-10-29 (WP29, types): `TryDraft`, `Ask`, `Step`, `Outcome` and `TryVerdict` live in `src/rules/tries.ts`; `WorkingsFunction` gains `try_it`.
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.
