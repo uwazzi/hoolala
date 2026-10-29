@@ -25,19 +25,7 @@ export function Home() {
   }, []);
 
   return (
-    <Screen
-      back={false}
-      softkeys={
-        <>
-          <a class="lcd-softkey" href="/">Today</a>
-          <a class="lcd-softkey" href="/friends">Friends</a>
-        </>
-      }
-    >
-      <div class="brand">
-        <p class="brand-name">Hoolala!</p>
-        <p class="brand-tagline">You never know until you go.</p>
-      </div>
+    <Screen back={false} tab="today">
       {!me ? (
         <>
           <h1 class="hero-display">Get outside. Meet people. Grow inside.</h1>
