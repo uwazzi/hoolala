@@ -165,9 +165,34 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] INVITE A FRIEND: share sheet with the invite text and a crew invite link (WhatsApp `wa.me` and Messenger share URLs, copy link); one private crew per person; timeline posts (outcome tag + text, screened), NICE ONE. Seed file at `scripts/demo-crew.sql` (owner runs once on staging). Replaces WP7.
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
 
+### WP31b Navigation and Here (v6.1, Fri 30)
+- [ ] Softkeys TODAY · AROUND · FRIENDS on every top-level screen, current one inverted; Here sits under AROUND. Compact header everywhere (brand only, no status icons).
+- [ ] Here: typed headline (rule 43), keys rise after; quiet (QUIET IN HERE. FOR NOW., POST THE FIRST ONE, OR A TINY TRY HERE) and busy (count headline, SEE THE N TOPICS, POST MY OWN) states, never two keys with the same action.
+- [ ] Place line gains the talking meter (TALKING HERE bars, hidden under 3 ratings); More list with ABOUT THIS PLACE and I'M LEAVING; leaving opens the 5-word talking sheet (SKIP stores nothing; THANKS. SEE YOU OUT THERE. then BACK TO AROUND).
+- [ ] Tests first: three softkeys with exactly one active on every top-level route; no duplicate-action keys; meter hidden under 3; sheet on leave, SKIP stores nothing.
+
 ### WP32 Around me (Sun 1)
 - [x] Consent screen ("used for this scan only, never stored or shown", skip link); radar with sweep and pins by bearing and distance (never exact addresses) plus the numbered list; 500 m, then 1 km and 2 km widening on tap only; code fit (GOOD/OK/LOW from compass, features, visits) and talking rating (median from 3+ ratings in 90 days, rated while checked in); `src/llm/whygo.ts` + `src/llm/readit.ts` (schemas, low effort, validators, template/link fallbacks, `llm_calls` and `workings` rows); `place_ratings` table; rating capture on I'M LEAVING (QUIET / CHATTY / LIVELY); 10 scans an hour.
 - [x] Evals: 10 WHY GO + 5 READ IT cases. Seed: 6 SAMPLE places around Riponne with SAMPLE-marked ratings (`scripts/demo-around.sql`); OSM stays the provider. Acceptance: HANDOFF-v6-around-me phone tests (consent, list, detail, widen, leave-rating) pass on staging.
+
+### WP32 v6.1 rework: Around me after the live review (Sun 1)
+- [ ] First screen: idle radar panel (rings, radius label, pulsing YOU square), AROUND YOU plus the promise line, compass box (MATCHED TO YOUR COMPASS with top lines and EDIT, or the empty state with SET IT UP to Surprise me), the privacy line kept word for word, thumb-zone ONE LOOK AROUND (60 px) with SKIP, CHECK IN BY NAME under it. Location asked only after the tap; refused shows NO LOCATION, NO PROBLEM. with CHECK IN BY NAME and TRY AGAIN.
+- [ ] Scan in place (1.2 s sweep, typed status), radius chips 500 M / 1 KM / 2 KM, cards sorted by fit then talking then distance: number badge, fit badge, TYPE · DIST · MIN WALK, Why go, TALKING HERE 5-bar meter with the word, verified line. Open card: now-line, today's info with source, TINY TRY THERE, workings line, TAKE ME THERE (OSM directions) / I'M HERE. Empty 500 m and no-fit states with the tap-to-widen offer. Filter chips stay out (after 4 Nov).
+- [ ] Talking rating becomes the 5 design words (mostly quiet to very chatty), one per person per place per 7 days, median from 3+ in 90 days (migration 0010). Scan gains tiny_try, the workings line and the open-signal count per place.
+- [ ] Tests first: weekly uniqueness; median and 3-rating gate; radius never above 2 km or widened without a tap; bars labelled 18+; location in no table.
+
+### WP33 Compass, four directions (v6.1, Sat 31)
+- [ ] Four-direction screen with needle (0.6 s swing, overshoot), typed part line, counts, sources and REMOVE on every line; WHERE IT'S USED lines plus the fixed privacy line; first-time reveal (2 s spin, LOOKS RIGHT / CHANGE SOMETHING / START AGAIN, nothing saved before LOOKS RIGHT).
+- [ ] SAY IT YOUR WAY: `POST /api/me/compass/propose` (Muse Spark drafts part and text, saves nothing), BEFORE / AFTER with SAVE / NOT NOW, last three CHANGES with UNDO (`POST /api/me/compass/confirm`, `POST /api/me/compass/undo`).
+- [ ] Stored parts become intention/interest/filter/delivery/action (migration maps talk_about to interest, more_of to intention); validator extends (traces to words or ticked findings, banned labels, 60 chars, feedback names its try or place).
+- [ ] Entry points: MY COMPASS under the plant on Today, EDIT on Around's compass line; COMPASS? row on the try debrief (MORE / LESS LIKE THIS, SAVE, undo link). Surprise me's five questions checked against the four directions.
+- [ ] Tests first: proposal saves nothing; undo restores exactly; personality labels and sourceless lines rejected; outcomes alone create nothing; A's compass never returned to B.
+
+### WP34 Surprise me voice (v6.1, Sat 31, after WP33)
+- [ ] Thumb row (TYPE, 76 px mic, SKIP) replaces the ball hold; ball is state display only; progress dots with the fed compass part; caption types as spoken; I HEARD plus the drafted line, then KEEP / SAY AGAIN / FIX BY TYPING; SOUND ON / OFF (speech only, captions always); softkeys LEAVE / SOUND.
+- [ ] Keep the server transcription path (Meta ASR, heard then forgotten); no-mic browsers open typing with the note; tap under 400 ms never sends; release outside ends and sends; 45 s cap; crisis answers stop with the crisis message, never read aloud.
+- [ ] Drafting via WP33 `POST /compass/propose`; fallback trims the answer to 60 chars with the question's part; done state (THAT'S YOU, IN N ANSWERS.) opens the compass reveal.
+- [ ] Tests first: short tap never sends; release-outside sends; nothing saved before KEEP; no-mic fallback; mic tracks stopped; no transcripts in logs or tables; crisis path; SOUND OFF never speaks.
 
 ### WP31 add-on: compact header and Around softkeys
 - [x] Compact brand bar on every screen (44 px, HOOLALA! left, tagline right, dashed bottom border); softkeys TODAY · AROUND · FRIENDS on top-level screens; Here sits under AROUND.
