@@ -146,7 +146,7 @@ export function Here() {
 
   if (signedOut) {
     return (
-      <Screen title="Here">
+      <Screen title="Here" tab="around">
         <h1 class="screen-title">Here</h1>
         <p class="lcd-block">Sign in first, then check in where you are.</p>
         <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/signin">Sign in</a></li></ul>
@@ -155,12 +155,12 @@ export function Here() {
   }
 
   if (!data) {
-    return <Screen title="Here"><p class="lcd-kicker" role="status">Loading...</p></Screen>;
+    return <Screen title="Here" tab="around"><p class="lcd-kicker" role="status">Loading...</p></Screen>;
   }
 
   if (!data.checkin) {
     return (
-      <Screen title="Here">
+      <Screen title="Here" tab="around">
         <h1 class="screen-title">What's here?</h1>
         <p class="lcd-block">Signals are for people in the same place, right now. Check in first.</p>
         <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/arrive">Where are you?</a></li></ul>
@@ -172,7 +172,7 @@ export function Here() {
   const emptyHere = data.discover.length === 0 && data.mine.length === 0 && data.joined.length === 0;
 
   return (
-    <Screen title="Here">
+    <Screen title="Here" tab="around">
       <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)} · <a href="/place">This place</a></p>
       {data.checkin.place.slug === "sample-cafe" && (
         <p class="lcd-block">This is a SAMPLE place to try Hoolala! alone. Sample Sophie says yes to everything, and nothing here counts on the Live page.</p>

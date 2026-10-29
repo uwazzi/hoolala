@@ -85,6 +85,8 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP32): Around me ships full: consent screen with a skip link, `POST /api/around/scan` (borrowed coordinates, never stored, 500 m / 1 km / 2 km on tap only, 10 an hour) returning fit, talking label, WHY GO and today's read for up to 8 places, `POST /api/around/rate` (checked in only, one value a day) with the GOODBYE capture on I'M LEAVING, `place_ratings` plus `places.checkin_count` (migration 0009), 15 eval cases, demo seed `scripts/demo-around.sql` (owner runs once on staging). The radar is a sweep with pins by bearing and distance plus the numbered list underneath (pins are buttons with names, the sweep stills under reduced motion).
 - 2026-10-29 (WP32, types): `WorkingsFunction` gains `why_go` and `read_it`.
 
+- 2026-10-29 (v6.1): HOOLALA_V6.1 handover filed at `docs/handover/HOOLALA_V6.1/` with the checks report (no STOPs). WP32 Around rework builds first (owner call 29 Oct); WP31b, WP33 and WP34 follow in plan order. v6.1 branches are cut from `staging`, not `main`, because the WP32 base is there awaiting promotion. TAKE ME THERE links to OpenStreetMap directions (owner call 29 Oct). Server transcription stays for WP34 (no switch to browser SpeechRecognition). Filter chips beyond FOR YOU stay out for 4 Nov (per the spec).
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.

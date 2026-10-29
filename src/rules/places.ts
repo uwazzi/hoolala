@@ -98,15 +98,21 @@ export function bearingDeg(lat1: number, lng1: number, lat2: number, lng2: numbe
   return ((Math.atan2(y, x) / t) % 360 + 360) % 360;
 }
 
+/** Compass words of 4+ letters found in the place's words, longest first, at most 3. */
+export function compassWords(interests: string[], haystack: string): string[] {
+  const hay = haystack.toLowerCase();
+  const found = new Set<string>();
+  for (const i of interests) {
+    for (const w of i.toLowerCase().split(/[^a-zà-ÿ]+/i)) {
+      if (w.length >= 4 && hay.includes(w)) found.add(w);
+    }
+  }
+  return [...found].sort((a, b) => b.length - a.length).slice(0, 3);
+}
+
 /** Any compass word of 4+ letters found in the place's words. */
 export function compassOverlap(interests: string[], haystack: string): boolean {
-  const hay = haystack.toLowerCase();
-  return interests.some((i) =>
-    i
-      .toLowerCase()
-      .split(/[^a-zà-ÿ]+/i)
-      .some((w) => w.length >= 4 && hay.includes(w)),
-  );
+  return compassWords(interests, haystack).length > 0;
 }
 
 export type Fit = "GOOD" | "OK" | "LOW";
@@ -118,10 +124,11 @@ export function fitFor(input: { compass: boolean; features: boolean; visits: num
   return "LOW";
 }
 
-export type Talking = "LOW" | "MIXED" | "HIGH";
+export const TALKING_WORDS = ["mostly quiet", "a little", "sometimes chatty", "often chatty", "very chatty"] as const;
+export type TalkingLevel = 1 | 2 | 3 | 4 | 5;
 
-/** Median of ratings from the last 90 days; fewer than 3 stays unlabeled. */
-export function talkingLabel(ratings: { value: number; visit_date: string }[], nowIso: string): Talking | null {
+/** Median of 1..5 ratings from the last 90 days, halves up; fewer than 3 stays unlabeled. */
+export function talkingLabel(ratings: { value: number; visit_date: string }[], nowIso: string): TalkingLevel | null {
   const cutoff = Date.parse(nowIso) - 90 * 86_400_000;
   const values = ratings
     .filter((r) => Date.parse(r.visit_date) >= cutoff)
@@ -129,5 +136,53 @@ export function talkingLabel(ratings: { value: number; visit_date: string }[], n
     .sort((a, b) => a - b);
   if (values.length < 3) return null;
   const median = values.length % 2 ? values[(values.length - 1) / 2] : (values[values.length / 2 - 1] + values[values.length / 2]) / 2;
-  return median <= 1.5 ? "LOW" : median >= 2.5 ? "HIGH" : "MIXED";
+  return Math.min(5, Math.max(1, Math.round(median))) as TalkingLevel;
+}
+
+export function talkingWord(level: TalkingLevel): (typeof TALKING_WORDS)[number] {
+  return TALKING_WORDS[level - 1];
+}
+
+/** ISO week key (YYYY-Www) for one rating a week. */
+export function weekKey(visitDate: string): string {
+  const [y, m, d] = visitDate.split("-").map(Number);
+  const day = new Date(Date.UTC(y, m - 1, d));
+  day.setUTCDate(day.getUTCDate() - ((day.getUTCDay() + 6) % 7) + 3);
+  const firstThursday = new Date(Date.UTC(day.getUTCFullYear(), 0, 4));
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - ((firstThursday.getUTCDay() + 6) % 7) + 3);
+  const week = 1 + Math.round((day.getTime() - firstThursday.getTime()) / (7 * 86_400_000));
+  return `${day.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+
+const TEMPLATE_TRIES = [
+  "Smile and say morning on the way in.",
+  "Sit where people share a table and say hello.",
+  "Ask someone what is good here today.",
+];
+
+/** The template tiny try: one of three fixed step-1 lines, picked by the place. */
+export function templateTry(placeId: string): string {
+  let h = 0;
+  for (const c of placeId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return TEMPLATE_TRIES[h % TEMPLATE_TRIES.length];
+}
+
+/** "Why this one: ...", composed from real inputs only. */
+export function workingsLine(input: {
+  compass: string[];
+  feature: string | null;
+  talking: string | null;
+  visits: number;
+  fit: Fit;
+}): string {
+  const parts: string[] = [];
+  if (input.compass.length) parts.push(`compass (${input.compass.join(", ")})`);
+  if (input.feature) parts.push(input.feature.length > 48 ? `${input.feature.slice(0, 47)}…` : input.feature);
+  const n = input.visits;
+  if (input.talking) parts.push(`rated ${input.talking} by ${n} Hoolala! visit${n === 1 ? "" : "s"}`);
+  else if (n > 0) parts.push(`${n} Hoolala! visit${n === 1 ? "" : "s"}`);
+  if (!parts.length) parts.push("close by");
+  let line = `Why this one: ${parts.join(" + ")}.`;
+  if (!input.compass.length && input.fit === "LOW") line += " Not on your compass, so it ranks low.";
+  return line;
 }

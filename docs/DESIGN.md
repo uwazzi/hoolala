@@ -1,4 +1,11 @@
-<!-- Hoolala! Mono LCD design system, portable copy (v5, 27 Oct 2026). Source of truth: the Hoolala! design system in Claude. Product: SIGNALS-HERE.md and MUSE-SPARK-BY-FUNCTION.md. Drop into a repo as docs/DESIGN.md. -->
+<!-- Hoolala! Mono LCD design system, portable copy (v5, 27 Oct 2026, with the v6.1 version note and components below, 29 Oct). Source of truth: the Hoolala! design system in Claude. Product: SIGNALS-HERE.md and MUSE-SPARK-BY-FUNCTION.md. Drop into a repo as docs/DESIGN.md. -->
+
+> v6.1 (29 Oct 2026): Around me starts with the radar idle and scans in place; the compass is four directions with a needle; Surprise me is answered on a thumb-zone mic. New components: Radar (WP32, built), CompassRose (WP33), MicKey and ThumbRow (WP34). Full specs in `docs/handover/HOOLALA_V6.1/specs/`, references in `docs/handover/HOOLALA_V6.1/design/screens/`.
+>
+> - **Radar:** panel with rings, radius label and a pulsing YOU square; 1.2 s sweep while scanning; numbered pins pop in (solid for good fit, dashed for low fit, inverted when open); tap a pin for its card. Still under reduced motion.
+> - **CompassRose:** four directions (MORE OF north, TALK ABOUT east, LESS OF south, HOW I GO west) with counts; the needle swings to the tapped point (0.6 s, slight overshoot); every line shows its source and a REMOVE key.
+> - **ThumbRow:** above the softkeys with a dashed top border; the main action centred (ONE LOOK AROUND, the mic key), text links or small keys either side.
+> - **MicKey:** 76 by 76 px pixel mic in the thumb zone; hold to talk (a press under 400 ms is a tap, not an answer); `aria-pressed` while held; hidden with typing opened when the browser has no mic.
 
 # Hoolala! Mono LCD
 

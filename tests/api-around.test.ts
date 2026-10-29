@@ -57,7 +57,7 @@ async function person(env: Env, name: string): Promise<Person> {
 }
 
 function seedPlace(env: Env, over: Record<string, unknown> = {}) {
-  const p = { id: "cafe", slug: "cafe-longue", name: "Café Longue Table", kind: "cafe", lat: 46.5199, lng: 46.6325 - 40, status: "active", ...over };
+  const p = { id: "cafe", slug: "cafe-longue", name: "Café Longue Table", kind: "cafe", lat: 46.5199, lng: 6.6325, status: "active", ...over };
   env.DB.sqlite
     .prepare("INSERT INTO places (id, slug, name, kind, lat, lng, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
     .run(p.id, p.slug, p.name, p.kind, p.lat, p.lng, p.status, NOW);
@@ -90,16 +90,44 @@ describe("around me", () => {
     const ana = await person(env, "Ana");
     seedPlace(env);
     seedPlace(env, { id: "far", slug: "far", name: "Far Away", lat: 46.6, lng: 6.7 });
+    seedPlace(env, { id: "shut", slug: "shut", name: "Shut Down", status: "hidden" });
     const res = await call(env, "POST", "/api/around/scan", ana, HERE);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.radius_m).toBe(500);
     expect(body.places).toHaveLength(1);
-    expect(body.places[0]).toMatchObject({ name: "Café Longue Table", why_source: "template", talking: null, read: null });
+    expect(body.places[0]).toMatchObject({
+      name: "Café Longue Table",
+      why_source: "template",
+      talking: null,
+      read: null,
+      here_now: 0,
+      lat: 46.5199,
+      lng: 6.6325,
+    });
     expect(body.places[0].distance_m).toBeLessThan(100);
+    expect(body.places[0].tiny_try).toMatch(/Smile|Sit|Ask/);
+    expect(body.places[0].workings).toContain("Why this one:");
     expect((env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM checkins").get() as { n: number }).n).toBe(0);
     expect((env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM place_ratings").get() as { n: number }).n).toBe(0);
     expect((env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM llm_calls").get() as { n: number }).n).toBe(0);
+  });
+
+  it("sorts by fit, then talking, then distance", async () => {
+    const env = testEnv();
+    const ana = await person(env, "Ana");
+    env.DB.sqlite
+      .prepare("INSERT INTO compass_items (id, user_id, part, text, origin, active, created_at) VALUES (?, ?, 'interest', 'cardamom buns', 'questions', 1, ?)")
+      .run(crypto.randomUUID(), ana.id, NOW);
+    seedPlace(env, { id: "near", slug: "near", name: "Near But Dull" });
+    seedPlace(env, { id: "far-fit", slug: "far-fit", name: "Worth The Walk", lat: 46.5222 });
+    env.DB.sqlite
+      .prepare("INSERT INTO place_facts (id, place_id, field, value, source, state, updated_at) VALUES ('ff1', 'far-fit', 'menu_item', 'Cardamom buns daily', 'people', 'confirmed', ?)")
+      .run(NOW);
+    const body = await (await call(env, "POST", "/api/around/scan", ana, HERE)).json();
+    expect(body.places.map((p: { id: string }) => p.id)).toEqual(["far-fit", "near"]);
+    expect(body.places[0].fit).toBe("GOOD");
+    expect(body.places[1].fit).toBe("LOW");
   });
 
   it("widening reaches further, taps only", async () => {
@@ -125,11 +153,16 @@ describe("around me", () => {
         "INSERT INTO place_facts (id, place_id, field, value, source, source_url, state, updated_at) VALUES (?, 'cafe', 'menu_item', ?, 'people', 'https://cafelongue.example/menu', 'confirmed', ?)",
       )
       .run("f1", "Oat flat white and cardamom buns", NOW);
-    for (const v of [2, 3, 3]) {
+    for (const v of [4, 5, 5]) {
       const rater = await person(env, `Rater${v}${Math.random()}`);
       checkin(env, rater, "cafe");
       await call(env, "POST", "/api/around/rate", rater, { place_id: "cafe", value: v });
     }
+    env.DB.sqlite
+      .prepare(
+        "INSERT INTO signals (id, owner_id, audience, place_id, topic, created_at, expires_at, state) VALUES (?, ?, 'place', 'cafe', 'Board games?', ?, ?, 'open')",
+      )
+      .run(crypto.randomUUID(), ana.id, NOW, "2026-10-29T14:00:00.000Z");
     answers = [
       { places: [{ place_id: "cafe", why: "On your compass: cardamom. Oat flat white and cardamom buns.", tiny_try: "Ask about the buns.", facts_used: ["f0"] }] },
       { items: ["Oat flat white"], hours: "Open until 18:00", kind: "menu" },
@@ -138,24 +171,27 @@ describe("around me", () => {
     const body = await (await call(env, "POST", "/api/around/scan", ana, HERE)).json();
     const cafe = body.places[0];
     expect(cafe.fit).toBe("GOOD");
-    expect(cafe.talking).toBe("LIVELY");
+    expect(cafe.talking).toEqual({ level: 5, word: "very chatty" });
     expect(cafe.why_source).toBe("why_go");
     expect(cafe.why).toContain("cardamom");
+    expect(cafe.tiny_try).toBe("Ask about the buns.");
+    expect(cafe.workings).toContain("compass (cardamom, buns)");
+    expect(cafe.here_now).toBe(1);
     expect(cafe.read).toMatchObject({ items: ["Oat flat white"], hours: "Open until 18:00", source: "cafelongue.example" });
   });
 
-  it("rates only where you are checked in, once a day", async () => {
+  it("rates only where you are checked in, once a week", async () => {
     const env = testEnv();
     const ana = await person(env, "Ana");
     seedPlace(env);
-    expect(await (await call(env, "POST", "/api/around/rate", ana, { place_id: "nope", value: 2 })).json()).toMatchObject({ error: "unknown_place" });
+    expect(await (await call(env, "POST", "/api/around/rate", ana, { place_id: "nope", value: 4 })).json()).toMatchObject({ error: "unknown_place" });
     expect(await (await call(env, "POST", "/api/around/rate", ana, { place_id: "cafe", value: 9 })).json()).toMatchObject({ error: "bad_value" });
-    expect((await call(env, "POST", "/api/around/rate", ana, { place_id: "cafe", value: 2 })).status).toBe(403);
+    expect((await call(env, "POST", "/api/around/rate", ana, { place_id: "cafe", value: 4 })).status).toBe(403);
     checkin(env, ana, "cafe");
-    expect((await call(env, "POST", "/api/around/rate", ana, { place_id: "cafe", value: 2 })).status).toBe(200);
-    expect((await call(env, "POST", "/api/around/rate", ana, { place_id: "cafe", value: 3 })).status).toBe(200);
+    expect((await call(env, "POST", "/api/around/rate", ana, { place_id: "cafe", value: 4 })).status).toBe(200);
+    expect(await (await call(env, "POST", "/api/around/rate", ana, { place_id: "cafe", value: 5 })).json()).toMatchObject({ error: "rated_this_week" });
     const rows = env.DB.sqlite.prepare("SELECT value FROM place_ratings").all() as { value: number }[];
-    expect(rows).toEqual([{ value: 3 }]);
+    expect(rows).toEqual([{ value: 4 }]);
   });
 
   it("ten scans an hour, then it rests", async () => {

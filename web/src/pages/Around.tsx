@@ -1,27 +1,34 @@
-// WP32 Around me: borrow the location for one look, list what is near with
-// a fit, a talking label and a why, read today's menu, check in. The point
+// WP32 Around me (v6.1): the radar panel sits at the top from the start,
+// idle until ONE LOOK AROUND runs the scan in place. Cards by fit with why
+// go, the talking meter, today's read and a tiny try. The borrowed point
 // lives in memory only and is dropped after check-in.
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
 import { Radar } from "../components/Radar";
 import { Screen } from "../components/Screen";
 
 interface Read { items: string[]; hours: string | null; kind: string; source: string }
+interface Talking { level: 1 | 2 | 3 | 4 | 5; word: string }
 interface Place {
-  id: string; name: string; kind: string; distance_m: number; bearing: number;
-  fit: "GOOD" | "OK" | "LOW"; talking: "QUIET" | "CHATTY" | "LIVELY" | null;
-  why: string; why_source: "why_go" | "template"; facts: string[]; visits: number; read: Read | null;
+  id: string; name: string; kind: string; distance_m: number; bearing: number; lat: number; lng: number;
+  fit: "GOOD" | "OK" | "LOW"; talking: Talking | null;
+  why: string; tiny_try: string; workings: string; facts: string[]; visits: number; here_now: number; read: Read | null;
 }
 interface Point { lat: number; lng: number }
+interface CompassLine { id: string; text: string }
 
-const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-const FIT: Record<Place["fit"], string> = { GOOD: "Fits you", OK: "Worth a look", LOW: "Off your compass" };
-const TALKING: Record<NonNullable<Place["talking"]>, string> = { QUIET: "Quiet", CHATTY: "Chatty", LIVELY: "Lively" };
+type Phase = "ask" | "signed-out" | "refused" | "scanning" | "done";
+
 const RADII = [500, 1000, 2000];
+const FIT_BADGE: Record<Place["fit"], string> = { GOOD: "GOOD FIT", OK: "OK FIT", LOW: "LOW FIT" };
+const KIND: Record<string, string> = { cafe: "CAFÉ", bar: "BAR · 18+", coworking: "COWORKING", library: "LIBRARY", other: "PLACE" };
+const READ_TITLE: Record<string, string> = { menu: "TODAY, FROM THEIR WEBSITE", event: "LATEST, FROM THEIR PAGE", hours: "OPENING HOURS" };
 
-const point = (bearing: number) => COMPASS[Math.round(bearing / 45) % 8];
-const metres = (m: number) => (m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`);
+const radiusLabel = (m: number) => (m >= 1000 ? `${m / 1000} KM` : `${m} M`);
+const metres = (m: number) => (m < 1000 ? `${m} M` : `${(m / 1000).toFixed(1)} KM`);
+const walk = (m: number) => Math.max(1, Math.round(m / 80));
+const visitsLine = (n: number) => `${n} Hoolala! visit${n === 1 ? "" : "s"}`;
 
 function locate(): Promise<Point> {
   return new Promise((resolve, reject) => {
@@ -34,38 +41,94 @@ function locate(): Promise<Point> {
   });
 }
 
+/** One typed status line; keys rise when it completes. Reduced motion: at once. */
+function Typed({ text, onDone }: { text: string; onDone: () => void }) {
+  const [typed, setTyped] = useState(0);
+  const doneRef = useRef(false);
+  useEffect(() => {
+    doneRef.current = false;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setTyped(text.length);
+      return;
+    }
+    setTyped(0);
+    const timer = setInterval(() => {
+      setTyped((t) => {
+        if (t >= text.length) {
+          clearInterval(timer);
+          return t;
+        }
+        return t + 1;
+      });
+    }, 22);
+    return () => clearInterval(timer);
+  }, [text]);
+  useEffect(() => {
+    if (typed >= text.length && !doneRef.current) {
+      doneRef.current = true;
+      onDone();
+    }
+  });
+  return (
+    <span>{text.slice(0, typed)}{typed < text.length && <span class="lcd-cursor" aria-hidden="true" />}</span>
+  );
+}
+
 export function Around() {
   const { route } = useLocation();
-  const [step, setStep] = useState<"ask" | "signed-out" | "scanning" | "list">("ask");
+  const [phase, setPhase] = useState<Phase>("ask");
   const [places, setPlaces] = useState<Place[]>([]);
   const [widen, setWiden] = useState(0);
   const [spot, setSpot] = useState<Point | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  const [compass, setCompass] = useState<CompassLine[] | null>(null);
+  const [ready, setReady] = useState(false);
   const [note, setNote] = useState("");
 
+  useEffect(() => {
+    api<{ compass: CompassLine[] }>("GET", "/api/me/compass").then((res) => {
+      if (res.status === 401) return setPhase("signed-out");
+      if (res.status === 200) setCompass(res.data.compass);
+    });
+  }, []);
+
+  const radiusM = RADII[widen];
+  const next = widen < 2 ? widen + 1 : null;
+
+  function status(): string {
+    const label = radiusLabel(radiusM).toLowerCase();
+    if (phase === "scanning") return `Scanning ${label} around you…`;
+    if (!places.length) return `Quiet within ${label}. Want me to look a bit further?`;
+    const good = places.filter((p) => p.fit === "GOOD").length;
+    const n = `${places.length} place${places.length === 1 ? "" : "s"}`;
+    return good ? `${n} within ${label}. ${good} fit you well. Tap one to see why.` : `${n} within ${label}. Nothing fits you well yet. Look a bit further?`;
+  }
+
   async function scan(atWiden: number) {
-    setStep("scanning");
+    setPhase("scanning");
+    setReady(false);
+    setOpen(null);
     setNote("");
     let p = spot;
     if (!p) {
       try {
         p = await locate();
       } catch {
-        setStep("ask");
-        return setNote("Location is off or unavailable. Around needs one look to work.");
+        return setPhase("refused");
       }
       setSpot(p);
     }
     const res = await api<{ places: Place[] }>("POST", "/api/around/scan", { ...p, consent: true, widen: atWiden });
-    if (res.status === 401) return setStep("signed-out");
+    if (res.status === 401) return setPhase("signed-out");
     if (res.status !== 200) {
-      setStep("ask");
+      setPhase("ask");
       setSpot(null);
       return setNote(res.data.error === "rate_limited" ? "That's enough looking for one hour. Go and see one of them?" : "Something went wrong. Try again.");
     }
     setWiden(atWiden);
     setPlaces(res.data.places);
-    setStep("list");
+    setOpen(res.data.places[0]?.id ?? null);
+    setPhase("done");
   }
 
   async function checkin(place: Place) {
@@ -77,90 +140,140 @@ export function Around() {
     setNote(res.status === 401 ? "Sign in first, then check in." : "Check-in didn't work. You may be too far from the door.");
   }
 
-  const detail = places.find((p) => p.id === open) ?? null;
+  const pins = phase === "scanning" ? [] : places.map((p, i) => ({ id: p.id, n: i + 1, name: p.name, distance_m: p.distance_m, bearing: p.bearing, fit: p.fit }));
+  const compassTop = (compass ?? []).slice(0, 4).map((l) => l.text).join(" · ");
+
+  const statusNote = note ? <p class="lcd-small" role="status" aria-live="polite">{note}</p> : null;
 
   return (
     <Screen title="Around" tab="around">
-      <h1 class="screen-title">Around you</h1>
+      <div class="around">
+      <Radar pins={pins} radiusM={radiusM} scanning={phase === "scanning"} openId={open} onPick={(id) => setOpen(open === id ? null : id)} />
 
-      {step === "signed-out" && (
-        <>
+      {phase === "signed-out" && (
+        <div class="around-body">
           <p class="lcd-block">Sign in first, then take a look around.</p>
           <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/signin">Sign in</a></li></ul>
-        </>
+        </div>
       )}
 
-      {step === "ask" && (
+      {phase === "ask" && (
         <>
-          <p class="lcd-block">Borrow your location for one look around. Used once, never stored, never on any map.</p>
-          <ul class="key-list">
-            <li><button class="lcd-key lcd-key--primary" type="button" onClick={() => scan(0)}>One look around</button></li>
-            <li><a class="lcd-key" href="/arrive">Skip, check in by name</a></li>
-          </ul>
-        </>
-      )}
-
-      {step === "scanning" && <p class="lcd-kicker" role="status">Looking around...</p>}
-
-      {step === "list" && !detail && (
-        <>
-          <p class="lcd-kicker">Within {metres(RADII[widen])}</p>
-          {places.length === 0 && (
-            <p class="lcd-block">Nothing we know of this close. {widen < 2 ? "Look a little further, or add the place you are in." : "Add the place you are in?"}</p>
-          )}
-          {places.length > 0 && <Radar pins={places} radiusM={RADII[widen]} onPick={setOpen} />}
-          <ul class="lcd-menu">
-            {places.map((p, i) => (
-              <li key={p.id}>
-                <button class="lcd-option" type="button" onClick={() => setOpen(p.id)}>
-                  <span class="option-text">
-                    <span>{i + 1}. {p.name}</span>
-                    <span class="option-meta">{metres(p.distance_m)} {point(p.bearing)} · {FIT[p.fit]}{p.talking ? ` · ${TALKING[p.talking]}` : ""}</span>
-                    <span class="option-meta">{p.why}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          <ul class="key-list">
-            {widen < 2 && <li><button class="lcd-key" type="button" onClick={() => scan(widen + 1)}>Look further ({metres(RADII[widen + 1])})</button></li>}
-            <li><a class="lcd-key" href="/arrive">Add the place I'm in</a></li>
-          </ul>
-        </>
-      )}
-
-      {step === "list" && detail && (
-        <>
-          <div class="lcd-block">
-            <p class="lcd-kicker">{detail.name}</p>
-            <p>{metres(detail.distance_m)} {point(detail.bearing)} · {FIT[detail.fit]}</p>
-            {detail.talking && <p>Talking here: {TALKING[detail.talking].toLowerCase()}.</p>}
-            <p>{detail.why}</p>
-            {detail.why_source === "why_go" && <p class="lcd-small">An AI line, from what we know of this place.</p>}
+          <div class="around-body">
+            <h1 class="around-head">AROUND YOU</h1>
+            <p class="around-promise">Places within a short walk that fit you, and how easy it is to talk to people there.</p>
+            {compass !== null && (
+              compass.length === 0 ? (
+                <a class="compass-box" href="/surprise">
+                  <span class="compass-box-text"><span class="compass-box-label">YOUR COMPASS IS EMPTY</span><span>Results are general for now. Set it up in a minute.</span></span>
+                  <span class="compass-box-go">SET IT UP</span>
+                </a>
+              ) : (
+                <a class="compass-box" href="/compass">
+                  <span class="compass-box-text"><span class="compass-box-label">MATCHED TO YOUR COMPASS</span><span>{compassTop}</span></span>
+                  <span class="compass-box-go">EDIT</span>
+                </a>
+              )
+            )}
+            <p class="around-privacy">Borrow your location for one look around. Used once, never stored, never on any map.</p>
+            {statusNote}
           </div>
-          {detail.read && (
-            <div class="lcd-block">
-              <p class="lcd-kicker">Today</p>
-              <ul>{detail.read.items.map((i) => <li key={i}>{i}</li>)}</ul>
-              {detail.read.hours && <p>{detail.read.hours}</p>}
-              <p class="lcd-small">Read off {detail.read.source}, just now.</p>
-            </div>
-          )}
-          {detail.facts.length > 0 && (
-            <div class="lcd-block">
-              <p class="lcd-kicker">What people say</p>
-              <ul>{detail.facts.map((f) => <li key={f}>{f}</li>)}</ul>
-            </div>
-          )}
-          {detail.visits > 0 && <p class="lcd-small">{detail.visits} Hoolala! visits lately.</p>}
-          <ul class="key-list">
-            <li><button class="lcd-key lcd-key--primary" type="button" onClick={() => checkin(detail)}>Check in here</button></li>
-            <li><button class="lcd-key" type="button" onClick={() => setOpen(null)}>Back to the list</button></li>
-          </ul>
+          <div class="thumb-zone">
+            <button class="thumb-key" type="button" onClick={() => scan(0)}><span>ONE LOOK AROUND</span><span aria-hidden="true">&gt;</span></button>
+            <a class="thumb-link" href="/arrive">SKIP, CHECK IN BY NAME</a>
+          </div>
         </>
       )}
 
-      <p class="lcd-small" role="status" aria-live="polite">{note}</p>
+      {phase === "refused" && (
+        <>
+          <div class="around-body">
+            <h1 class="around-head">NO LOCATION, NO PROBLEM.</h1>
+            <p class="around-promise">Tell me where you are instead, or try again if you tapped no by accident.</p>
+            {statusNote}
+          </div>
+          <div class="thumb-zone">
+            <a class="thumb-key" href="/arrive"><span>CHECK IN BY NAME</span><span aria-hidden="true">&gt;</span></a>
+            <button class="thumb-link" type="button" onClick={() => scan(0)}>TRY AGAIN</button>
+          </div>
+        </>
+      )}
+
+      {(phase === "scanning" || phase === "done") && (
+        <div class="around-body">
+          <div class="chip-row" role="group" aria-label="Radius">
+            {RADII.map((r, i) => (
+              <button key={r} type="button" class={`chip${i === widen ? " on" : ""}`} onClick={() => scan(i)} disabled={phase === "scanning"}>
+                {radiusLabel(r)}
+              </button>
+            ))}
+          </div>
+          <p class="around-status" role="status"><Typed text={status()} onDone={() => setReady(true)} /></p>
+          {phase === "done" && ready && (
+            <div class="keys-rise cards">
+              {places.map((p, i) => {
+                const isOpen = open === p.id;
+                return (
+                  <article key={p.id} class={`card fit-${p.fit.toLowerCase()}${isOpen ? " open" : ""}`}>
+                    <button type="button" class="card-head" onClick={() => setOpen(isOpen ? null : p.id)} aria-expanded={isOpen}>
+                      <span class="card-n" aria-hidden="true">{i + 1}</span>
+                      <span class="card-main">
+                        <span class="card-title-row"><span class="card-name">{p.name}</span><span class={`fit-badge fit-${p.fit.toLowerCase()}`}>{FIT_BADGE[p.fit]}</span></span>
+                        <span class="card-meta">{KIND[p.kind] ?? "PLACE"} · {metres(p.distance_m)} · {walk(p.distance_m)} MIN WALK</span>
+                        <span class="card-why"><b>Why go:</b> {p.why}</span>
+                        <span class="meter-row">
+                          <span class="meter-label">TALKING HERE</span>
+                          <span class="meter-bars" aria-hidden="true">{[1, 2, 3, 4, 5].map((b) => <span key={b} class={`meter-bar${p.talking && b <= p.talking.level ? " on" : ""}`} />)}</span>
+                          <span class="meter-word">{p.talking ? p.talking.word : "not enough ratings yet"}</span>
+                        </span>
+                        <span class="card-verified">
+                          {p.talking ? `✓ Checked by ${visitsLine(p.visits)}. Ratings are about the place, never people.` : p.visits > 0 ? `Only ${visitsLine(p.visits)} so far. Rate it when you go.` : "No Hoolala! visits yet. Rate it when you go."}
+                        </span>
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div class="card-open">
+                        {p.here_now > 0 && (
+                          <a class="now-line" href="/here"><span>{p.here_now} {p.here_now === 1 ? "PERSON" : "PEOPLE"} HERE WOULD LIKE TO TALK</span><span aria-hidden="true">&gt;</span></a>
+                        )}
+                        {p.read ? (
+                          <div class="card-info">
+                            <span class="card-info-title">{READ_TITLE[p.read.kind] ?? "TODAY, FROM THEIR WEBSITE"}</span>
+                            <span>{[...p.read.items, p.read.hours].filter(Boolean).join(". ")}</span>
+                            <span class="card-source">Source: {p.read.source}, read today.</span>
+                          </div>
+                        ) : p.facts.length > 0 && (
+                          <div class="card-info">
+                            <span class="card-info-title">WHAT PEOPLE SAY</span>
+                            <span>{p.facts.slice(0, 3).join(". ")}</span>
+                          </div>
+                        )}
+                        <div class="card-info">
+                          <span class="card-info-title">TINY TRY THERE</span>
+                          <span>{p.tiny_try}</span>
+                        </div>
+                        <p class="card-workings">{p.workings}</p>
+                        <div class="card-keys">
+                          <a class="lcd-key lcd-key--primary" href={`https://www.openstreetmap.org/directions?to=${p.lat},${p.lng}`} target="_blank" rel="noreferrer">TAKE ME THERE</a>
+                          <button class="lcd-key" type="button" onClick={() => checkin(p)}>I'M HERE</button>
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+              {next !== null && (
+                <div class="widen">
+                  <span class="widen-label">NOTHING GRABS YOU?</span>
+                  <button type="button" class="widen-key" onClick={() => scan(next)}><span>LOOK UP TO {radiusLabel(RADII[next])}</span><span aria-hidden="true">&gt;</span></button>
+                </div>
+              )}
+            </div>
+          )}
+          {statusNote}
+        </div>
+      )}
+      </div>
     </Screen>
   );
 }

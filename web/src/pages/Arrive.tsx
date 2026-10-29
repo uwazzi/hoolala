@@ -6,7 +6,7 @@ import type { CheckinView, NearbyPlace, PlaceKind, PlaceSummary } from "../../..
 import { api } from "../api";
 import { Screen } from "../components/Screen";
 
-type Step = "loading" | "signed-out" | "ask" | "locating" | "pick" | "add" | "search" | "checking" | "here" | "goodbye";
+type Step = "loading" | "signed-out" | "ask" | "locating" | "pick" | "add" | "search" | "checking" | "here" | "goodbye" | "thanks";
 type Point = { lat: number; lng: number };
 
 const KINDS: { id: PlaceKind; label: string }[] = [
@@ -71,6 +71,7 @@ export function Arrive() {
   const [step, setStep] = useState<Step>("loading");
   const [note, setNote] = useState("");
   const [here, setHere] = useState<CheckinView | null>(null);
+  const [rated, setRated] = useState(false);
   const [point, setPoint] = useState<Point | null>(null);
   const [nearby, setNearby] = useState<NearbyPlace[]>([]);
   const [name, setName] = useState("");
@@ -179,16 +180,18 @@ export function Arrive() {
 
   /** GOODBYE first: the talking value needs the check-in still open. */
   async function leave() {
+    setRated(false);
     go("goodbye");
   }
 
-  async function rate(value: 1 | 2 | 3 | null) {
+  async function rate(value: 1 | 2 | 3 | 4 | 5 | null) {
     if (value !== null && here) {
       await api("POST", "/api/around/rate", { place_id: here.place.id, value });
+      setRated(true);
     }
     await api("POST", "/api/checkin/leave");
     setHere(null);
-    go("ask", "You've left. See you next time.");
+    go("thanks");
   }
 
   const searchLink = (
@@ -324,14 +327,32 @@ export function Arrive() {
 
       {step === "goodbye" && here && (
         <>
-          <p class="lcd-block">One for the road. Could you talk to people at {here.place.name}?</p>
+          <p class="lcd-kicker">LEAVING {here.place.name}</p>
+          <h1 class="screen-title">HOW WAS IT FOR TALKING HERE?</h1>
           <ul class="key-list">
-            <li><button class="lcd-key" type="button" onClick={() => rate(1)}>Quiet, mostly</button></li>
-            <li><button class="lcd-key" type="button" onClick={() => rate(2)}>Chatty in places</button></li>
-            <li><button class="lcd-key" type="button" onClick={() => rate(3)}>Lively everywhere</button></li>
+            {(["mostly quiet", "a little", "sometimes chatty", "often chatty", "very chatty"] as const).map((label, i) => (
+              <li key={label}>
+                <button class="lcd-key rate-key" type="button" onClick={() => rate((i + 1) as 1 | 2 | 3 | 4 | 5)}>
+                  <span class="meter-bars" aria-hidden="true">{[1, 2, 3, 4, 5].map((b) => <span key={b} class={`meter-bar${b <= i + 1 ? " on" : ""}`} />)}</span>
+                  <span>{label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p class="lcd-small">About the place, never people. Shown only once 3 visits have rated it.</p>
+          <ul class="key-list">
             <li><button class="lcd-key" type="button" onClick={() => rate(null)}>Skip</button></li>
           </ul>
-          <p class="lcd-small">Your value joins the crowd's. Nobody sees who said what.</p>
+        </>
+      )}
+
+      {step === "thanks" && (
+        <>
+          <h1 class="screen-title">THANKS. SEE YOU OUT THERE.</h1>
+          <p class="lcd-block">{rated ? "Your rating joins the others for this place. Nobody sees who rated it." : "No rating, no problem."}</p>
+          <ul class="key-list">
+            <li><a class="lcd-key lcd-key--primary" href="/around">Back to around</a></li>
+          </ul>
         </>
       )}
 
