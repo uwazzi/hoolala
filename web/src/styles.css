@@ -351,7 +351,7 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .chip-suggested { font: 9px/1 var(--font-body); font-style: normal; }
 .dashed-link { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 40px; padding: 8px 12px; border: 2px dashed var(--lcd-ink-secondary); border-radius: var(--radius-control); font-size: 12px; text-decoration: none; margin: 12px 0; }
 
-/* FRIENDS (WP30): the crew, the timeline, the dare sheet. */
+/* FRIENDS (WP30): the crew, the timeline, the invite sheet. */
 .crew-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-top: 16px; }
 .crew-name { font: 700 20px/1.1 var(--font-display); text-transform: uppercase; margin: 0; }
 .crew-count { background: none; border: 0; padding: 4px 0; cursor: pointer; font-size: 12px; color: var(--lcd-ink-secondary); text-decoration: underline; }

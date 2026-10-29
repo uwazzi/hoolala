@@ -71,7 +71,7 @@ export function Home() {
               </button>
             </li>
             <li>
-              <a class="lcd-key" href="/friends">Dare a friend too</a>
+              <a class="lcd-key" href="/friends">Invite a friend too</a>
             </li>
           </ul>
           <ul class="key-list">

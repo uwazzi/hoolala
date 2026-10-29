@@ -1,5 +1,5 @@
 // WP30: friends. One small private crew: the shared try, the timeline of
-// what happened, NICE ONE only, and DARE A FRIEND by WhatsApp, Messenger
+// what happened, NICE ONE only, and INVITE A FRIEND by WhatsApp, Messenger
 // or copied link. No counts per person, no leaves for posting. Copy and
 // states from docs/design/v6/Friends.dc.html.
 import { useEffect, useState } from "preact/hooks";
@@ -153,9 +153,9 @@ export function Friends() {
     setInvite({ url: `${location.origin}${res.data.invite.path}` });
   }
 
-  function dareText(): string {
+  function inviteText(): string {
     const tryTitle = (view?.crew.sharedTry.title ?? "a tiny try").toLowerCase().replace(/\.$/, "");
-    return `${me?.firstName ?? "Someone"} dared you: ${tryTitle} this week. Hoolala! gives you one tiny try a day, then you swap what happened. You never know until you go.`;
+    return `${me?.firstName ?? "Someone"} invited you: ${tryTitle} this week. Hoolala! gives you one tiny try a day, then you swap what happened. You never know until you go.`;
   }
 
   if (signedOut) {
@@ -198,7 +198,7 @@ export function Friends() {
       {none || !view ? (
         <>
           <h1 class="screen-title">Friends</h1>
-          <p class="lcd-block">Dare a friend to try one tiny thing this week, then swap what happened. Small, private, no scores.</p>
+          <p class="lcd-block">Invite a friend to try one tiny thing this week, then swap what happened. Small, private, no scores.</p>
           <label class="lcd-label" for="crew-name">Name your crew</label>
           <input class="lcd-field" id="crew-name" maxLength={24} value={name} onInput={(e) => setName(e.currentTarget.value)} placeholder="Morning crew" />
           <ul class="key-list">
@@ -338,10 +338,10 @@ export function Friends() {
       )}
       {invite && view && (
         <div class="sheet-backdrop" onClick={() => setInvite(null)}>
-          <div class="sheet keys-rise" role="dialog" aria-label="Dare a friend" onClick={(e) => e.stopPropagation()}>
-            <h1 class="screen-title">Dare a friend</h1>
+          <div class="sheet keys-rise" role="dialog" aria-label="Invite a friend" onClick={(e) => e.stopPropagation()}>
+            <h1 class="screen-title">Invite a friend</h1>
             <p class="lcd-block">
-              {dareText()} {invite.url}
+              {inviteText()} {invite.url}
             </p>
             <p class="lcd-small">
               The link adds them to {view.crew.name} only. It expires in 7 days. You can remove anyone, any time.
@@ -352,8 +352,8 @@ export function Friends() {
                   class="lcd-key lcd-key--primary"
                   type="button"
                   onClick={() => {
-                    window.open(`https://wa.me/?text=${encodeURIComponent(`${dareText()} ${invite.url}`)}`, "_blank", "noopener");
-                    setSent("Opening WhatsApp with your dare. They join when they tap the link.");
+                    window.open(`https://wa.me/?text=${encodeURIComponent(`${inviteText()} ${invite.url}`)}`, "_blank", "noopener");
+                    setSent("Opening WhatsApp with your invite. They join when they tap the link.");
                   }}
                 >
                   Send on WhatsApp
@@ -366,7 +366,7 @@ export function Friends() {
                 type="button"
                 onClick={() => {
                   location.href = `fb-messenger://share/?link=${encodeURIComponent(invite.url)}`;
-                  setSent("Opening Messenger with your dare. They join when they tap the link.");
+                  setSent("Opening Messenger with your invite. They join when they tap the link.");
                 }}
               >
                 Messenger
@@ -376,7 +376,7 @@ export function Friends() {
                 type="button"
                 onClick={async () => {
                   try {
-                    await navigator.clipboard.writeText(`${dareText()} ${invite.url}`);
+                    await navigator.clipboard.writeText(`${inviteText()} ${invite.url}`);
                     setCopied(true);
                     setSent("Link copied. Paste it anywhere you like.");
                   } catch {
