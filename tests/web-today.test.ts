@@ -6,7 +6,7 @@ const flow = readFileSync("web/src/components/TryFlow.tsx", "utf8");
 
 describe("Today, simplified", () => {
   it("shows one try with one primary key and two text links", () => {
-    for (const copy of ["TODAY'S TRY", "LET'S GO", "ANOTHER ONE", "NOT TODAY", "FROM YOUR COMPASS", "Your plant. It only grows."]) {
+    for (const copy of ["TODAY'S TRY", "LET'S GO", "ANOTHER ONE", "NOT TODAY", "My compass", "Your plant. It only grows."]) {
       expect(home).toContain(copy);
     }
     // One primary per screen: Sign in (signed out) and LET'S GO (hero).
@@ -15,9 +15,14 @@ describe("Today, simplified", () => {
   });
 
   it("drops the motto, compass box, friend dare, chips and here links from the signed-in hero", () => {
-    for (const gone of ["Invite a friend", "My compass", "Where are you?", "See who here", "hero-display", "hero-line"]) {
+    for (const gone of ["Invite a friend", "Where are you?", "See who here", "hero-display", "hero-line"]) {
       expect(home).not.toContain(gone);
     }
+  });
+
+  it("keeps account reachable for signed-in users", () => {
+    expect(home).toContain("ACCOUNT");
+    expect(home).toContain('href="/signin">ACCOUNT');
   });
 
   it("keeps the flow for going out, telling and next time, without the offer screen", () => {

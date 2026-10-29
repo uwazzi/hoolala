@@ -116,8 +116,12 @@ export function Home() {
           {current && typed && (
             <div class="keys-rise">
               {(current.hint || current.meta) && <p class="today-hint">{current.hint || current.meta}</p>}
+              <a class="dashed-link" href="/compass">
+                <span>My compass</span>
+                <span aria-hidden="true">&gt;</span>
+              </a>
               <p>
-                <a class="today-compass" href="/compass">FROM YOUR COMPASS &gt;</a>
+                <a class="today-compass" href="/signin">ACCOUNT &gt;</a>
               </p>
             </div>
           )}

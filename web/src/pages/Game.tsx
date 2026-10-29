@@ -1,7 +1,7 @@
 // WP37 your game of tiny tries: TRY IT writes nine tries in SOFT, BRAVE and
 // BOLD, code sets each level and checks every try, and the person picks one
 // as today's try. NEW ONE rewrites a single card; NEW GAME writes all nine
-// again. Then Around me (optional) or skip to Today.
+// again. After a pick, one key leads to Today.
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { api } from "../api";
 import { Screen } from "../components/Screen";
@@ -254,15 +254,10 @@ export function Game() {
               </div>
             ) : (
               <div class="keys-rise">
-                <p class="gm-saved">Saved as today's try. Want a place for it? Around me scans 500 m for places where people chat. Optional.</p>
+                <p class="gm-saved">Saved as today's try.</p>
                 <ul class="key-list">
                   <li>
-                    <a class="lcd-key lcd-key--primary" href="/around">
-                      Find a place around me
-                    </a>
-                  </li>
-                  <li>
-                    <a class="lcd-key" href="/">
+                    <a class="lcd-key lcd-key--primary" href="/">
                       Skip. I know where to go
                     </a>
                   </li>
