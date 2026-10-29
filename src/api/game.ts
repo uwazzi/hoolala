@@ -6,7 +6,7 @@
 
 import { GAME_LIBRARY, type GameLibraryTry } from "../content/tries";
 import { getCompass, listCompassPeople } from "../db/compass";
-import { gameBelongs, latestPickedGameTry, pickGameTry, saveGameTries, type NewGameTry } from "../db/tries";
+import { gameBelongs, getGameTry, latestPickedGameTry, nextUnpickedGameTry, pickGameTry, saveGameTries, setCurrentGameTry, type GameTryRow, type NewGameTry } from "../db/tries";
 import { llmEnabled } from "../llm/client";
 import { draftGameTries, draftNewOneTry, type GameDraftTry, type GameInput } from "../llm/tryit";
 import {
@@ -206,7 +206,40 @@ export async function handlePick(request: Request, env: Env, now = new Date()): 
   if (typeof body.id !== "string") return json({ error: "bad_try" }, 400);
   const row = await pickGameTry(env.DB, user.id, body.id, now.toISOString());
   if (!row) return json({ error: "not_found" }, 404);
+  await setCurrentGameTry(env.DB, user.id, row.id);
   return json({ ok: true, try: { id: row.id, level: row.level, step: row.step, kind: row.kind, who_role: row.who_role, title: row.title, source: row.source, minutes: minutesForLevel(row.level as GameLevel) } });
+}
+
+function gameView(row: GameTryRow) {
+  return { id: row.id, level: row.level, step: row.step, kind: row.kind, who_role: row.who_role, title: row.title, source: row.source, minutes: minutesForLevel(row.level as GameLevel) };
+}
+
+/**
+ * ANOTHER ONE on Today: the next unpicked try at this level of this game.
+ * When the level is used up, a new game is written in the background.
+ */
+export async function handleAnother(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const body = await readJson(request);
+  if (typeof body.id !== "string") return json({ error: "bad_try" }, 400);
+  const current = await getGameTry(env.DB, user.id, body.id);
+  if (!current) return json({ error: "not_found" }, 404);
+  const next = await nextUnpickedGameTry(env.DB, user.id, current.game_id, current.level, current.id);
+  if (next) {
+    const picked = await pickGameTry(env.DB, user.id, next.id, now.toISOString());
+    await setCurrentGameTry(env.DB, user.id, picked!.id);
+    return json({ gameId: current.game_id, try: gameView(picked!) });
+  }
+  const gameId = crypto.randomUUID();
+  const createdAt = now.toISOString();
+  const { tries } = await buildGame(env, user.id);
+  const rows: NewGameTry[] = tries.map((t) => ({ id: crypto.randomUUID(), userId: user.id, gameId, level: t.level, step: t.step, kind: t.kind, whoRole: t.whoRole, title: t.title, source: t.source, createdAt }));
+  await saveGameTries(env.DB, rows);
+  const first = rows.find((r) => r.level === current.level)!;
+  const picked = await pickGameTry(env.DB, user.id, first.id, now.toISOString());
+  await setCurrentGameTry(env.DB, user.id, picked!.id);
+  return json({ gameId, try: gameView(picked!) });
 }
 
 /** Today's try is the picked game try when there is one. */

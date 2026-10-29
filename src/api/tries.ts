@@ -5,6 +5,7 @@
 
 import { triesFor, tryById, type TryPlace } from "../content/tries";
 import { compassTexts } from "../db/compass";
+import { getGameTry } from "../db/tries";
 import { pickedTodayTry } from "./game";
 import { getTry, lastOutcomes, recordTry, setUserStep, tryCounts, userStep } from "../db/tries";
 import { draftTry, timeOfDay, validateDraft } from "../llm/tryit";
@@ -90,8 +91,12 @@ export async function handleRecordTry(request: Request, env: Env, now = new Date
 
   // A try_it draft is re-checked on the way in: shape, step bounds, rules.
   // Only its author could have tampered with it, so no second model verdict.
-  let stored: { source: "library" | "try_it"; libraryId: string | null; title: string | null; hint: string | null; why: string | null };
-  if (body.source === "try_it") {
+  let stored: { source: "library" | "try_it" | "game"; libraryId: string | null; title: string | null; hint: string | null; why: string | null };
+  if (body.source === "game") {
+    const row = typeof body.gameId === "string" ? await getGameTry(env.DB, user.id, body.gameId) : null;
+    if (!row) return json({ error: "not_found" }, 404);
+    stored = { source: "game", libraryId: null, title: row.title, hint: "", why: null };
+  } else if (body.source === "try_it") {
     const draft = validateDraft(body.draft);
     if (!draft) return json({ error: "bad_try" }, 400);
     const check = screenText(`${draft.title} ${draft.hint}`, 200);

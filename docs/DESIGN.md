@@ -153,7 +153,7 @@ The interaction contract. Every screen, agent reply and API must keep these.
 
 ## The home (v6, today)
 
-**Home (TODAY):** HOOLALA! and the tagline. GET OUTSIDE. MEET PEOPLE. GROW INSIDE. (display, 40 px). One line: "One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always." The plant card (pixel plant, N TINY TRIES, links to My moments). GIVE ME TODAY'S TRY > (primary). INVITE A FRIEND TOO > (secondary). Softkeys TODAY / FRIENDS. After GIVE ME TODAY'S TRY, the one-screen flow of rule 14 with the goal bar, the plant and step meter, the three-step path (current solid, done shaded, next dashed) and the typed HOOLALA! SAYS block. Signals here is a dashed link at the bottom of the flow.
+**Home (TODAY):** HOOLALA! and the tagline. The compact plant row (6 px pixel plant, N TINY TRIES, "Your plant. It only grows."). TODAY'S TRY · STEP n OF 5, the try typed big (28 px), then its hint and FROM YOUR COMPASS >. LET'S GO (primary, 60 px), then ANOTHER ONE and NOT TODAY as text links. Softkeys TODAY / AROUND / FRIENDS. After LET'S GO, the flow of rule 14 (out, ask, debrief, later) with the goal bar, the plant and step meter, the three-step path and the typed HOOLALA! SAYS block. The motto, compass box, friend dare, WHERE chips and here links are gone (v6.2).
 
 ## The compact header (v6, all screens)
 
@@ -226,7 +226,7 @@ In the build: sign-in (email magic link on the web), Let's get personal and the 
 | Meeting point | PLAN IT: "Terrace at 15:10?" > CONFIRM or CHANGE | ON MY WAY, then MEET |
 | Meet and stay in touch | MEET > QR > both agree > YOU MET AN ACTUAL HUMAN. > STAY IN TOUCH? | +1 private moment; a friendship only if both chose it |
 | Leave | I'M LEAVING > signals hidden | THANKS FOR DROPPING BY. GO LIVE? |
-| Tiny try | GIVE ME TODAY'S TRY > GET A TRY > GO > TELL ME > NEXT TIME | A leaf on the plant for every try made |
+| Tiny try | TODAY'S TRY > LET'S GO > GO > TELL ME > NEXT TIME | A leaf on the plant for every try made |
 | Catch up | ANYTHING NEW? > notes and signals, 3 at a time > THAT'S THREE (ASK FOR MORE) > end | THAT'S EVERYTHING. WE COULD SHOW YOU MORE, BUT WE'D HAVE TO MAKE IT UP. |
 | Little signals | Pick a signal or write one > dry reply > how long > circle / choose friends / private | SIGNAL UP. Shows on home until it expires |
 | Anyone around? | Friends' shared availability signals > SO... THURSDAY? | Suggest a plan, leave a note, or maybe later |
