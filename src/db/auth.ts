@@ -114,6 +114,10 @@ export async function deleteAccount(db: D1Database, userId: string, email: strin
     `UPDATE interactions SET signal_id = NULL WHERE signal_id IN (${own})`,
     "DELETE FROM moments WHERE user_id = ?1",
     "DELETE FROM tries WHERE user_id = ?1",
+    "DELETE FROM crew_nice WHERE user_id = ?1",
+    "DELETE FROM crew_nice WHERE post_id IN (SELECT id FROM crew_posts WHERE user_id = ?1)",
+    "DELETE FROM crew_posts WHERE user_id = ?1",
+    "DELETE FROM crew_members WHERE user_id = ?1",
     "DELETE FROM signals WHERE owner_id = ?1",
     "DELETE FROM friendships WHERE user_a = ?1 OR user_b = ?1",
     "DELETE FROM blocks WHERE blocker_id = ?1 OR blocked_id = ?1",
@@ -128,6 +132,14 @@ export async function deleteAccount(db: D1Database, userId: string, email: strin
   ].map((sql) => db.prepare(sql).bind(userId));
   if (email) {
     statements.push(db.prepare("DELETE FROM login_tokens WHERE email = ?").bind(email));
+  }
+  for (const sql of [
+    "DELETE FROM crews WHERE id NOT IN (SELECT crew_id FROM crew_members)",
+    "DELETE FROM crew_invites WHERE crew_id NOT IN (SELECT id FROM crews)",
+    "DELETE FROM crew_posts WHERE crew_id NOT IN (SELECT id FROM crews)",
+    "DELETE FROM crew_nice WHERE post_id NOT IN (SELECT id FROM crew_posts)",
+  ]) {
+    statements.push(db.prepare(sql));
   }
   statements.push(
     db

@@ -10,7 +10,7 @@ Decisions (23 Oct): email magic link sign-in; the Live counter counts both-confi
 Decisions (26 Oct, official guide): Indie Developer track, Build for Your World; public repo, MIT licence; prior work committed once and tagged `pre-hackathon`; pitched as a social product, never mental-health or coaching AI.
 Decisions (27 Oct, Signals here): Signals here is the hero. Audience: everyone checked in at the same place, anonymous until both accept. Check-in ladder: QR poster first, location optional and never stored, place code as fallback. Telegram Mini App as the main entry at the place (Telegram login), email magic link for the web. Go App-Free (onboarding, Personal Compass, briefings, Telegram bot briefings), SAY IT and FIND IT-as-briefing move to after 4 Nov. Place host still to confirm; fallback place planned.
 Decisions (27 Oct, v5): a venue is now **any public place** (café, bar, coworking, library), no host needed. Check-in is share location and pick the place, ADD THIS PLACE saves a new one at the person's location, search by name as fallback, QR poster optional. Onboarding **FIND ME** reads the person's public footprint with their OK and drafts the Personal Compass (back in scope, private, used only for their own suggestions and ordering). **PLACE IT** fetches place details (Google Maps live, web search for the menu); people confirm or fix them and earn private **place points**. Share card image moves to "if time".
-Decisions (29 Oct, v6): tiny tries lead (GET OUTSIDE. MEET PEOPLE.), Signals here second; TRY IT drafts inside code-set bounds; Friends slim (dare and crew); spec in `docs/HANDOFF-v6.md`.
+Decisions (29 Oct, v6): tiny tries lead (GET OUTSIDE. MEET PEOPLE.), Signals here second; TRY IT drafts inside code-set bounds; Friends slim (invite and crew); spec in `docs/HANDOFF-v6.md`.
 
 ## Before the build (owner)
 
@@ -31,7 +31,7 @@ Decisions (29 Oct, v6): tiny tries lead (GET OUTSIDE. MEET PEOPLE.), Signals her
 | Thu 29 | DOCS-v6, issues, close the merged ones | Office hours 15:00; **pilot place and filming permission decided** | Docs diff reviewed; pilot place confirmed |
 | Fri 30 | WP28 home v6 and tiny tries; WP31 staging fixes | Fireworks 17:00 (optional) | A new person completes one try in under a minute; tagline fixed, quiet empty state |
 | Sat 31 | WP29 TRY IT (morning); **friends dry run (afternoon)** on the new home | | 15/15 TRY IT evals; friends try the new home at a café |
-| Sun 1 | WP30 friends slim; WP9 safety pass | | Dare link opens WhatsApp prefilled; safety checklist ticked |
+| Sun 1 | WP30 friends slim; WP9 safety pass | | Invite link opens WhatsApp prefilled; safety checklist ticked |
 | Mon 2 | **Pilot in Lausanne, 11:00 to 16:00**; film demo shots on site; evening fixes | Office hours 16:00 | Metrics captured: try completion, signal-to-response, response-to-accept, connection rate |
 | Tue 3 | Fixes from the pilot; film and edit the video; README results | Last day for submission questions | Video watched once by someone else |
 | Wed 4 | Private-window check; WP9 submit by 18:00, post on X | Official deadline Thu 5 Nov 03:00 | Submitted; repo and video open while signed out |
@@ -42,7 +42,7 @@ Moved to after 4 Nov (designs stay in the design system as ROADMAP; not built, n
 
 If time after Sun 1 (in this order): WP7 share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations to friends.
 
-If late, cut in this order: PLAN IT (keep the poster's own spot and time), Google Maps in PLACE IT (keep web search and people's facts), translation in SCREEN IT, SUGGEST IT web search, compass editing in plain words (keep EDIT and REMOVE), Live page animation. Cut order from 29 Oct (v6): WP30 timeline (keep the dare link), then TRY IT generation (keep the validator, the library and the "why" line), then WP31 extras.
+If late, cut in this order: PLAN IT (keep the poster's own spot and time), Google Maps in PLACE IT (keep web search and people's facts), translation in SCREEN IT, SUGGEST IT web search, compass editing in plain words (keep EDIT and REMOVE), Live page animation. Cut order from 29 Oct (v6): WP30 timeline (keep the invite link), then TRY IT generation (keep the validator, the library and the "why" line), then WP31 extras.
 
 Never cut: ARRIVE with location, add place and search by name, email sign-in, FIND ME consent and IS THIS YOU?, the place card with sources and private points, Signals here with server-side audience, anonymity and expiry, I'M CURIOUS and mutual accept, quick replies, block and report, SCREEN IT (at least the code rules), CHECK IT and the eval set, mutual QR, the Live page with the connection rate, crisis message, the prior-work declaration.
 
@@ -162,14 +162,14 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Acceptance: 15/15 evals; a step never changes without a tap.
 
 ### WP30 Friends, slim (Sun 1)
-- [ ] DARE A FRIEND: share sheet with the dare text and a crew invite link (WhatsApp `wa.me` and Messenger share URLs, copy link); one private crew per person; timeline posts (outcome tag + text, screened), NICE ONE. Seed a demo crew for the video. Replaces WP7.
+- [x] INVITE A FRIEND: share sheet with the invite text and a crew invite link (WhatsApp `wa.me` and Messenger share URLs, copy link); one private crew per person; timeline posts (outcome tag + text, screened), NICE ONE. Seed file at `scripts/demo-crew.sql` (owner runs once on staging). Replaces WP7.
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
 
 ### WP31 Staging fixes (Fri 30)
 - [x] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
-> Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. Work kept on branch `wp21/telegram`. Kept here for history.
+> Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. The `wp21/telegram` work branch was deleted the same day; only this section remains.
 - [ ] Location inside the Mini App: Telegram's location API where available, browser geolocation otherwise.
 - [ ] A partner poster QR opens `t.me/<bot>/here?startapp=<slug>_<key>` on phones with Telegram, and the web URL otherwise (the web page shows both options).
 - [ ] Mini App loads the same front end; `POST /api/auth/telegram` verifies `initData` with HMAC-SHA256 using the bot token, checks `auth_date` freshness, creates or finds the user by Telegram id, asks once for the 18+ confirmation, uses the Telegram first name only.
@@ -212,7 +212,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] `evals/` with about 30 cases (see `MUSE-SPARK-BY-FUNCTION.md`); `npm run eval` prints a pass rate; run before each deploy. Pass rate, median latency per function and fallback rate go into the README.
 
 ### WP7 Share card, slim (Sun 1)
-> Folded into WP30: the dare card is the share card. Kept here for history.
+> Folded into WP30: the invite card is the share card. Kept here for history.
 - [ ] After a confirmed meet: "I went live." / "One of N real-life hellos on Hoolala!" / "You never know until you go." No names, no place unless the person ticks it. Web Share with the image, fallback links, COPY LINK.
 
 ### WP9 Safety, pilot and submission (Sun 1 to Wed 4)

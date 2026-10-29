@@ -22,6 +22,17 @@ import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDi
 import { handleMeetingPoint, handlePlan } from "./api/plan";
 import { handleHear, handleNext, handleSurpriseDraft } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry } from "./api/tries";
+import {
+  handleCreateCrew,
+  handleCrew,
+  handleInvite,
+  handleJoin,
+  handleJoinPreview,
+  handleLeaveCrew,
+  handleNice,
+  handlePost,
+  handleRemoveMember,
+} from "./api/crew";
 import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -137,6 +148,35 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/me/plant" && method === "GET") {
     return handlePlant(request, env);
+  }
+  if (url.pathname === "/api/crew" && method === "POST") {
+    return handleCreateCrew(request, env);
+  }
+  if (url.pathname === "/api/crew" && method === "GET") {
+    return handleCrew(request, env);
+  }
+  if (url.pathname === "/api/crew/join" && method === "POST") {
+    return handleJoin(request, env);
+  }
+  const joinPreview = /^\/api\/crew\/join\/([A-Za-z0-9-]{1,64})$/.exec(url.pathname);
+  if (joinPreview && method === "GET") {
+    return handleJoinPreview(joinPreview[1], env);
+  }
+  if (url.pathname === "/api/crew/invite" && method === "POST") {
+    return handleInvite(request, env);
+  }
+  if (url.pathname === "/api/crew/posts" && method === "POST") {
+    return handlePost(request, env);
+  }
+  const nice = /^\/api\/crew\/posts\/([0-9a-f-]{36})\/nice$/.exec(url.pathname);
+  if (nice && method === "POST") {
+    return handleNice(nice[1], request, env);
+  }
+  if (url.pathname === "/api/crew/leave" && method === "POST") {
+    return handleLeaveCrew(request, env);
+  }
+  if (url.pathname === "/api/crew/remove" && method === "POST") {
+    return handleRemoveMember(request, env);
   }
   const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
   if (peek && method === "GET") {

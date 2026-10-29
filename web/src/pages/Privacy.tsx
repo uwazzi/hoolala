@@ -13,7 +13,7 @@ export function Privacy() {
         </p>
 
         <h2>Who it's for</h2>
-        <p>People aged 18 and over, in public places. Hoolala! is for talking to people near you. It's not a dating app.</p>
+        <p>People aged 18 and over, in public places. Hoolala! is for getting outside and meeting people: one tiny thing to try in real life each day, and small invitations to talk when you share a place. It's not a dating app.</p>
 
         <h2>Your account</h2>
         <p>
@@ -96,7 +96,7 @@ export function Privacy() {
           <a href="https://github.com/uwazzi/hoolala" target="_blank" rel="noopener noreferrer">GitHub</a>, so you can check all of this. Questions or
           requests: open an issue there.
         </p>
-        <p class="lcd-small">Last updated 28 October 2026.</p>
+        <p class="lcd-small">Last updated 29 October 2026.</p>
       </div>
     </Screen>
   );
