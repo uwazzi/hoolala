@@ -22,7 +22,7 @@ import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDi
 import { handleMeetingPoint, handlePlan } from "./api/plan";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
-import { handleNewGame, handleNewOne, handlePick } from "./api/game";
+import { handleAnother, handleNewGame, handleNewOne, handlePick } from "./api/game";
 import { handleRate, handleScan } from "./api/around";
 import {
   handleCreateCrew,
@@ -176,6 +176,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/game/pick" && method === "POST") {
     return handlePick(request, env);
+  }
+  if (url.pathname === "/api/game/another" && method === "POST") {
+    return handleAnother(request, env);
   }
   if (url.pathname === "/api/me/plant" && method === "GET") {
     return handlePlant(request, env);

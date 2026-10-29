@@ -16,7 +16,7 @@ export interface NewTry {
   id: string;
   userId: string;
   step: number;
-  source: "library" | "try_it";
+  source: "library" | "try_it" | "game";
   libraryId: string | null;
   placeKind: string;
   outcome: string;
@@ -113,13 +113,29 @@ export async function pickGameTry(db: D1Database, userId: string, id: string, pi
   return await db.prepare("SELECT * FROM game_tries WHERE id = ? AND user_id = ?").bind(id, userId).first<GameTryRow>();
 }
 
+export async function setCurrentGameTry(db: D1Database, userId: string, id: string): Promise<void> {
+  await db.prepare("UPDATE users SET current_game_try_id = ? WHERE id = ?").bind(id, userId).run();
+}
+
 export async function latestPickedGameTry(db: D1Database, userId: string): Promise<GameTryRow | null> {
   return await db
-    .prepare("SELECT * FROM game_tries WHERE user_id = ? AND picked_at IS NOT NULL ORDER BY picked_at DESC LIMIT 1")
+    .prepare("SELECT g.* FROM game_tries g JOIN users u ON u.id = g.user_id WHERE g.user_id = ? AND g.id = u.current_game_try_id")
     .bind(userId)
     .first<GameTryRow>();
 }
 
 export async function purgeOldGames(db: D1Database, beforeIso: string): Promise<void> {
   await db.prepare("DELETE FROM game_tries WHERE created_at < ?").bind(beforeIso).run();
+}
+
+export async function getGameTry(db: D1Database, userId: string, id: string): Promise<GameTryRow | null> {
+  return await db.prepare("SELECT * FROM game_tries WHERE id = ? AND user_id = ?").bind(id, userId).first<GameTryRow>();
+}
+
+/** ANOTHER ONE: the next unpicked try at this level of this game. */
+export async function nextUnpickedGameTry(db: D1Database, userId: string, gameId: string, level: string, currentId: string): Promise<GameTryRow | null> {
+  return await db
+    .prepare("SELECT * FROM game_tries WHERE user_id = ? AND game_id = ? AND level = ? AND picked_at IS NULL AND id != ? ORDER BY rowid LIMIT 1")
+    .bind(userId, gameId, level, currentId)
+    .first<GameTryRow>();
 }

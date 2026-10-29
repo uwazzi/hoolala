@@ -57,7 +57,7 @@ Then the model steps out:
 
 | Time | Beat | Capability on screen |
 |---|---|---|
-| 0:00 | Home: GET OUTSIDE. MEET PEOPLE. GROW INSIDE. One try typed out, tried for real at the place: NO REPLY, answered kindly, and the plant gains a coloured leaf. NEXT TIME: SAME STEP, with TRY IT's "why this one". | TRY IT |
+| 0:00 | Home: one try typed out, tried for real at the place: NO REPLY, answered kindly, and the plant gains a coloured leaf. NEXT TIME: SAME STEP. | TRY IT |
 | 0:12 | First open: the story (1 in 6, the liking gap), then LET'S GO. Three spoken questions, the compass check with PEOPLE IN YOUR DAYS, LOOKS RIGHT. MAKE MY GAME. Nine tries across SOFT, BRAVE and BOLD; NEW ONE rewrites one. | COMPASS DRAFT, TRY IT (structured output) |
 | 0:35 | And when you're somewhere with others: ARRIVE, share location, pick the café. Then the failure case: "the lake", search by name works. | None, on purpose |
 | 0:50 | THE PLACE: hours and menu fetched with sources; one price is wrong: FIX IT, +5 place points (private). | PLACE IT (parallel tools) |

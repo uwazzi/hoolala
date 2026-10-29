@@ -233,6 +233,52 @@ describe("the game", () => {
     expect(fourth.tries.every((t) => t.source === "library")).toBe(true);
   });
 
+  it("needs a signed-in person for ANOTHER ONE", async () => {
+    const env = testEnv();
+    expect((await call(env, "POST", "/api/game/another", undefined, {})).status).toBe(401);
+  });
+
+  it("draws the next unpicked try at the same level, never a repeat", async () => {
+    const env = testEnv({ LLM_ENABLED: "false" });
+    const ana = await person(env, "ana");
+    compass(env, ana.id);
+    const game = (await (await call(env, "POST", "/api/game", ana, {})).json()) as { gameId: string; tries: GameTry[] };
+    const soft = game.tries.filter((t) => t.level === "soft");
+    await call(env, "POST", "/api/game/pick", ana, { id: soft[0].id });
+    const res = await call(env, "POST", "/api/game/another", ana, { id: soft[0].id });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { gameId: string; try: GameTry };
+    expect(data.gameId).toBe(game.gameId);
+    expect(data.try.level).toBe("soft");
+    expect(data.try.id).not.toBe(soft[0].id);
+    expect(soft.map((t) => t.id)).toContain(data.try.id);
+    const today = await call(env, "GET", "/api/tries/today", ana);
+    expect(((await today.json()) as { try: { title: string } }).try.title).toBe(data.try.title);
+  });
+
+  it("writes a new game in the background when the level is used up", async () => {
+    const env = testEnv({ LLM_ENABLED: "false" });
+    const ana = await person(env, "ana");
+    compass(env, ana.id);
+    const game = (await (await call(env, "POST", "/api/game", ana, {})).json()) as { gameId: string; tries: GameTry[] };
+    const soft = game.tries.filter((t) => t.level === "soft");
+    for (const t of soft) await call(env, "POST", "/api/game/pick", ana, { id: t.id });
+    const data = (await (await call(env, "POST", "/api/game/another", ana, { id: soft[2].id })).json()) as { gameId: string; try: GameTry };
+    expect(data.gameId).not.toBe(game.gameId);
+    expect(data.try.level).toBe("soft");
+  });
+
+  it("keeps ANOTHER ONE to your own tries", async () => {
+    const env = testEnv({ LLM_ENABLED: "false" });
+    const ana = await person(env, "ana");
+    const bob = await person(env, "bob");
+    compass(env, ana.id);
+    const game = (await (await call(env, "POST", "/api/game", ana, {})).json()) as { tries: GameTry[] };
+    expect((await call(env, "POST", "/api/game/another", ana, {})).status).toBe(400);
+    expect((await call(env, "POST", "/api/game/another", ana, { id: crypto.randomUUID() })).status).toBe(404);
+    expect((await call(env, "POST", "/api/game/another", bob, { id: game.tries[0].id })).status).toBe(404);
+  });
+
   it("picks one try as today's try, yours only", async () => {
     const env = testEnv({ LLM_ENABLED: "false" });
     const ana = await person(env, "ana");

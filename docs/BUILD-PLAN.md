@@ -226,10 +226,10 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests first: library game shape; model step ignored; NEW ONE never repeats; every validator rule rejects; limits fall back to library; pick stores today's try.
 
 ### WP38 Today, simplified (v6.2, Fri 30)
-- [ ] Home per spec: compact plant row, TODAY'S TRY · STEP n typed with hint and FROM YOUR COMPASS >, LET'S GO with ANOTHER ONE and NOT TODAY; motto, big plant card, MY COMPASS box, DARE A FRIEND, WHERE? chips, Around link and TELL MY FRIENDS removed.
-- [ ] Today's try is the picked game try (v6 library fallback for old accounts); ANOTHER ONE draws the next unpicked try at the level (a new game in the background when used up); NOT TODAY is the later state, no reminder.
-- [ ] Off you go, I'M BACK, outcomes, NEXT TIME, plant growth and the COMPASS? row unchanged.
-- [ ] Tests first: one primary key and two text links; try equals the pick; ANOTHER ONE keeps the level without repeats; removed items gone.
+- [x] Home per spec: compact plant row, TODAY'S TRY · STEP n typed with hint and FROM YOUR COMPASS >, LET'S GO with ANOTHER ONE and NOT TODAY; motto, big plant card, MY COMPASS box, DARE A FRIEND, WHERE? chips, Around link and TELL MY FRIENDS removed.
+- [x] Today's try is the picked game try (v6 library fallback for old accounts); ANOTHER ONE draws the next unpicked try at the level (a new game in the background when used up); NOT TODAY is the later state, no reminder.
+- [x] Off you go, I'M BACK, outcomes, NEXT TIME, plant growth and the COMPASS? row unchanged.
+- [x] Tests first: one primary key and two text links; try equals the pick; ANOTHER ONE keeps the level without repeats; removed items gone.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 > Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. The `wp21/telegram` work branch was deleted the same day; only this section remains.
