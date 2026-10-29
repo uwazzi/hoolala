@@ -22,10 +22,10 @@ INSERT OR IGNORE INTO place_facts (id, place_id, field, value, source, state, up
   ('demo-fact-6', 'demo-around-3', 'rule', 'Calls in the phone box only', 'people', 'confirmed', strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   ('demo-fact-7', 'demo-around-4', 'quiet', 'Silent room upstairs', 'people', 'confirmed', strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   ('demo-fact-8', 'demo-around-5', 'spot', 'Counter seats facing the roaster', 'people', 'confirmed', strftime('%Y-%m-%dT%H:%M:%fZ','now'));
-INSERT OR REPLACE INTO place_ratings (place_id, user_id, value, visit_date, created_at) VALUES
-  ('demo-around-1', 'sample-ana', 3, date('now','-1 day'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day')),
-  ('demo-around-1', 'sample-tom', 3, date('now','-2 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days')),
-  ('demo-around-1', 'sample-lea', 2, date('now','-3 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days')),
-  ('demo-around-4', 'sample-ana', 1, date('now','-1 day'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day')),
-  ('demo-around-4', 'sample-tom', 1, date('now','-4 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days')),
-  ('demo-around-4', 'sample-lea', 2, date('now','-5 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days'));
+INSERT OR REPLACE INTO place_ratings (place_id, user_id, value, visit_date, week, created_at) VALUES
+  ('demo-around-1', 'sample-ana', 5, date('now','-1 day'), strftime('%Y-W%W','now','-1 day'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day')),
+  ('demo-around-1', 'sample-tom', 5, date('now','-2 days'), strftime('%Y-W%W','now','-2 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days')),
+  ('demo-around-1', 'sample-lea', 4, date('now','-3 days'), strftime('%Y-W%W','now','-3 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days')),
+  ('demo-around-4', 'sample-ana', 1, date('now','-1 day'), strftime('%Y-W%W','now','-1 day'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day')),
+  ('demo-around-4', 'sample-tom', 1, date('now','-4 days'), strftime('%Y-W%W','now','-4 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days')),
+  ('demo-around-4', 'sample-lea', 2, date('now','-5 days'), strftime('%Y-W%W','now','-5 days'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days'));

@@ -1,9 +1,11 @@
-// WP32 radar: pins placed by bearing and distance, tap a pin for detail.
-// The numbered list below stays the full path; pins are real buttons with
-// names, so the radar works with a screen reader too.
+// WP32 radar (v6.1): the panel sits at the top from the start. Idle: rings,
+// the radius label, your square pulsing at the centre. Scanning: the sweep
+// turns in place. Then the numbered pins pop in, solid for good fit, dashed
+// for low fit, inverted when open. Tap a pin for its card.
 
 interface Pin {
   id: string;
+  n: number;
   name: string;
   distance_m: number;
   bearing: number;
@@ -13,36 +15,43 @@ interface Pin {
 interface Props {
   pins: Pin[];
   radiusM: number;
+  scanning: boolean;
+  openId: string | null;
   onPick: (id: string) => void;
 }
 
-export function Radar({ pins, radiusM, onPick }: Props) {
+const label = (m: number) => (m >= 1000 ? `${m / 1000} KM` : `${m} M`);
+
+export function Radar({ pins, radiusM, scanning, openId, onPick }: Props) {
+  const scale = 84 / radiusM;
   return (
-    <div class="radar" role="group" aria-label={`Radar, ${pins.length} places within ${radiusM} metres`}>
-      <div class="radar-ring radar-ring--half" aria-hidden="true" />
-      <div class="radar-cross radar-cross--v" aria-hidden="true" />
-      <div class="radar-cross radar-cross--h" aria-hidden="true" />
-      <div class="radar-sweep" aria-hidden="true" />
-      <span class="radar-north" aria-hidden="true">N</span>
-      <span class="radar-you" aria-hidden="true">YOU</span>
-      {pins.map((p, i) => {
-        const frac = Math.min(1, p.distance_m / radiusM);
+    <div class="radar-panel" role="group" aria-label={`Radar, ${pins.length} places within ${label(radiusM)}`}>
+      <div class="radar-ring radar-ring--outer" aria-hidden="true" />
+      <div class="radar-ring radar-ring--inner" aria-hidden="true" />
+      {scanning && <div class="radar-sweep" aria-hidden="true" />}
+      <div class="radar-ping" aria-hidden="true" />
+      <div class="radar-you" aria-hidden="true" />
+      {pins.map((p) => {
         const rad = ((p.bearing % 360) * Math.PI) / 180;
-        const x = 50 + frac * 44 * Math.sin(rad);
-        const y = 50 - frac * 44 * Math.cos(rad);
+        const d = Math.max(p.distance_m * scale, 18);
+        const x = Math.round(Math.sin(rad) * d);
+        const y = Math.round(-Math.cos(rad) * d * 0.95);
+        const open = openId === p.id;
         return (
           <button
             key={p.id}
             type="button"
-            class={`radar-pin fit-${p.fit.toLowerCase()}`}
-            style={{ left: `${x}%`, top: `${y}%` }}
+            class={`radar-pin fit-${p.fit.toLowerCase()}${open ? " on" : ""}`}
+            style={{ left: `calc(50% + ${x}px)`, top: `calc(50% + ${y}px)` }}
             onClick={() => onPick(p.id)}
-            aria-label={`${i + 1}. ${p.name}, ${p.distance_m} metres`}
+            aria-label={`${p.n}. ${p.name}`}
           >
-            {i + 1}
+            {p.n}
           </button>
         );
       })}
+      <span class="radar-tag radar-tag--radius" aria-hidden="true">{label(radiusM)}</span>
+      <span class="radar-tag radar-tag--you" aria-hidden="true">YOU ■</span>
     </div>
   );
 }
