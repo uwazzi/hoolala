@@ -389,3 +389,18 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .brand-bar-tag { font: 11px/1.2 var(--font-body); color: var(--lcd-ink-secondary); text-align: right; }
 .lcd-softkey.softkey-tab { flex: 1; text-align: center; }
 .lcd-softkey.on { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+
+/* WP32 radar: rings, cross, sweep and pins. Still on reduced motion. */
+.radar { position: relative; width: 100%; max-width: 420px; aspect-ratio: 1; margin: 8px auto 4px; border: 2px solid var(--lcd-ink); border-radius: 50%; background: var(--lcd-surface); overflow: hidden; }
+.radar-ring--half { position: absolute; inset: 25%; border: 1px dashed var(--lcd-ink-secondary); border-radius: 50%; }
+.radar-cross { position: absolute; background: var(--lcd-ink-secondary); opacity: 0.5; }
+.radar-cross--v { left: 50%; top: 0; bottom: 0; width: 1px; }
+.radar-cross--h { top: 50%; left: 0; right: 0; height: 1px; }
+.radar-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, var(--lcd-selected) 0deg 10deg, transparent 10deg 360deg); opacity: 0.25; animation: radar-spin 6s linear infinite; }
+@keyframes radar-spin { to { transform: rotate(360deg); } }
+.radar-north { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font: 700 11px/1 var(--font-display); }
+.radar-you { position: absolute; bottom: 50%; left: 50%; transform: translate(-50%, 14px); font: 700 9px/1 var(--font-display); }
+.radar-pin { position: absolute; transform: translate(-50%, -50%); min-width: 32px; height: 32px; padding: 0 6px; font: 700 13px/1 var(--font-display); color: var(--lcd-ink); background: var(--lcd-bg); border: 2px solid var(--lcd-ink); border-radius: 50%; cursor: pointer; }
+.radar-pin.fit-good { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.radar-pin.fit-low { opacity: 0.65; border-style: dashed; }
+@media (prefers-reduced-motion: reduce) { .radar-sweep { animation: none; } }

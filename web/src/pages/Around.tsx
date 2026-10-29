@@ -4,6 +4,7 @@
 import { useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
+import { Radar } from "../components/Radar";
 import { Screen } from "../components/Screen";
 
 interface Read { items: string[]; hours: string | null; kind: string; source: string }
@@ -107,12 +108,13 @@ export function Around() {
           {places.length === 0 && (
             <p class="lcd-block">Nothing we know of this close. {widen < 2 ? "Look a little further, or add the place you are in." : "Add the place you are in?"}</p>
           )}
+          {places.length > 0 && <Radar pins={places} radiusM={RADII[widen]} onPick={setOpen} />}
           <ul class="lcd-menu">
-            {places.map((p) => (
+            {places.map((p, i) => (
               <li key={p.id}>
                 <button class="lcd-option" type="button" onClick={() => setOpen(p.id)}>
                   <span class="option-text">
-                    <span>{p.name}</span>
+                    <span>{i + 1}. {p.name}</span>
                     <span class="option-meta">{metres(p.distance_m)} {point(p.bearing)} · {FIT[p.fit]}{p.talking ? ` · ${TALKING[p.talking]}` : ""}</span>
                     <span class="option-meta">{p.why}</span>
                   </span>
