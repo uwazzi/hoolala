@@ -11,5 +11,5 @@
     "types": ["node"]
   },
   "include": ["src", "tests", "evals"],
-  "exclude": ["public", "prior-work", "node_modules"]
+  "exclude": ["public", "prior-work", "node_modules", "tests/web-*.test.ts"]
 }

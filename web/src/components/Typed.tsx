@@ -2,7 +2,7 @@
 // Reduced motion: the whole line at once.
 import { useEffect, useRef, useState } from "preact/hooks";
 
-export function Typed({ text, onDone }: { text: string; onDone: () => void }) {
+export function Typed({ text, onDone, msPerChar = 22 }: { text: string; onDone: () => void; msPerChar?: number }) {
   const [typed, setTyped] = useState(0);
   const doneRef = useRef(false);
   useEffect(() => {
@@ -20,9 +20,9 @@ export function Typed({ text, onDone }: { text: string; onDone: () => void }) {
         }
         return t + 1;
       });
-    }, 22);
+    }, msPerChar);
     return () => clearInterval(timer);
-  }, [text]);
+  }, [text, msPerChar]);
   useEffect(() => {
     if (typed >= text.length && !doneRef.current) {
       doneRef.current = true;

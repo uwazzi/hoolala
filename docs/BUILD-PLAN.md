@@ -190,10 +190,10 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests first: proposal saves nothing; undo restores exactly; personality labels and sourceless lines rejected; outcomes alone create nothing; A's compass never returned to B.
 
 ### WP34 Surprise me voice (v6.1, Sat 31, after WP33)
-- [ ] Thumb row (TYPE, 76 px mic, SKIP) replaces the ball hold; ball is state display only; progress dots with the fed compass part; caption types as spoken; I HEARD plus the drafted line, then KEEP / SAY AGAIN / FIX BY TYPING; SOUND ON / OFF (speech only, captions always); softkeys LEAVE / SOUND.
-- [ ] Keep the server transcription path (Meta ASR, heard then forgotten); no-mic browsers open typing with the note; tap under 400 ms never sends; release outside ends and sends; 45 s cap; crisis answers stop with the crisis message, never read aloud.
-- [ ] Drafting via WP33 `POST /compass/propose`; fallback trims the answer to 60 chars with the question's part; done state (THAT'S YOU, IN N ANSWERS.) opens the compass reveal.
-- [ ] Tests first: short tap never sends; release-outside sends; nothing saved before KEEP; no-mic fallback; mic tracks stopped; no transcripts in logs or tables; crisis path; SOUND OFF never speaks.
+- [x] Thumb row (TYPE, 76 px mic, SKIP) replaces the ball hold; ball is state display only; progress dots with the fed compass part; caption types as spoken; I HEARD plus the drafted line, then KEEP / SAY AGAIN / FIX BY TYPING; SOUND ON / OFF (speech only, captions always); softkeys LEAVE / SOUND.
+- [x] Keep the server transcription path (Meta ASR, heard then forgotten); no-mic browsers open typing with the note; tap under 400 ms never sends; release outside ends and sends; 45 s cap; crisis answers stop with the crisis message, never read aloud.
+- [x] Drafting via WP33 `POST /compass/propose`; fallback trims the answer to 60 chars with the question's part; done state (THAT'S YOU, IN N ANSWERS.) opens the compass reveal.
+- [x] Tests first: short tap never sends; release-outside sends; nothing saved before KEEP; no-mic fallback; mic tracks stopped; no transcripts in logs or tables; crisis path; SOUND OFF never speaks.
 
 ### WP31 add-on: compact header and Around softkeys
 - [x] Compact brand bar on every screen (44 px, HOOLALA! left, tagline right, dashed bottom border); softkeys TODAY · AROUND · FRIENDS on top-level screens; Here sits under AROUND.
