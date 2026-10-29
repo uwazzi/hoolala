@@ -94,7 +94,7 @@ export function Home() {
             </li>
             {hasCompass === false && (
               <li>
-                <a class="lcd-key" href="/start">Want a head start?</a>
+                <a class="lcd-key" href="/surprise">Want a head start?</a>
               </li>
             )}
             <li>

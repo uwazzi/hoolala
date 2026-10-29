@@ -53,7 +53,7 @@ describe("helpers", () => {
 });
 
 describe("resolveCitation", () => {
-  // Shaped like the real FIND ME call on 28 Oct: the model cited only the site.
+  // Shaped like a real call on 28 Oct: the model cited only the site.
   const pages = [
     page("https://en.wikipedia.org/wiki/Linus_Torvalds", "Linus Torvalds - Wikipedia", "Finnish software engineer, creator of the Linux kernel; lives in Portland, Oregon"),
     page("https://en.wikipedia.org/wiki/Git", "Git - Wikipedia", "Git is a distributed version control system created by Linus Torvalds in 2005"),
@@ -81,7 +81,7 @@ describe("resolveCitation", () => {
     expect(resolveCitation(null, "anything", pages)).toBeNull();
   });
 
-  it("FIND ME may fall back to a returned page on the cited site; never to a site not returned", () => {
+  it("a confirmed flow may fall back to a returned page on the cited site; never to a site not returned", () => {
     expect(resolveCitation("https://en.wikipedia.org", "Plays the cello", pages, [], { sameSiteFallback: true })).toBe("https://en.wikipedia.org/wiki/Linus_Torvalds");
     expect(resolveCitation("https://en.wikipedia.org", "Plays the cello", pages)).toBeNull();
     expect(resolveCitation("https://bbntimes.com", "Created Git", pages, [], { sameSiteFallback: true })).toBeNull();

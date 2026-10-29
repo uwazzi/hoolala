@@ -43,7 +43,7 @@ export const SUGGEST_PLACES = [
 ];
 
 /** A public figure, so no private person is ever looked up by the eval. */
-export const FINDME_PUBLIC = { name: "Linus Torvalds", town: "Portland", links: [] as string[] };
+// FIND ME removed in v6.2: the compass comes from spoken answers, never search.
 
 export interface TryCase {
   name: string;

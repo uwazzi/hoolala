@@ -1,6 +1,6 @@
 import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
-import { handleChanges, handleCompass, handleConfirm, handleConfirmLine, handleDeleteCompass, handleDraft, handleFind, handleKeep, handlePropose, handleRemoveLine, handleUndo } from "./api/compass";
+import { handleChanges, handleCompass, handleConfirmLine, handleDeleteCompass, handleDraftLine, handlePeople, handlePropose, handleRemoveLine, handleRemovePerson, handleSave, handleUndo } from "./api/compass";
 import { handleHealth, json } from "./api/health";
 import { ensureSample } from "./db/sample";
 import {
@@ -91,20 +91,17 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/me/intro-seen" && method === "POST") {
     return handleIntroSeen(request, env);
   }
-  if (url.pathname === "/api/me/find" && method === "POST") {
-    return handleFind(request, env);
-  }
-  if (url.pathname === "/api/me/compass/draft" && method === "POST") {
-    return handleDraft(request, env);
-  }
   if (url.pathname === "/api/me/surprise/hear" && method === "POST") {
     return handleHear(request, env);
   }
   if (url.pathname === "/api/me/surprise/next" && method === "POST") {
     return handleNext(request, env);
   }
-  if (url.pathname === "/api/me/compass/confirm" && method === "POST") {
-    return handleConfirm(request, env);
+  if (url.pathname === "/api/me/compass/draft-line" && method === "POST") {
+    return handleDraftLine(request, env);
+  }
+  if (url.pathname === "/api/me/compass/save" && method === "POST") {
+    return handleSave(request, env);
   }
   if (url.pathname === "/api/me/compass/propose" && method === "POST") {
     return handlePropose(request, env);
@@ -112,8 +109,8 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/me/compass/confirm_line" && method === "POST") {
     return handleConfirmLine(request, env);
   }
-  if (url.pathname === "/api/me/compass/keep" && method === "POST") {
-    return handleKeep(request, env);
+  if (url.pathname === "/api/me/compass/people" && method === "GET") {
+    return handlePeople(request, env);
   }
   if (url.pathname === "/api/me/compass/undo" && method === "POST") {
     return handleUndo(request, env);
@@ -128,6 +125,10 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   const compassLine = /^\/api\/me\/compass\/([0-9a-f-]{36})$/.exec(url.pathname);
   if (compassLine && method === "DELETE") {
     return handleRemoveLine(compassLine[1], request, env);
+  }
+  const compassPerson = /^\/api\/me\/compass\/people\/([a-z]+)$/.exec(url.pathname);
+  if (compassPerson && method === "DELETE") {
+    return handleRemovePerson(compassPerson[1], request, env);
   }
   if (url.pathname === "/api/places/nearby" && method === "POST") {
     return handleNearby(request, env);

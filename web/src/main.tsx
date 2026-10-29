@@ -16,7 +16,6 @@ import { NotFound } from "./pages/Placeholders";
 import { Place } from "./pages/Place";
 import { Privacy } from "./pages/Privacy";
 import { SignIn } from "./pages/SignIn";
-import { Start } from "./pages/Start";
 import { Surprise } from "./pages/Surprise";
 import "./styles.css";
 
@@ -57,7 +56,6 @@ function App() {
       <Route path="/signin" component={SignIn} />
       <Route path="/around" component={Around} />
       <Route path="/arrive" component={Arrive} />
-      <Route path="/start" component={Start} />
       <Route path="/surprise" component={Surprise} />
       <Route path="/compass" component={Compass} />
       <Route path="/here" component={Here} />

@@ -47,7 +47,7 @@ A social network where messages wait for you, not the reverse: it connects a tin
 
 | Step | The moment | Component |
 |---|---|---|
-| FIND ME | "Want a head start?" What's public about you, IS THIS YOU?, then your compass | FootprintCheck, CompassReveal, PersonalCompass |
+| GET PERSONAL | "Let's get personal." Three spoken questions, the compass check, then your game | GetPersonal, CompassCheck, PersonalCompass |
 | ARRIVE | Share location, pick the place or ADD THIS PLACE. GPS wrong? Search by name. No AI, on purpose | PlaceCheckIn |
 | PLACE IT | Hours, menu, spots with sources; THAT'S RIGHT / FIX IT for place points | PlaceCard |
 | PEEK and DISCOVER | "3 signals here right now", then three at a time, anonymous, translated | PlaceSignal |
@@ -161,7 +161,7 @@ One brand bar, 44 px high: **HOOLALA!** left (Silkscreen 700, 18 px), the taglin
 
 ## Hackathon build and roadmap (29 Oct 2026, v6)
 
-In the build: sign-in (email magic link on the web), FIND ME and the Personal Compass (rule 22 and rules 38 to 39), places and check-in, PLACE IT and place points (rules 40 to 41), tiny tries (rule 14), TRY IT (rule 44), Friends invite and crew (rule 45), Signals here, I'M CURIOUS and mutual accept, quick replies, PLAN IT meeting points, SUGGEST IT, SCREEN IT, CHECK IT, mutual QR, the Live page with the connection rate, STAY IN TOUCH, the invite card (replaces the share card) and Go live. If time: the share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations. **ROADMAP** (after 4 Nov): the rest of Go App-Free (rule 21; the compass itself is in the build), briefings (rule 23), SAY IT (rule 24, voice part), Telegram briefings (rule 27), Telegram Mini App and login (WP21), Sounds familiar? (12, 13, 18), Outside picks (19), Find a plan, Unplug, NFC.
+In the build: sign-in (email magic link on the web), Let's get personal and the Personal Compass (rules 38 to 39), places and check-in, PLACE IT and place points (rules 40 to 41), tiny tries (rule 14), TRY IT (rule 44), Friends invite and crew (rule 45), Signals here, I'M CURIOUS and mutual accept, quick replies, PLAN IT meeting points, SUGGEST IT, SCREEN IT, CHECK IT, mutual QR, the Live page with the connection rate, STAY IN TOUCH, the invite card (replaces the share card) and Go live. If time: the share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations. **ROADMAP** (after 4 Nov): the rest of Go App-Free (rule 21; the compass itself is in the build), briefings (rule 23), SAY IT (rule 24, voice part), Telegram briefings (rule 27), Telegram Mini App and login (WP21), Sounds familiar? (12, 13, 18), Outside picks (19), Find a plan, Unplug, NFC.
 
 ## Non-negotiables
 
@@ -204,7 +204,7 @@ In the build: sign-in (email magic link on the web), FIND ME and the Personal Co
 36. **Stay in touch is mutual or invisible.** After a confirmed meet-up, each can choose STAY IN TOUCH. Only if both do does a friendship start. A one-sided choice is never revealed.
 37. **Leaving is always one tap.** I'M LEAVING ends the check-in and hides your signals; responders see "They had to go." Block works both ways at every place; report hides the item at once.
 
-38. **FIND ME asks first and only looks at you.** "Want a head start? OK to read your public profile?" YES, HAVE A LOOK / NO, I'LL TELL YOU. It searches only the name, city and links the person gives, at most three times; shows IS THIS YOU? with THAT'S ME / NOT ME (namesakes are normal); keeps only ticked findings; and stores only the compass lines that come out of them, each with its source. Never another person, never a login to a social network, never the raw results.
+38. **Let's get personal asks three questions and searches nothing.** "Let's get personal. Three questions about real moments you've had." Each spoken or typed answer drafts one compass line (COMPASS DRAFT): the question's part, a line about what happened, and the people in it as roles only, never names. The person confirms each line with NEXT, sees the whole sketch in the compass check, and nothing is saved before LOOKS RIGHT. Heard, then forgotten: audio and transcripts are never kept. Never a web search, never another person, never a name stored.
 39. **The compass stays private.** Interests in the person's words, each with "from: [source]" or "you said". It shapes only their own topic ideas and puts signals that fit them first (FITS YOU, shown only to them). Never shown to others, never used to match, rank or recommend people. No personality types, scores, health, politics, religion or sexuality.
 40. **Place facts say where they came from.** The place card shows CONFIRMED HERE facts (people at the place) first, then AI / FOUND facts with a source line (> google maps, > the place's website). Google Maps content is shown live with attribution and not kept. A fetched fact becomes a Hoolala! fact only when a person confirms or fixes it. Edits are screened. Places are public places only.
 41. **Place points are for caring for places, and private.** Add a new place 10 (once someone else checks in), add or fix a detail 5 (once confirmed or undisputed for a day), confirm a detail 2. Only while checked in there, never for your own, at most 30 a day. Shown only to you in MY MOMENTS ("You've helped 4 places."); the Live page shows collective counts only. **Never points for posting, replying or meeting people.** No leaderboards, levels, badges for rank, streaks or public totals.
@@ -312,7 +312,7 @@ Preachy, motivational or self-righteous lines: "reclaim your life", "disconnect 
 |---|---|
 | Under the name (always) | You never know until you go. |
 | Poster (optional, partner places) | SIGNALS HERE. / Small invitations to talk, from people in this room. / Scan to see what's up. Or type the code: KAFE. / Not a dating app. Anonymous until you both say yes. |
-| Get started (FIND ME) | WANT A HEAD START? / Hoolala! can look at what's public about you online to guess what you like talking about. OK? / YES, HAVE A LOOK / NO, I'LL TELL YOU / LOOKING YOU UP. POLITELY... / IS THIS YOU? / THAT'S ME / NOT ME / Apparently there are three of you. Which one's you? / Only you see this. We keep the compass, not the search. |
+| Get personal | LET'S GET PERSONAL. / Three questions about real moments you've had, so your tiny tries fit you. No right answers. / START / I HEARD / NEXT / SAY AGAIN / FIX BY TYPING / A FIRST SKETCH OF YOU, IN 3 LINES. / PEOPLE IN YOUR DAYS / LOOKS RIGHT. MAKE MY GAME / CHANGE SOMETHING / Heard, then forgotten. Your voice becomes words and is never kept. |
 | Arrive | WHERE ARE YOU? / Only to find the place you're in. / CHECKING YOU IN... / HERE UNTIL 15:40. / Not on the list? ADD THIS PLACE / Your phone thinks you're in the lake. Search for the place instead. |
 | Add a place | WHAT'S IT CALLED? / WHAT KIND OF PLACE? / PLACE ADDED. Points arrive when someone else checks in. Bring a friend? |
 | The place (PLACE IT) | THIS PLACE / CHECKING THE MENU... / CONFIRMED HERE / AI / FOUND > google maps / THAT'S RIGHT / FIX IT / NOT ANY MORE / NOTED. +5 PLACE POINTS ONCE SOMEONE CONFIRMS. / The internet says 4.50. The internet is not always right. |
@@ -467,7 +467,7 @@ The model never queries raw social data itself and never claims it sent anything
 
 | Function | Capability | Guardrail in code | Fallback |
 |---|---|---|---|
-| FIND ME | Web search with citations (at most 3, only the person's own name, city and links), structured output `{findings, compass}` | Consent first; IS THIS YOU?; raw findings never stored; every compass line has a ticked source or "you said"; banned labels; nothing saved before LOOKS RIGHT | Three scripted questions |
+| COMPASS DRAFT | Structured output `{part, line (≤60), topic, place_kind, pace, people[role]}` from one question id and answer | Part matches the question; roles from the fixed allow-list, never names; banned labels; the line describes what happened, never what the person is; transcripts never stored; nothing saved before LOOKS RIGHT | The answer trimmed to 60 characters, roles from keyword match, pace gentle |
 | PLACE IT | Parallel tools: `google_place_details` (live), `web_search` (menu, hours on the place's website), `get_place_facts`; structured `{facts[{field, value, source, url}]}` | Every fact has a source; Google content shown live with attribution, only the place id kept; nothing becomes a Hoolala! fact without a person; edits screened | People's facts only |
 | SUGGEST IT | Web search with citations (1 per request, cached per place for an hour), structured output | Event ideas need a citation returned in that call; ideas pass screening; never posted without a tap | Hand-written topics by time of day |
 | SCREEN IT | Structured verdict `{verdict, category, reason, fr, en}`, minimal effort | Code rules first (contacts, links, handles, length, words, crisis words); approve or reject only, never rewrite | Code rules only |
@@ -479,14 +479,14 @@ The model never queries raw social data itself and never claims it sent anything
 | Place | name, kind, city, coordinates from the person who added it, radius, Google place id, spots, optional code and poster key, added_by, status |
 | Place fact | place, field (hours, menu item, price, spot, wifi, sockets, quiet, rule), value, source (people, google, web, snap), source url, state (found, confirmed, disputed), confirmations, updated. Google facts are fetched live, never stored. |
 | Place contribution | person, place, fact, action (add place, add, fix, confirm), points, state (pending, counted, rejected). Private to the person. |
-| Compass item | person, part, text, source url or "you said", origin (find me, questions, edit), active. Never returned to anyone else. |
+| Compass item | person, part, text, origin (questions, edit), active. Never returned to anyone else. |
 | Check-in | user, place, method (location, add, search, qr, code), started, ends (4 hours), left. Deleted after 24 hours. Attempts store method, ok and reason only: never coordinates, never the user. |
 | Place signal | owner, place, topic (60), when, spot, capacity (1 to 3), language and translation, screening verdict, expiry, state |
 | Response | signal, responder, optional line (60), state (requested, accepted, declined, withdrawn), quick replies |
 
 Server rule (`src/rules/here.ts`): a viewer sees a place signal only if both are checked in at that place now, it is open and unexpired, neither blocked the other, and it isn't theirs. First names only between an owner and accepted responders.
 
-## Compass record (in the build through FIND ME)
+## Compass record (in the build through Let's get personal)
 
 | Field | Notes |
 |---|---|
@@ -658,23 +658,22 @@ The real-world reward: a private record of a moment, never a score.
 - Never public, ranked, compared, levelled or tied to streaks. No "you're behind" or "keep it up" nudges.
 - Copy states honestly what it records: a tap means proximity, a break is self-declared.
 
-## FootprintCheck
+## GetPersonal
 
-FIND ME: the head start. With the person's OK, Muse Spark looks at what's public about them, they tick what's really them, and the compass is drafted from that. Then CompassReveal.
+Let's get personal: the head start. Three spoken questions about real moments on the reused voice UI (ThumbRow, MicKey, PixelBall). Then CompassCheck.
+> **IN THE BUILD (v6.2, 29 Oct).** Replaces FootprintCheck and FIND ME: no consent screen, no web search, no IS THIS YOU? The compass is drafted from three answers.
 
-- **Consent first:** WANT A HEAD START? / "Hoolala! can look at what's public about you online (a website, a public profile, talks, articles) to guess what you like talking about. OK?" YES, HAVE A LOOK (primary) / NO, I'LL TELL YOU (three scripted questions, OnboardingStage).
-- **Inputs:** THE NAME YOU USE ONLINE, YOUR CITY, and up to 3 links (optional). Helper: "Only you. We never look anyone else up."
-- **Searching:** LOOKING YOU UP. POLITELY... with the stepped loader.
-- **IS THIS YOU?:** findings one per block, each a short line in Hoolala!'s words plus a `lcd-src` line (domain), with THAT'S ME / NOT ME. Several namesakes are normal: "Apparently there are three of you. Which one's you?" Progress cells N of M. Nothing unticked is used.
-- **Then:** DRAFT MY COMPASS > opens CompassReveal, every line with "from: [domain]" or "you said".
-- Privacy line, always visible: "Only you see this. We keep the compass, not the search."
-- Never: looking up someone else, a personality type, a score, anything about health, politics, religion or sexuality, a social network login.
-- Consumer provides: consent state, inputs, findings with URL and tick state.
+- **Intro:** LET'S GET PERSONAL. / "Three questions about real moments you've had, so your tiny tries fit you. No right answers. Hold the mic at the bottom and answer out loud, or type. About a minute." START (primary). Privacy line: "Heard, then forgotten. Your voice becomes words and is never kept. Only lines you keep are saved, and only you see them."
+- **Questions:** the interest, intention and delivery turns in a random order (TURN_ORDER), each once, each asked once. The stage strip reads SURPRISE ME / COMPASS / GAME / AROUND?; three dots and Q N OF 3 · FILLS [part] track progress. SKIP answers nothing and drafts no line.
+- **Draft:** I HEARD (or YOU TYPED) with the transcript, then `AI · FOR YOUR COMPASS` with the drafted line (the model-off fallback shows no AI kicker). NEXT confirms it in memory; SAY AGAIN re-records; FIX BY TYPING edits. Nothing is saved yet.
+- **Then:** after the third answer, CompassCheck.
+- Never: a web search, looking anyone up, a stored name, a personality type or score, anything about health, politics, religion or sexuality.
+- Consumer provides: question text, transcript, draft line, dots state.
 
 ## OnboardingStage
 
 One stage of Go App-Free (TELL IT): a short question from Muse Spark, a few choices, a free-text answer, and a way back.
-> **IN THE BUILD (v5, 27 Oct).** Used by FIND ME: the compass is drafted from the person's confirmed public footprint or three questions. Telegram linking and briefings stay ROADMAP.
+> **ROADMAP.** In v5 this was used by FIND ME; in v6.2 Let's get personal runs on the reused voice UI instead (three questions, CompassCheck). Telegram linking and briefings stay ROADMAP.
 
 - Progress: five pixel cells (`lcd-progress`), labelled "Stage N of 5". BACK on the right softkey, SKIP on optional stages, every earlier answer editable.
 - The question in Space Mono at body size, from Muse Spark or the scripted fallback. Stage 1 always opens "Hello, human. Before we get acquainted, what would you like a little more of?"
@@ -684,25 +683,27 @@ One stage of Go App-Free (TELL IT): a short question from Muse Spark, a few choi
 - Never asks for age, screen-time estimates, or anything the stage doesn't need. No guilt or scarcity copy.
 - Consumer provides: stage index, question text, choices, selected choices, free text, optional follow-up.
 
-## CompassReveal
+## CompassCheck
 
-The end of TELL IT: "Your world, according to you." Muse Spark states the Personal Compass back in one or two plain sentences, and the person decides.
-> **IN THE BUILD (v5, 27 Oct).** Used by FIND ME: the compass is drafted from the person's confirmed public footprint or three questions. Telegram linking and briefings stay ROADMAP.
+The end of Let's get personal: the whole sketch on one screen, and the person decides. Replaces CompassReveal.
+> **IN THE BUILD (v6.2, 29 Oct).** After the third answer; nothing is saved until LOOKS RIGHT.
 
-- Kicker GO APP-FREE / STAGE 5 OF 5, title YOUR WORLD, ACCORDING TO YOU.
-- The compass lines as a short list in Space Mono, in the person's own words where possible. Below it, one dashed AI block: "I'll look for things that fit and leave the rest alone." and "Everything else can wait."
-- SOUND ABOUT RIGHT? with three keys: LOOKS RIGHT (primary), CHANGE SOMETHING, START AGAIN. Nothing is saved until LOOKS RIGHT.
-- After LOOKS RIGHT (v5): WHERE ARE YOU? (PlaceCheckIn). Each line shows "from: [source]" or "you said". (ROADMAP: the Telegram link step and a first briefing.)
+- Typed headline: A FIRST SKETCH OF YOU, IN N LINES. (or NOTHING KEPT THIS TIME. when every question was skipped).
+- The compass as a 2x2 grid: N MORE OF, E TALK ABOUT, S LESS OF, W HOW I GO. Each cell shows the line (or "Add later, if you like") and FROM: YOU TYPED, FROM: SURPRISE ME or EMPTY FOR NOW.
+- PEOPLE IN YOUR DAYS: the roles heard in the answers, each with REMOVE; or "Nobody named yet. Tries will say someone."
+- "Nothing is saved until you say it looks right. Change or undo any line later in MY COMPASS."
+- Two keys: LOOKS RIGHT. MAKE MY GAME (primary, saves lines and people at once, then the game) and CHANGE SOMETHING (restarts the three questions).
 - Never a score, a type, a personality label or a time projection. No "years reclaimed".
-- Consumer provides: compass lines, the AI summary sentence.
+- Consumer provides: kept lines with their source (typed or heard), roles.
 
 ## PersonalCompass
 
 YOUR PERSONAL COMPASS: what the person is curious about right now, in their own words, with every change visible and undoable. Never a score.
-> **IN THE BUILD (v5, 27 Oct).** Used by FIND ME: the compass is drafted from the person's confirmed public footprint or three questions. Telegram linking and briefings stay ROADMAP.
+> **IN THE BUILD (v6.2, 29 Oct).** Drafted from three spoken answers (Let's get personal). Telegram linking and briefings stay ROADMAP.
 
 - Sections as kickers: WHAT YOU WANT MORE OF, INTERESTS, LESS OF THIS, HOW OFTEN, WELCOME SUGGESTIONS. Each line is plain Space Mono with EDIT and REMOVE.
 - One field at the top: SAY IT YOUR WAY ("Only send me things near Lausanne."). Muse Spark proposes the change; the screen shows BEFORE / AFTER (`lcd-diff`) and SAVE THIS CHANGE? with SAVE (primary) and NOT NOW.
+- PEOPLE IN YOUR DAYS lists the roles heard in the answers (roles only, never names), each with REMOVE.
 - CHANGES lists the last changes with their origin (you said, onboarding, feedback) and an UNDO key each. Undo confirms with UNDONE. Like it never happened.
 - Built only from what the person said or chose. No inferred interests, no "people like you", nothing from time spent or opens.
 - Consumer provides: compass items by part, the change log, a pending proposal.

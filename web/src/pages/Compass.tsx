@@ -1,4 +1,4 @@
-// WP33 MY COMPASS: four directions, a first-time reveal after FIND ME or
+// WP33 MY COMPASS: four directions, a first-time reveal after get personal or
 // Surprise, and SAY IT YOUR WAY edits with UNDO. Only the owner ever sees
 // this. The person's words are never typed letter by letter (that voice is
 // Hoolala!'s); the reveal raises one line at a time instead.
@@ -51,6 +51,7 @@ export function Compass() {
   const [sayWords, setSayWords] = useState("");
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [changes, setChanges] = useState<Change[]>([]);
+  const [people, setPeople] = useState<{ role: string }[]>([]);
   const [busy, setBusy] = useState(false);
   const [activeDir, setActiveDir] = useState<string | null>(null);
   const review = query.review === "delivery" || query.review === "suggest" ? (query.review as string) : null;
@@ -68,6 +69,9 @@ export function Compass() {
       setLines(res.data.compass);
     });
     refreshChanges();
+    api<{ people: { role: string }[] }>("GET", "/api/me/compass/people").then((res) => {
+      if (res.status === 200) setPeople(res.data.people);
+    });
   }, []);
 
   // First-time reveal: the needle settles, then one line at a time.
@@ -180,6 +184,13 @@ export function Compass() {
     setNote("Saved, in your words. Changed your mind?");
   }
 
+  async function removePerson(role: string) {
+    const res = await api<{ people: { role: string }[] }>("DELETE", `/api/me/compass/people/${encodeURIComponent(role)}`);
+    if (res.status !== 200) return setNote("That didn't work. Try again?");
+    setPeople(res.data.people);
+    setNote("Removed. Tries will say someone instead.");
+  }
+
   async function removeAll() {
     if (!window.confirm("Delete your whole compass?")) return;
     await api("DELETE", "/api/me/compass");
@@ -198,7 +209,7 @@ export function Compass() {
       {lines?.length === 0 && (
         <>
           <p class="lcd-block">No compass yet. It helps with topic ideas and puts signals that fit you first, just for you.</p>
-          <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/start">Get a head start</a></li></ul>
+          <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/surprise">Get a head start</a></li></ul>
         </>
       )}
       {fresh && lines && lines.length > 0 && (
@@ -251,6 +262,22 @@ export function Compass() {
               </div>
             );
           })}
+          <h2 class="lcd-kicker">People in your days</h2>
+          {people.length > 0 ? (
+            <ul class="lcd-menu">
+              {people.map((p) => (
+                <li class="lcd-block idea" key={p.role}>
+                  <p>{p.role[0].toUpperCase()}{p.role.slice(1)}</p>
+                  <div class="tiny-actions">
+                    <span class="lcd-small">Roles only, never names</span>
+                    <button type="button" onClick={() => removePerson(p.role)}>Remove</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="lcd-small">Nobody named yet. Tries will say someone.</p>
+          )}
           <h2 class="lcd-kicker">Say it your way</h2>
           <p class="lcd-small">Pick a line, say it in your own words, look, then confirm. Nothing changes until you confirm.</p>
           {review && !fixTry && <p class="lcd-small">Came from {review === "delivery" ? "Around" : "a suggestion"}: looking marks these lines reviewed.</p>}
@@ -316,7 +343,7 @@ export function Compass() {
           {DIRS.map((d) => <p class="lcd-small" key={d.label}>{d.used}</p>)}
           <p class="lcd-small">Never shown to anyone. Never used to match or rank people.</p>
           <ul class="key-list">
-            <li><a class="lcd-key" href="/start">Redo it</a></li>
+            <li><a class="lcd-key" href="/surprise">Redo it</a></li>
             <li><button class="lcd-key" type="button" onClick={removeAll}>Delete my compass</button></li>
           </ul>
         </>

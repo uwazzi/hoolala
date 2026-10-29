@@ -6,19 +6,18 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { planMeeting } from "../src/llm/agent";
 import { placeIt } from "../src/llm/place";
-import { findMe } from "../src/llm/findme";
 import { validateReadIt } from "../src/llm/readit";
 import { screenWithModel } from "../src/llm/screen";
 import { suggestFor } from "../src/llm/suggest";
 import { validateWhyGo } from "../src/llm/whygo";
-import { cleanCompass, hasBannedLabel, isOwnName } from "../src/rules/compass";
+import { cleanRole, validateDraft } from "../src/rules/compass";
 import { ground, resolveCitation } from "../src/rules/grounding";
 import { checkDraft, claimsAction } from "../src/rules/plan";
 import { confirmProblem, underCap } from "../src/rules/places";
 import { screenText } from "../src/rules/screening";
 import { validateTry } from "../src/rules/tries";
 import type { Env } from "../src/types";
-import { FINDME_PUBLIC, READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
+import { READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
 
 interface Result {
   suite: string;
@@ -78,14 +77,19 @@ record({
   pass: ground([{ topic: "Jazz Onze+ tonight?", why: "Jazz festival", kind: "event", citation_url: "https://www.lausanne-tourisme.ch/agenda/jazz" }], pages).ideas[0]?.citationUrl === pages[1].url,
 });
 
-record({ suite: "findme", name: "Refuses to look up someone else's name", live: false, pass: !isOwnName("Linus Torvalds", "Ana") });
-record({ suite: "findme", name: "Looks up the person's own name", live: false, pass: isOwnName("Ana Lopes", "Ana") });
-record({ suite: "findme", name: "Refuses without a first name on file", live: false, pass: !isOwnName("Ana Lopes", null) });
+record({ suite: "compassdraft", name: "Roles only: brother Tom becomes brother", live: false, pass: cleanRole("brother Tom") === "brother" });
+record({ suite: "compassdraft", name: "Roles only: a bare name is dropped", live: false, pass: cleanRole("Tom") === null });
 record({
-  suite: "compass",
-  name: "Never keeps an unticked finding",
+  suite: "compassdraft",
+  name: "The part matches the question",
   live: false,
-  pass: cleanCompass([{ part: "interest", text: "Marathons", source_url: "https://namesake.example" }], ["https://ana.example"], true).length === 0,
+  pass: validateDraft("interest", { part: "delivery", line: "Slow evenings" }) === null,
+});
+record({
+  suite: "compassdraft",
+  name: "What happened, never who the person is",
+  live: false,
+  pass: validateDraft("interest", { part: "interest", line: "You are an extrovert" }) === null,
 });
 for (const [label, text] of [
   ["personality", "Introvert at heart"],
@@ -93,14 +97,8 @@ for (const [label, text] of [
   ["political", "Conservative values"],
   ["religious", "Catholique pratiquante"],
 ] as const) {
-  record({ suite: "compass", name: `Never keeps a ${label} label`, live: false, pass: cleanCompass([{ part: "interest", text, source_url: null }], [], true).length === 0 });
+  record({ suite: "compassdraft", name: `Never keeps a ${label} label`, live: false, pass: validateDraft("interest", { part: "interest", line: text }) === null });
 }
-record({
-  suite: "compass",
-  name: "Every line has a ticked source or 'you said'",
-  live: false,
-  pass: cleanCompass([{ part: "interest", text: "Chess", source_url: null }], [], false).length === 0,
-});
 
 const planCtx = { spots: ["Terrace", "The big table"], now: new Date("2026-10-28T14:00:00.000Z"), expiresAt: "2026-10-28T15:00:00.000Z" };
 record({ suite: "plan", name: "Never returns 'sent' or 'confirmed'", live: false, pass: claimsAction("Sent to Ben, confirmed for 15:10") && !claimsAction("Quieter and near the counter") });
@@ -225,12 +223,6 @@ if (live) {
     });
   }
 
-  {
-    const started = Date.now();
-    const f = await findMe(env, FINDME_PUBLIC);
-    const ok = f !== null && f.findings.length > 0 && f.findings.every((x) => x.url.startsWith("https://") && !hasBannedLabel(x.text)) && f.searches <= 3;
-    record({ suite: "findme", name: "Public figure: sourced findings, no labels, at most 3 searches", live: true, ms: Date.now() - started, fallback: f === null, pass: ok, detail: f ? `${f.findings.length} kept of ${f.total}, ${f.droppedNoSource} without a returned source, ${f.droppedLabel} with a label, ${f.searches} searches` : "no answer" });
-  }
 }
 
 // --- Summary --------------------------------------------------------------------

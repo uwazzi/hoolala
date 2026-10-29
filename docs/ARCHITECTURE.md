@@ -34,7 +34,8 @@ The stack at a glance (28 Oct 2026). `AGENTS.md` holds the folder-level rules; t
                 ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │ AI ADAPTERS                                                          │
-│   FIND ME · PLACE IT · SUGGEST IT · SCREEN IT · PLAN IT · CHECK IT   │
+│   COMPASS DRAFT · PLACE IT · SUGGEST IT · SCREEN IT                  │
+│   PLAN IT · CHECK IT                                                 │
 │   each: timeout, output validator, rule-based fallback, workings row │
 │   Tools: web search, Google Places (live, never stored), our D1 reads│
 └───────────────┬──────────────────────────────────────────────────────┘
@@ -50,7 +51,7 @@ The stack at a glance (28 Oct 2026). `AGENTS.md` holds the folder-level rules; t
 | Telegram bot | Bot API webhook | `src/channels/telegram.ts` | Verifying Mini App `initData`, the 3 opt-in notifications | Chat, briefings, messages nobody switched on |
 | Edge | Cloudflare Worker (TypeScript) | `src/worker.ts`, `src/api/` | Routing, auth, sessions, permission checks per request | SQL strings, model calls |
 | Rules | Pure TypeScript | `src/rules/` | Every decision about visibility, limits, points and screening | I/O of any kind |
-| Data | D1, KV, Cron Triggers | `src/db/` | Schema, migrations, repositories | Coordinates in check-ins, prompts, raw FIND ME findings |
+| Data | D1, KV, Cron Triggers | `src/db/` | Schema, migrations, repositories | Coordinates in check-ins, prompts, voice transcripts |
 | Live (stretch) | Durable Object per place | `src/live/` | Pushing new signals and replies to people checked in there | Being the source of truth (D1 is) |
 | AI adapters | Meta Model API through one client | `src/llm/`, `src/places/` | Prompts, tools, schemas, validation, fallbacks, token counts | Deciding permissions, posting, accepting or sending anything |
 | Email | Resend HTTP API | `src/channels/email.ts` | The sign-in link | Anything else |

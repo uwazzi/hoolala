@@ -140,7 +140,7 @@ export interface LoginTokenRow {
 }
 
 export type CompassPart = "interest" | "intention" | "filter" | "delivery" | "action";
-export type CompassOrigin = "find_me" | "questions" | "edit" | "feedback" | "suggest" | "delivery";
+export type CompassOrigin = "questions" | "edit" | "feedback" | "suggest" | "delivery";
 
 export interface CompassItemRow {
   id: string;
@@ -375,7 +375,7 @@ export interface MomentRow {
   label: string;
 }
 
-export type WorkingsFunction = "findme" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it" | "why_go" | "read_it";
+export type WorkingsFunction = "findme" | "compassdraft" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it" | "why_go" | "read_it";
 
 export interface WorkingRow {
   id: string;
