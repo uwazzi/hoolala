@@ -35,7 +35,7 @@ export const canRecord = () => typeof navigator !== "undefined" && Boolean(navig
  * Says the text (unless muted) and pulses the level with each word. Muted, or
  * without a voice, the ball still "speaks" at reading pace. Resolves when done.
  */
-export function speak(text: string, level: Level, lang = navigator.language || "en-GB"): Promise<void> {
+export function speak(text: string, level: Level, lang = "en-GB"): Promise<void> {
   const words = text.split(/\s+/).filter(Boolean).length;
   const pulseByClock = (ms: number) =>
     new Promise<void>((resolve) => {
@@ -82,7 +82,22 @@ export interface Recording {
   cancel(): void;
 }
 
-const MAX_SECONDS = 55;
+const MAX_SECONDS = 45;
+
+/** A press shorter than this is a tap: a hint, never sent. */
+export const TAP_MS = 400;
+
+export type HoldRelease = "send" | "tap" | "none";
+
+/**
+ * What letting go means. Releasing outside the key calls the same
+ * release, so it counts as let go. Nothing was heard when the
+ * microphone never got ready.
+ */
+export function holdRelease(pressedAt: number, releasedAt: number, wasReady: boolean): HoldRelease {
+  if (!wasReady) return "none";
+  return releasedAt - pressedAt < TAP_MS ? "tap" : "send";
+}
 
 /** Starts the microphone. Rejects when there's no microphone or the person said no. */
 export async function record(level: Level, onTooLong: () => void): Promise<Recording> {

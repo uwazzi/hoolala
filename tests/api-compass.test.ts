@@ -342,3 +342,60 @@ describe("SAY IT YOUR WAY", () => {
     expect((await call(env, "POST", "/api/me/compass/undo", ana)).status).toBe(404);
   });
 });
+
+describe("SURPRISE ME keeps", () => {
+  it("needs a signed-in person", async () => {
+    const env = testEnv(AI);
+    expect((await call(env, "POST", "/api/me/compass/keep", undefined, { part: "interest", words: "Chess" })).status).toBe(401);
+  });
+
+  it("saves one line as 'you said', and nothing before the KEEP tap", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const proposed = await (await call(env, "POST", "/api/me/compass/propose", ana, { part: "interest", words: "Chess, the slower the better" })).json();
+    expect(proposed.proposed).toEqual({ part: "interest", words: "Chess, the slower the better", change: { before: null, after: "Chess, the slower the better" } });
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
+    const kept = await call(env, "POST", "/api/me/compass/keep", ana, { part: proposed.proposed.part, words: proposed.proposed.words });
+    expect(kept.status).toBe(200);
+    expect(await kept.json()).toEqual({
+      compass: [{ id: expect.any(String), part: "interest", text: "Chess, the slower the better", sourceUrl: null, source: "you said", origin: "questions" }],
+    });
+  });
+
+  it("refuses invalid lines with the validator's reason, and saves nothing", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "  " })).json()).toMatchObject({ error: "missing_words" });
+    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "x".repeat(61) })).json()).toMatchObject({ error: "too_long" });
+    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "filter", words: "I love football" })).json()).toMatchObject({ error: "bad_fit" });
+    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "Single and ready to flirt" })).json()).toMatchObject({
+      error: "not_allowed",
+    });
+    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "nothing, I want to die" })).json()).toMatchObject({
+      error: "crisis",
+    });
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
+  });
+
+  it("keeps one person's lines from another, with no model and no undo log", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const ben = await person(env, "Ben");
+    await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "Chess" });
+    await call(env, "POST", "/api/me/compass/keep", ben, { part: "filter", words: "loud bars" });
+    expect(await (await call(env, "GET", "/api/me/compass", ana)).json()).toEqual({
+      compass: [{ id: expect.any(String), part: "interest", text: "Chess", sourceUrl: null, source: "you said", origin: "questions" }],
+    });
+    expect(rows(env, "SELECT COUNT(*) AS n FROM llm_calls")[0].n).toBe(0);
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_changes")[0].n).toBe(0);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it("works with the model off", async () => {
+    const env = testEnv({ ...AI, LLM_ENABLED: "false" });
+    const ana = await person(env, "Ana");
+    const kept = await call(env, "POST", "/api/me/compass/keep", ana, { part: "delivery", words: "quiet mornings" });
+    expect(kept.status).toBe(200);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+});

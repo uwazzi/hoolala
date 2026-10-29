@@ -26,6 +26,18 @@ export async function replaceCompass(db: D1Database, userId: string, lines: Comp
   ]);
 }
 
+/** SURPRISE ME keep: one new line in the person's own words. */
+export async function addCompassLine(
+  db: D1Database, userId: string, part: CompassLine["part"], text: string, origin: CompassOrigin, nowIso: string,
+): Promise<string> {
+  const id = crypto.randomUUID();
+  await db
+    .prepare("INSERT INTO compass_items (id, user_id, part, text, source_url, origin, active, created_at) VALUES (?, ?, ?, ?, NULL, ?, 1, ?)")
+    .bind(id, userId, part, text, origin, nowIso)
+    .run();
+  return id;
+}
+
 export async function removeCompassLine(db: D1Database, userId: string, id: string): Promise<boolean> {
   const res = await db.prepare("DELETE FROM compass_items WHERE id = ? AND user_id = ?").bind(id, userId).run();
   return (res.meta?.changes ?? 0) === 1;

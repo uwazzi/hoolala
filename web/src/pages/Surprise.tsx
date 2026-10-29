@@ -1,21 +1,63 @@
-// WP26 SURPRISE ME: a short spoken conversation instead of a web search.
-// Hoolala! asks out loud (the phone's own voice, MUTE any time), the person
-// holds the ball to answer or types, at most 5 questions. Then the surprise:
-// a compass in their own words, one observation and two topic ideas.
-// Heard, then forgotten: audio is never kept; nothing is saved before LOOKS RIGHT.
-import { useEffect, useRef, useState } from "preact/hooks";
+// WP34 SURPRISE ME voice: five quick questions, answered by holding the mic
+// in the thumb zone or by typing. Every answer shows what was heard and the
+// compass line it would make; KEEP saves exactly that line, SAY AGAIN drops
+// it, SKIP moves on. Heard, then forgotten: audio is never kept; nothing is
+// saved before KEEP.
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { api } from "../api";
 import { type BallMode, PixelBall } from "../components/PixelBall";
 import { Screen } from "../components/Screen";
-import { canRecord, isMuted, type Level, type Recording, record, setMuted, speak } from "../voice";
+import { Typed } from "../components/Typed";
+import { proposePlan } from "../surprise";
+import { canRecord, holdRelease, isMuted, type Level, type Recording, record, setMuted, speak } from "../voice";
 
-type Phase = "intro" | "talk" | "drafting" | "reveal" | "help" | "saved";
-interface Turn { q: string; a: string }
-interface Line { part: string; text: string; sourceUrl: null; source: string }
-interface Draft { lines: Line[]; observation: string | null; ideas: string[]; source: "ai" | "rules" }
+type Phase = "intro" | "ask" | "done" | "help";
+type Mic = "speaking" | "ready" | "listening" | "thinking" | "confirm" | "typing";
 
-const PART_LABEL: Record<string, string> = { interest: "Talk about", intention: "More of", filter: "Less of", delivery: "How I go", action: "Next time" };
+interface Turn {
+  q: string;
+  a: string;
+}
+interface Draft {
+  part: string;
+  words: string;
+}
+
+const PART_LABEL: Record<string, string> = {
+  interest: "TALK ABOUT",
+  intention: "MORE OF",
+  filter: "LESS OF",
+  delivery: "HOW I GO",
+  action: "NEXT TIME",
+};
 const MAX_TURNS = 5;
+
+const BALL: Record<Mic, BallMode> = {
+  speaking: "speaking",
+  ready: "idle",
+  listening: "listening",
+  thinking: "thinking",
+  confirm: "idle",
+  typing: "idle",
+};
+
+const HINTS: Record<Mic, string> = {
+  speaking: "HOOLALA! IS ASKING...",
+  ready: "YOUR TURN",
+  listening: "LISTENING. LET GO WHEN YOU'RE DONE.",
+  thinking: "GOT IT. ONE SECOND...",
+  confirm: "CHECK IT, OR HOLD THE MIC TO REDO",
+  typing: "",
+};
+
+const MIC_LABEL: Record<Mic, string> = {
+  speaking: "WAIT...",
+  ready: "HOLD TO TALK",
+  listening: "LET GO TO SEND",
+  thinking: "WAIT...",
+  confirm: "HOLD TO REDO",
+  typing: "WAIT...",
+};
 
 const ERRORS: Record<string, string> = {
   ai_off: "Listening isn't available right now. Type your answer instead.",
@@ -28,17 +70,33 @@ const ERRORS: Record<string, string> = {
 export function Surprise() {
   const level = useRef<Level>({ current: 0 }).current;
   const [phase, setPhase] = useState<Phase>("intro");
-  const [mode, setMode] = useState<BallMode>("idle");
-  const [muted, setMute] = useState(isMuted());
+  const [mic, setMic] = useState<Mic>("speaking");
+  const [sound, setSound] = useState(!isMuted());
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [qi, setQi] = useState(0);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [qpart, setQpart] = useState<string | null>(null);
+  const [heard, setHeard] = useState("");
+  const [typedAnswer, setTypedAnswer] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [draftWhy, setDraftWhy] = useState("");
+  const [kept, setKept] = useState(0);
+  const [text, setText] = useState("");
   const [help, setHelp] = useState("");
   const [note, setNote] = useState("");
+  const [failed, setFailed] = useState(false);
+  const [said, setSaid] = useState(false);
+  const [shown, setShown] = useState(false);
+  const [bars, setBars] = useState<number[]>([]);
   const recording = useRef<Recording | null>(null);
   const holding = useRef(false);
-  const mic = canRecord();
+  const pressedAt = useRef(0);
+  const backTo = useRef<Mic>("ready");
+  const seq = useRef(0);
+  const acting = useRef(false);
+  const [busy, setBusy] = useState(false);
+  const voice = useMemo(canRecord, []);
+  const still = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
 
   useEffect(() => {
     api("GET", "/api/me").then((res) => {
@@ -50,252 +108,545 @@ export function Surprise() {
     };
   }, []);
 
-  async function say(text: string) {
-    setMode("speaking");
-    await speak(text, level);
-    // Grabbing the ball cuts Hoolala! off; don't undo "listening".
-    setMode((m) => (m === "speaking" ? "idle" : m));
-  }
+  // The mic wakes when the question is both spoken and shown.
+  useEffect(() => {
+    if (phase === "ask" && mic === "speaking" && said && shown) setMic(voice ? "ready" : "typing");
+  }, [said, shown, phase, mic, voice]);
 
-  async function ask(sofar: Turn[]) {
-    setMode("thinking");
-    const res = await api<{ question?: string | null; help?: string }>("POST", "/api/me/surprise/next", { turns: sofar });
-    if (res.data.help) return stop(res.data.help);
-    if (res.status !== 200) {
-      setMode("idle");
-      return setNote("Something went wrong. Try again?");
+  // Twelve radial bars from the mic level, while listening.
+  useEffect(() => {
+    if (mic !== "listening" || still) {
+      setBars([]);
+      return;
     }
-    if (!res.data.question || sofar.length >= MAX_TURNS) return surprise(sofar);
-    setQuestion(res.data.question);
-    setAnswer("");
-    await say(res.data.question);
-  }
+    let tick = 0;
+    const timer = setInterval(() => {
+      tick++;
+      const base = Math.min(1, level.current);
+      setBars(Array.from({ length: 12 }, (_, i) => 4 + Math.round(base * 22 * (0.7 + 0.3 * Math.sin(tick * 0.7 + i * 1.3)))));
+    }, 90);
+    return () => clearInterval(timer);
+  }, [mic, still, level]);
 
   function stop(message: string) {
+    holding.current = false;
+    recording.current?.cancel();
+    recording.current = null;
     window.speechSynthesis?.cancel();
-    setMode("idle");
     setHelp(message);
     setPhase("help");
   }
 
-  async function begin() {
-    setPhase("talk");
+  async function fetchNext(sofar: Turn[]) {
+    const my = ++seq.current;
     setNote("");
-    setTurns([]);
-    await ask([]);
+    setFailed(false);
+    let res;
+    try {
+      res = await api<{ question?: string | null; part?: string | null; help?: string }>("POST", "/api/me/surprise/next", { turns: sofar });
+    } catch {
+      res = null;
+    }
+    if (seq.current !== my) return;
+    if (!res) return fetchFailed();
+    if (res.status === 401) return void (location.href = "/signin");
+    if (res.data.help) return stop(res.data.help);
+    if (res.status !== 200 || !res.data.question) return fetchFailed();
+    setQuestion(res.data.question);
+    setQpart(res.data.part ?? null);
+    setQi(sofar.length);
+    setHeard("");
+    setTypedAnswer(false);
+    setDraft(null);
+    setDraftWhy("");
+    setText("");
+    setSaid(false);
+    setShown(false);
+    setMic("speaking");
+    await speak(res.data.question, level);
+    if (seq.current === my) setSaid(true);
   }
 
-  async function send(event?: Event) {
-    event?.preventDefault();
-    const a = answer.trim();
-    if (!a) return setNote(mic ? "Hold the ball and talk, or type an answer." : "Type an answer first.");
+  function fetchFailed() {
+    setMic("ready");
+    setFailed(true);
+    setNote("Something went wrong.");
+  }
+
+  // One tap, one action: the ref guards faster than a re-render.
+  function takeBusy() {
+    if (acting.current) return false;
+    acting.current = true;
+    setBusy(true);
+    return true;
+  }
+
+  function freeBusy() {
+    acting.current = false;
+    setBusy(false);
+  }
+
+  async function begin() {
+    const sofar: Turn[] = [];
+    setTurns(sofar);
+    setKept(0);
     setNote("");
-    const next = [...turns, { q: question, a }];
-    setTurns(next);
-    setAnswer("");
-    await ask(next);
+    setPhase("ask");
+    await fetchNext(sofar);
   }
 
   async function holdStart(event: Event) {
     event.preventDefault();
-    if (!mic || recording.current || mode === "thinking") return;
+    if (failed) return;
+    if (mic !== "ready" && mic !== "confirm") return;
+    if (recording.current) return;
     window.speechSynthesis?.cancel();
     holding.current = true;
+    backTo.current = mic;
+    pressedAt.current = Date.now();
     setNote("");
+    let rec;
     try {
-      const rec = await record(level, () => void holdEnd());
-      // Let go before the microphone was ready: drop it.
-      if (!holding.current) return rec.cancel();
-      recording.current = rec;
-      setMode("listening");
+      rec = await record(level, () => void holdEnd());
     } catch {
       holding.current = false;
-      setNote("No microphone? That's fine: type your answer.");
+      setNote("No mic access. You can type instead.");
+      setMic("typing");
+      return;
     }
+    // Let go before the microphone was ready: drop it.
+    if (!holding.current) return rec.cancel();
+    recording.current = rec;
+    setMic("listening");
   }
 
   async function holdEnd() {
+    if (!holding.current && !recording.current) return;
     holding.current = false;
     const rec = recording.current;
-    if (!rec) return;
     recording.current = null;
-    const { wav, seconds } = await rec.stop();
-    if (seconds < 0.5) {
-      setMode("idle");
-      return setNote("Hold the ball while you talk, then let go.");
+    if (!rec) {
+      setNote("Hold it down while you talk.");
+      return;
     }
-    setMode("thinking");
-    const res = await fetch("/api/me/surprise/hear", { method: "POST", credentials: "same-origin", headers: { "content-type": "audio/wav" }, body: wav });
+    const { wav } = await rec.stop();
+    if (holdRelease(pressedAt.current, Date.now(), true) !== "send") {
+      setNote("Hold it down while you talk.");
+      setMic(backTo.current);
+      return;
+    }
+    await sendHeard(wav);
+  }
+
+  async function sendHeard(wav: Uint8Array<ArrayBuffer>) {
+    setMic("thinking");
+    let res;
+    try {
+      res = await fetch("/api/me/surprise/hear", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "audio/wav" },
+        body: wav,
+      });
+    } catch {
+      setMic(backTo.current);
+      return setNote("Didn't catch that. Try again, or type it.");
+    }
     const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string };
-    setMode("idle");
-    if (!res.ok || !data.text) return setNote(ERRORS[data.error ?? ""] ?? "Didn't catch that. Try again, or type it.");
-    setAnswer((prev) => (prev ? `${prev} ${data.text}` : data.text!));
-    setNote("Got it. Fix anything, then Send.");
+    if (!res.ok || !data.text) {
+      setMic(backTo.current);
+      return setNote(ERRORS[data.error ?? ""] ?? "Didn't catch that. Try again, or type it.");
+    }
+    const heardText = data.text.trim();
+    setHeard(heardText);
+    await proposeAnswer(heardText, false);
+  }
+
+  async function proposeAnswer(answer: string, viaTyping: boolean) {
+    setMic("thinking");
+    let why = "That didn't work. Try again?";
+    for (const attempt of proposePlan(answer, qpart)) {
+      let res;
+      try {
+        res = await api<{ proposed?: Draft; error?: string; why?: string }>("POST", "/api/me/compass/propose", attempt);
+      } catch {
+        break;
+      }
+      if (res.status === 401) return void (location.href = "/signin");
+      if (res.status === 200 && res.data.proposed) {
+        setTypedAnswer(viaTyping);
+        setDraft(res.data.proposed);
+        setDraftWhy("");
+        setNote("");
+        setMic("confirm");
+        return;
+      }
+      if (res.data.error === "crisis") return stop(typeof res.data.why === "string" ? res.data.why : "Let's pause. Call 143 any time, day or night.");
+      if (res.status === 429) {
+        why = "Slow down a little, then try again.";
+        break;
+      }
+      if (typeof res.data.why === "string") why = res.data.why;
+    }
+    setTypedAnswer(viaTyping);
+    setDraft(null);
+    setDraftWhy(why);
+    setNote("");
+    setMic("confirm");
+  }
+
+  async function keep() {
+    if (!draft || !takeBusy()) return;
+    setNote("");
+    let res;
+    try {
+      res = await api<{ why?: string }>("POST", "/api/me/compass/keep", { part: draft.part, words: draft.words });
+    } catch {
+      freeBusy();
+      return setNote("That didn't save. Try again?");
+    }
+    if (res.status === 401) return void (location.href = "/signin");
+    if (res.status !== 200) {
+      freeBusy();
+      return setNote(typeof res.data.why === "string" ? res.data.why : "That didn't save. Try again?");
+    }
+    const next = [...turns, { q: question, a: heard }];
+    setTurns(next);
+    setKept((k) => k + 1);
+    setDraft(null);
+    setHeard("");
+    if (next.length >= MAX_TURNS) {
+      window.speechSynthesis?.cancel();
+      setPhase("done");
+      freeBusy();
+      return;
+    }
+    setMic("thinking");
+    await fetchNext(next);
+    freeBusy();
+  }
+
+  function again() {
+    setHeard("");
+    setTypedAnswer(false);
+    setDraft(null);
+    setDraftWhy("");
+    setNote("");
+    setMic(voice ? "ready" : "typing");
+  }
+
+  function typeInstead() {
+    if (!question || failed) return;
+    window.speechSynthesis?.cancel();
+    holding.current = false;
+    recording.current?.cancel();
+    recording.current = null;
+    setText(heard);
+    setNote("");
+    setMic("typing");
+  }
+
+  async function sendTyped(event?: Event) {
+    event?.preventDefault();
+    if (!question || !takeBusy()) return;
+    const t = text.trim();
+    if (!t) {
+      freeBusy();
+      return setNote(voice ? "Hold the mic and talk, or type an answer." : "Type an answer first.");
+    }
+    setNote("");
+    setHeard(t);
+    await proposeAnswer(t, true);
+    freeBusy();
+  }
+
+  async function skip() {
+    if (phase !== "ask" || !question || failed || !takeBusy()) return;
+    window.speechSynthesis?.cancel();
+    holding.current = false;
+    recording.current?.cancel();
+    recording.current = null;
+    const next = [...turns, { q: question, a: "" }];
+    setTurns(next);
+    setHeard("");
+    if (next.length >= MAX_TURNS) {
+      setPhase("done");
+      freeBusy();
+      return;
+    }
+    setMic("thinking");
+    await fetchNext(next);
+    freeBusy();
   }
 
   function keyHold(event: KeyboardEvent, down: boolean) {
     if (event.key !== " " && event.key !== "Enter") return;
-    if (event.repeat) return event.preventDefault();
+    event.preventDefault();
+    if (event.repeat) return;
     if (down) void holdStart(event);
     else void holdEnd();
   }
 
-  async function surprise(sofar: Turn[]) {
-    if (!sofar.some((t) => t.a)) return setNote("Answer at least one question first.");
-    window.speechSynthesis?.cancel();
-    setPhase("drafting");
-    setMode("thinking");
-    const res = await api<Draft & { help?: string }>("POST", "/api/me/surprise/draft", { turns: sofar });
-    if (res.data.help) return stop(res.data.help);
-    if (res.status !== 200 || !res.data.lines?.length) {
-      setPhase("talk");
-      setMode("idle");
-      return setNote("Nothing to draft yet. Tell Hoolala! a bit more?");
-    }
-    setDraft(res.data);
-    setPhase("reveal");
-    await say(res.data.observation ? `Surprise! ${res.data.observation}` : "Surprise! Here's your compass.");
+  function toggleSound() {
+    const on = !sound;
+    setMuted(!on);
+    setSound(on);
   }
 
-  async function looksRight() {
-    if (!draft) return;
-    const res = await api("POST", "/api/me/compass/confirm", { lines: draft.lines, origin: "questions" });
-    if (res.status !== 200) return setNote("Keep at least one line.");
-    setPhase("saved");
-  }
+  const soundLabel = sound ? "SOUND ON" : "SOUND OFF";
+  const inQuestions = phase === "ask";
+  const showMicRow = voice && inQuestions && mic !== "typing" && !failed;
+  const fills = qpart ? `Q${qi + 1} · FILLS ${PART_LABEL[qpart] ?? qpart}` : `Q${qi + 1} · ANYTHING ELSE`;
+  const showTranscript = mic === "listening" || ((mic === "thinking" || mic === "confirm") && heard !== "");
 
-  function toggleMute() {
-    setMuted(!muted);
-    setMute(!muted);
-  }
-
-  const muteKey = (
-    <button class="lcd-key" type="button" aria-pressed={muted} onClick={toggleMute}>
-      {muted ? "Voice: off" : "Voice: on"}
+  const soundToggle = (
+    <button type="button" class="sm-sound" onClick={toggleSound} aria-pressed={sound} aria-label={soundLabel}>
+      <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">
+        <path d="M0 3h2l2-2h1v6H4L2 5H0z" fill="currentColor" />
+        {sound && <rect x="6" y="2" width="1" height="4" fill="currentColor" />}
+      </svg>
+      <span>{soundLabel}</span>
     </button>
   );
 
   return (
-    <Screen title="Surprise me">
-      {phase === "intro" && (
+    <Screen
+      title="Surprise me"
+      softkeys={
         <>
-          <h1 class="screen-title">Surprise me</h1>
-          <div class="ball-stage"><PixelBall mode={mode} level={level} /></div>
-          <p class="lcd-block">No accounts, no searching. Hoolala! asks a few questions out loud. Hold the ball and answer, or type. Then a little surprise.</p>
-          <ul class="key-list">
-            <li><button class="lcd-key lcd-key--primary" type="button" onClick={begin}>Start</button></li>
-            <li>{muteKey}</li>
-          </ul>
-          <p class="lcd-small">Heard, then forgotten: your voice is turned into words and never kept. Only the lines you confirm are saved, and only you see them.</p>
+          <a class="lcd-softkey" href="/">
+            Leave
+          </a>
+          <button type="button" class="lcd-softkey" onClick={toggleSound} aria-pressed={sound}>
+            {soundLabel}
+          </button>
         </>
-      )}
-
-      {(phase === "talk" || phase === "drafting") && (
-        <>
-          <p class="lcd-kicker">{phase === "drafting" ? "Thinking..." : `Question ${Math.min(turns.length + 1, MAX_TURNS)} of ${MAX_TURNS}`}</p>
-          {mic && phase === "talk" ? (
-            <button
-              class="ball-stage ball-button"
-              type="button"
-              aria-label={mode === "listening" ? "Listening. Let go to stop." : "Hold to talk"}
-              onPointerDown={holdStart}
-              onPointerUp={holdEnd}
-              onPointerCancel={holdEnd}
-              onPointerLeave={() => holding.current && void holdEnd()}
-              onContextMenu={(e) => e.preventDefault()}
-              onKeyDown={(e) => keyHold(e, true)}
-              onKeyUp={(e) => keyHold(e, false)}
-            >
-              <PixelBall mode={mode} level={level} />
-            </button>
-          ) : (
-            <div class="ball-stage"><PixelBall mode={mode} level={level} /></div>
-          )}
-          {phase === "talk" && (
-            <>
-              <p class="ball-question" aria-live="polite">{question}</p>
-              {mic && <p class="lcd-small ball-hint">{mode === "listening" ? "Listening. Let go when you're done." : "Hold the ball to talk."}</p>}
-              <form onSubmit={send} noValidate>
-                <label class="lcd-label" for="sm-answer">Your answer</label>
-                <textarea class="lcd-field" id="sm-answer" rows={2} maxLength={300} value={answer} onInput={(e) => setAnswer(e.currentTarget.value)} />
-                <ul class="key-list">
-                  <li><button class="lcd-key lcd-key--primary" type="submit" disabled={mode === "thinking" || mode === "listening"}>Send</button></li>
-                  {turns.length > 0 && <li><button class="lcd-key" type="button" onClick={() => surprise(turns)}>Surprise me now</button></li>}
-                  <li>{muteKey}</li>
-                </ul>
-              </form>
-            </>
-          )}
-        </>
-      )}
-
-      {phase === "reveal" && draft && (
-        <>
-          <h1 class="screen-title">Surprise!</h1>
-          <div class="ball-stage ball-stage--small"><PixelBall mode={mode} level={level} /></div>
-          {draft.observation && (
-            <div class="lcd-block">
-              <p class="lcd-kicker">AI / Surprise</p>
-              <p>{draft.observation}</p>
+      }
+    >
+      <div class="sm-flow">
+        <div class="sm-progress">
+          {inQuestions && question ? (
+            <div class="sm-dots" role="status">
+              {Array.from({ length: MAX_TURNS }, (_, i) => (
+                <span key={i} class={`sm-dot${i < qi ? " is-done" : i === qi ? " is-now" : ""}`} aria-hidden="true" />
+              ))}
+              <span class="sm-fills">{fills}</span>
             </div>
+          ) : (
+            <span class="sm-kicker">Surprise me</span>
           )}
-          <h2 class="lcd-label">Your world, according to you</h2>
-          <ul class="lcd-menu">
-            {draft.lines.map((l, i) => (
-              <li class="lcd-block idea" key={l.part + l.text}>
-                <p class="lcd-kicker">{PART_LABEL[l.part] ?? l.part}</p>
-                <p>{l.text}</p>
-                <div class="tiny-actions">
-                  <span class="lcd-small">you said</span>
-                  <button type="button" onClick={() => setDraft({ ...draft, lines: draft.lines.filter((_, j) => j !== i) })}>Remove</button>
+          {soundToggle}
+        </div>
+
+        {(phase === "intro" || inQuestions) && (
+          <div class="sm-stage">
+            {mic === "listening" && bars.length > 0 && (
+              <svg class="sm-bars" width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
+                {bars.map((h, i) => (
+                  <g key={i} transform={`rotate(${i * 30} 100 100)`}>
+                    <rect x={97} y={166} width={6} height={h} class="sm-bar" />
+                  </g>
+                ))}
+              </svg>
+            )}
+            {inQuestions && mic === "listening" && <span class="sm-ping" aria-hidden="true" />}
+            <div class={`sm-ball${inQuestions && mic === "speaking" ? " is-talking" : inQuestions && mic === "listening" ? " is-squashed" : ""}`}>
+              <PixelBall mode={inQuestions ? BALL[mic] : "idle"} level={level} />
+            </div>
+          </div>
+        )}
+
+        {inQuestions && <p class="sm-hint">{HINTS[mic]}</p>}
+
+        {inQuestions && question && (
+          <p class="sm-caption" aria-live="polite">
+            {mic === "speaking" ? <Typed key={qi} text={question} msPerChar={45} onDone={() => setShown(true)} /> : question}
+          </p>
+        )}
+
+        {phase === "intro" && (
+          <>
+            <h1 class="sm-head">Five quick questions. Then a little surprise.</h1>
+            <p class="sm-center">Hold the mic at the bottom and answer out loud, or type.</p>
+            <ul class="key-list">
+              <li>
+                <button class="lcd-key lcd-key--primary" type="button" onClick={begin}>
+                  Start
+                </button>
+              </li>
+            </ul>
+            <p class="lcd-small sm-center">Heard, then forgotten. Your voice becomes words and is never kept. Only lines you keep are saved, and only you see them.</p>
+          </>
+        )}
+
+        {inQuestions && showTranscript && (
+          <div class="sm-said keys-rise">
+            <span class="sm-said-label">{mic === "confirm" ? (typedAnswer ? "YOU TYPED" : "I HEARD") : "HEARING..."}</span>
+            <span class="sm-said-text">
+              {heard}
+              {mic === "listening" && <span class="lcd-cursor" aria-hidden="true" />}
+            </span>
+          </div>
+        )}
+
+        {inQuestions && mic === "confirm" && (
+          <div class="keys-rise">
+            <div class="sm-draft">
+              <span class="lcd-kicker">For your compass</span>
+              {draft ? (
+                <>
+                  <p class="sm-draft-line">
+                    <span class="sm-draft-part">{PART_LABEL[draft.part] ?? draft.part}:</span> {draft.words}
+                  </p>
+                  <p class="sm-src">you said</p>
+                </>
+              ) : (
+                <p class="sm-draft-line">{draftWhy}</p>
+              )}
+            </div>
+            <ul class="key-list">
+              {draft && (
+                <li>
+                  <button class="lcd-key lcd-key--primary" type="button" onClick={keep} disabled={busy}>
+                    Keep
+                  </button>
+                </li>
+              )}
+              <li>
+                <div class="key-row">
+                  <button class="lcd-key" type="button" onClick={again}>
+                    Say again
+                  </button>
+                  <button class="lcd-key" type="button" onClick={typeInstead}>
+                    Fix by typing
+                  </button>
                 </div>
               </li>
-            ))}
-          </ul>
-          {draft.ideas.length > 0 && (
-            <>
-              <h2 class="lcd-label">Two things you could post</h2>
-              <ul class="lcd-menu">
-                {draft.ideas.map((idea) => (
-                  <li class="lcd-block idea" key={idea}>
-                    <p class="lcd-kicker">AI / Suggestion</p>
-                    <p>{idea}</p>
-                  </li>
-                ))}
-              </ul>
-              <p class="lcd-small">Check in at a café and post one, if you like.</p>
-            </>
-          )}
+            </ul>
+          </div>
+        )}
+
+        {inQuestions && mic === "typing" && (
+          <form class="keys-rise" onSubmit={sendTyped} noValidate>
+            <label class="lcd-label" for="sm-answer">
+              Your answer
+            </label>
+            <textarea
+              class="lcd-field"
+              id="sm-answer"
+              rows={2}
+              maxLength={300}
+              value={text}
+              placeholder="Type your answer"
+              onInput={(e) => setText(e.currentTarget.value)}
+            />
+            <ul class="key-list">
+              <li>
+                <button class="lcd-key lcd-key--primary" type="submit" disabled={!text.trim() || busy}>
+                  Send
+                </button>
+              </li>
+            </ul>
+            {!voice ? (
+              <p class="lcd-small sm-center">Voice isn't available here (no mic access or an unsupported browser). Type instead.</p>
+            ) : (
+              <p class="sm-center">
+                <button type="button" class="link-button" onClick={() => setMic("ready")}>
+                  Answer out loud instead
+                </button>
+              </p>
+            )}
+          </form>
+        )}
+
+        {inQuestions && failed && (
           <ul class="key-list">
-            <li><button class="lcd-key lcd-key--primary" type="button" onClick={looksRight} disabled={!draft.lines.length}>Looks right</button></li>
-            <li><button class="lcd-key" type="button" onClick={() => { setDraft(null); setPhase("intro"); }}>Start again</button></li>
+            <li>
+              <button class="lcd-key" type="button" onClick={() => fetchNext(turns)}>
+                Try again
+              </button>
+            </li>
           </ul>
-          <p class="lcd-small">
-            {draft.source === "ai" ? "Drafted by Muse Spark from your own words." : "Your own words, as you said them."} Only you see this. It shapes your own topic ideas; never shown to anyone, never used to match people.
-          </p>
-        </>
-      )}
+        )}
 
-      {phase === "help" && (
-        <>
-          <h1 class="screen-title">Let's pause</h1>
-          <p class="lcd-block">{help}</p>
-          <ul class="key-list"><li><a class="lcd-key" href="/">Home</a></li></ul>
-        </>
-      )}
+        {showMicRow && (
+          <div class="sm-thumb">
+            <button type="button" class="sm-side" onClick={typeInstead} aria-label="Type instead">
+              <svg width="28" height="20" viewBox="0 0 14 10" shape-rendering="crispEdges" aria-hidden="true">
+                <path d="M0 0h14v10H0z M1 1v8h12V1z" fill="currentColor" fill-rule="evenodd" />
+                <rect x="2" y="2" width="2" height="1" fill="currentColor" />
+                <rect x="5" y="2" width="2" height="1" fill="currentColor" />
+                <rect x="8" y="2" width="2" height="1" fill="currentColor" />
+                <rect x="3" y="4" width="2" height="1" fill="currentColor" />
+                <rect x="6" y="4" width="2" height="1" fill="currentColor" />
+                <rect x="9" y="4" width="2" height="1" fill="currentColor" />
+                <rect x="4" y="6" width="6" height="1" fill="currentColor" />
+              </svg>
+              <span>Type</span>
+            </button>
+            <div class="sm-micwrap">
+              <button
+                type="button"
+                class={`sm-mic${mic === "listening" ? " is-held" : mic === "speaking" || mic === "thinking" ? " is-dim" : ""}`}
+                disabled={mic === "speaking" || mic === "thinking"}
+                aria-pressed={mic === "listening"}
+                aria-label={MIC_LABEL[mic]}
+                onPointerDown={holdStart}
+                onPointerUp={holdEnd}
+                onPointerCancel={holdEnd}
+                onPointerLeave={() => (holding.current || recording.current) && void holdEnd()}
+                onContextMenu={(e) => e.preventDefault()}
+                onKeyDown={(e) => keyHold(e, true)}
+                onKeyUp={(e) => keyHold(e, false)}
+              >
+                <svg width="40" height="56" viewBox="0 0 10 14" shape-rendering="crispEdges" aria-hidden="true">
+                  <path d="M3 0h4v1h1v7H7v1H3V8H2V1h1z" fill="currentColor" />
+                  <path d="M0 5h1v3h1v1h1v1h4V9h1V8h1V5h1v4H9v1H8v1H6v2h2v1H2v-1h2v-2H2v-1H1V9H0z" fill="currentColor" />
+                </svg>
+              </button>
+              <span class="sm-miclabel">{MIC_LABEL[mic]}</span>
+            </div>
+            <button type="button" class="sm-side" onClick={skip} aria-label="Skip this question" disabled={busy}>
+              <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true">
+                <path d="M0 1h2v1h1v1h1v1h1v2H4v1H3v1H2v1H0zM5 1h2v1h1v1h1v1h1v2H9v1H8v1H7v1H5z" fill="currentColor" />
+              </svg>
+              <span>Skip</span>
+            </button>
+          </div>
+        )}
 
-      {phase === "saved" && (
-        <>
-          <h1 class="screen-title">Saved</h1>
-          <p class="lcd-block">That's your compass. Change it any time in My compass.</p>
-          <ul class="key-list">
-            <li><a class="lcd-key lcd-key--primary" href="/arrive">Where are you?</a></li>
-            <li><a class="lcd-key" href="/compass?fresh=1">See my compass</a></li>
-          </ul>
-        </>
-      )}
+        {phase === "done" && (
+          <>
+            <h1 class="sm-head">{kept > 0 ? `That's you, in ${kept} ${kept === 1 ? "answer" : "answers"}.` : "Nothing kept this time."}</h1>
+            <p class="sm-center">{kept > 0 ? "Your surprise is ready: your compass, drawn from your own words." : "Your compass is still empty. You can try again any time."}</p>
+            <ul class="key-list">
+              <li>
+                <a class="lcd-key lcd-key--primary" href="/compass?fresh=1">
+                  Show me
+                </a>
+              </li>
+            </ul>
+          </>
+        )}
 
-      <p class="lcd-small" role="status" aria-live="polite">{note}</p>
+        {phase === "help" && (
+          <>
+            <h1 class="sm-head">Let's pause</h1>
+            <p class="sm-center">{help}</p>
+            <ul class="key-list">
+              <li>
+                <a class="lcd-key" href="/">
+                  Home
+                </a>
+              </li>
+            </ul>
+          </>
+        )}
+
+        <p class="lcd-small" role="status" aria-live="polite">
+          {note}
+        </p>
+      </div>
     </Screen>
   );
 }

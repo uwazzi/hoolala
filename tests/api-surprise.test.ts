@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSession } from "../src/api/session";
-import { OPENING, SCRIPTED } from "../src/rules/surprise";
+import { QUESTIONS } from "../src/rules/surprise";
 import worker from "../src/worker";
 import type { ExecutionContext } from "../src/types";
 import { testEnv } from "./helpers/env";
@@ -12,37 +12,17 @@ const AI = { LLM_ENABLED: "true", META_API_KEY: "test-meta-key", META_API_BASE: 
 
 type Env = ReturnType<typeof testEnv>;
 
-let calls: string[] = [];
-let draftReply: unknown;
-
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(NOW));
-  calls = [];
-  draftReply = {
-    compass: [
-      { part: "interest", text: "Chess" },
-      { part: "interest", text: "A café app" },
-      { part: "interest", text: "Jazz piano" },
-    ],
-    observation: "Chess and cafés: a slow game and a good cup.",
-    ideas: ["Best café for a chess game?", "Single and ready to flirt?"],
-  };
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
       if (String(url).endsWith("/asr/transcribe")) {
-        calls.push("hear");
         expect(init.body).toBeInstanceOf(FormData);
         return Response.json({ transcript: " Chess,  mostly. ", turns: [] });
       }
-      const body = JSON.parse(String(init.body));
-      if (body.response_format.json_schema.name === "next_question") {
-        calls.push("ask");
-        return Response.json({ choices: [{ message: { content: JSON.stringify({ question: "What got you into chess?", done: false }) } }] });
-      }
-      calls.push("draft");
-      return Response.json({ choices: [{ message: { content: JSON.stringify(draftReply) } }] });
+      throw new Error(`unexpected fetch: ${url}`);
     }),
   );
 });
@@ -86,28 +66,23 @@ function wav(rate = 16000, samples = 1600): Uint8Array {
   return bytes;
 }
 
-const turns = [
-  { q: OPENING, a: "Chess, and I'm building an app for cafés" },
-  { q: "What got you into chess?", a: "My grandfather" },
-  { q: "What inspires you lately?", a: "Small cafés with big tables" },
-];
-
-describe("Surprise Me", () => {
+describe("Surprise Me voice", () => {
   it("needs a signed-in person", async () => {
     const env = testEnv(AI);
     expect((await post(env, "/api/me/surprise/next", null, { turns: [] })).status).toBe(401);
     expect((await post(env, "/api/me/surprise/hear", null, wav(), "audio/wav")).status).toBe(401);
-    expect((await post(env, "/api/me/surprise/draft", null, { turns })).status).toBe(401);
   });
 
-  it("opens with the same question every time, then Muse Spark follows up", async () => {
+  it("asks the five fixed questions in order, each with its direction", async () => {
     const env = testEnv(AI);
     const ana = await person(env);
-    expect(await (await post(env, "/api/me/surprise/next", ana, { turns: [] })).json()).toEqual({ question: OPENING, source: "rules" });
-    expect(await (await post(env, "/api/me/surprise/next", ana, { turns: turns.slice(0, 1) })).json()).toEqual({ question: "What got you into chess?", source: "ai" });
-    const full = [...turns, ...turns.slice(0, 2)];
-    expect(await (await post(env, "/api/me/surprise/next", ana, { turns: full })).json()).toEqual({ question: null, source: "rules" });
-    expect(calls).toEqual(["ask"]);
+    const turns: { q: string; a: string }[] = [];
+    for (const [i, want] of QUESTIONS.entries()) {
+      const res = await (await post(env, "/api/me/surprise/next", ana, { turns })).json();
+      expect(res).toEqual({ question: want.q, part: want.part });
+      turns.push(i === 2 ? { q: want.q, a: "" } : { q: want.q, a: "something I said" });
+    }
+    expect(await (await post(env, "/api/me/surprise/next", ana, { turns })).json()).toEqual({ question: null, part: null });
   });
 
   it("hears a spoken answer and forgets it", async () => {
@@ -123,53 +98,41 @@ describe("Surprise Me", () => {
     expect(JSON.stringify(rows)).not.toMatch(/chess/i);
   });
 
-  it("drafts lines from the person's own words, an observation and two screened ideas, and saves nothing", async () => {
+  it("stores nothing from the questions: no transcripts in any table", async () => {
     const env = testEnv(AI);
     const ana = await person(env);
-    const res = await (await post(env, "/api/me/surprise/draft", ana, { turns })).json();
-    expect(res).toEqual({
-      source: "ai",
-      lines: [
-        { part: "interest", text: "Chess", sourceUrl: null, source: "you said" },
-        { part: "interest", text: "A café app", sourceUrl: null, source: "you said" },
-      ],
-      observation: "Chess and cafés: a slow game and a good cup.",
-      ideas: ["Best café for a chess game?"],
-    });
+    const said = "bananas about ballroom zebras";
+    await post(env, "/api/me/surprise/next", ana, { turns: [{ q: QUESTIONS[0].q, a: said }] });
     expect(env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM compass_items").get()).toEqual({ n: 0 });
+    expect(env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM compass_changes").get()).toEqual({ n: 0 });
+    expect(env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM llm_calls").get()).toEqual({ n: 0 });
+    for (const table of ["compass_items", "compass_changes", "llm_calls"]) {
+      const dump = JSON.stringify(env.DB.sqlite.prepare(`SELECT * FROM ${table}`).all());
+      expect(dump).not.toMatch(/zebras/);
+    }
   });
 
-  it("works without the model: the scripted questions, answers as 'you said'", async () => {
+  it("works without the model: the fixed questions, typing instead of voice", async () => {
     const env = testEnv({ ...AI, LLM_ENABLED: "false" });
     const ana = await person(env);
-    expect(await (await post(env, "/api/me/surprise/next", ana, { turns: turns.slice(0, 1) })).json()).toEqual({ question: SCRIPTED[1], source: "rules" });
+    expect(await (await post(env, "/api/me/surprise/next", ana, { turns: [{ q: QUESTIONS[0].q, a: "chess" }] })).json()).toEqual({
+      question: QUESTIONS[1].q,
+      part: QUESTIONS[1].part,
+    });
     expect((await post(env, "/api/me/surprise/hear", ana, wav(), "audio/wav")).status).toBe(503);
-    const res = await (await post(env, "/api/me/surprise/draft", ana, { turns: [{ q: SCRIPTED[0], a: "chess, cycling" }] })).json();
-    expect(res).toMatchObject({ source: "rules", observation: null, ideas: [], lines: [{ text: "chess" }, { text: "cycling" }] });
-    expect(calls).toEqual([]);
-  });
-
-  it("falls back to the person's words when the model invents everything", async () => {
-    const env = testEnv(AI);
-    const ana = await person(env);
-    draftReply = { compass: [{ part: "interest", text: "Jazz piano" }], observation: "x", ideas: [] };
-    const res = await (await post(env, "/api/me/surprise/draft", ana, { turns: [{ q: SCRIPTED[0], a: "chess" }] })).json();
-    expect(res).toMatchObject({ source: "rules", lines: [{ part: "interest", text: "chess" }] });
   });
 
   it("stops with the fixed help message at crisis words, never model text", async () => {
     const env = testEnv(AI);
     const ana = await person(env);
-    const hard = [{ q: OPENING, a: "nothing, I want to die" }];
+    const hard = [{ q: QUESTIONS[0].q, a: "nothing, I want to die" }];
     expect((await (await post(env, "/api/me/surprise/next", ana, { turns: hard })).json()).help).toMatch(/143/);
-    expect((await (await post(env, "/api/me/surprise/draft", ana, { turns: hard })).json()).help).toMatch(/143/);
-    expect(calls).toEqual([]);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 
   it("refuses malformed conversations", async () => {
     const env = testEnv(AI);
     const ana = await person(env);
     expect((await post(env, "/api/me/surprise/next", ana, { turns: "hi" })).status).toBe(400);
-    expect((await post(env, "/api/me/surprise/draft", ana, { turns: [] })).status).toBe(400);
   });
 });

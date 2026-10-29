@@ -476,3 +476,47 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .more-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
 .more-list a, .link-button { font: 11px/1.4 var(--font-display); }
 .link-button { background: none; border: none; padding: 0; color: var(--lcd-ink); text-decoration: underline; cursor: pointer; text-align: left; }
+
+/* WP34 Surprise Me voice (v6.1): dots, captions, the thumb-zone mic. */
+.sm-flow { display: flex; flex-direction: column; height: 100%; }
+.sm-progress { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 28px; margin-top: 12px; }
+.sm-dots { display: flex; align-items: center; gap: 6px; }
+.sm-dot { width: 10px; height: 10px; border: 2px solid var(--lcd-ink); }
+.sm-dot.is-done { background: var(--lcd-ink); }
+.sm-dot.is-now { background: var(--lcd-ink-secondary); outline: 2px solid var(--lcd-ink); outline-offset: 1px; }
+.sm-fills { font: 10px/1 var(--font-display); color: var(--lcd-ink-secondary); margin-left: 4px; }
+.sm-kicker { font: 12px/1 var(--font-display); text-transform: uppercase; }
+.sm-sound { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); color: var(--lcd-ink); font: 10px/1 var(--font-display); cursor: pointer; }
+.sm-stage { position: relative; height: 184px; flex-shrink: 0; margin-top: 2px; }
+.sm-bars { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.sm-bar { fill: var(--lcd-ink); }
+.sm-ping { position: absolute; left: 50%; top: 50%; width: 128px; height: 128px; border: 2px solid var(--lcd-ink); border-radius: 50%; animation: sm-ping 1s ease-out infinite; }
+@keyframes sm-ping { from { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } to { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
+.sm-ball { position: absolute; left: 50%; top: 50%; width: 112px; height: 112px; margin: -56px 0 0 -56px; }
+.sm-ball .pixel-ball { width: 112px; }
+.sm-ball.is-talking { animation: sm-talk 0.45s ease-in-out infinite; }
+@keyframes sm-talk { 0%, 100% { transform: scale(1, 1); } 25% { transform: scale(1.07, 0.95); } 50% { transform: scale(0.97, 1.04); } 75% { transform: scale(1.05, 0.97); } }
+.sm-ball.is-squashed { transform: scale(1.08, 0.9); }
+.sm-hint { text-align: center; font: 11px/1.4 var(--font-display); min-height: 16px; margin: 0 auto; }
+.sm-caption { font: 700 20px/1.2 var(--font-display); text-align: center; min-height: 48px; margin: 0 auto; }
+.sm-head { font: 700 24px/1.15 var(--font-display); text-align: center; text-transform: uppercase; margin: 12px 0; }
+.sm-center { text-align: center; margin-left: auto; margin-right: auto; }
+.sm-said { border: 2px dashed var(--lcd-ink-secondary); border-radius: var(--radius-control); padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; margin: 10px 0 0; }
+.sm-said-label { font: 10px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }
+.sm-said-text { font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+.sm-draft { background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+.sm-draft-line { font-size: 13px; line-height: 1.4; margin: 0; overflow-wrap: anywhere; }
+.sm-draft-part { font: 11px/1.4 var(--font-display); }
+.sm-src { font-size: 11px; color: var(--lcd-ink-secondary); margin: 0; }
+.sm-thumb { margin-top: auto; padding: 8px 0 12px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; border-top: 2px dashed var(--lcd-ink-secondary); }
+.sm-side { justify-self: start; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; padding: 8px; min-height: 48px; min-width: 48px; font: 10px/1 var(--font-display); color: var(--lcd-ink); cursor: pointer; text-transform: uppercase; }
+.sm-side:last-child { justify-self: end; }
+.sm-side:disabled { opacity: 0.4; cursor: default; }
+.sm-side:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 2px; }
+.sm-micwrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.sm-mic { width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-selected); color: var(--lcd-selected-ink); cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; transition: transform 0.1s; }
+.sm-mic.is-held { background: var(--lcd-surface); color: var(--lcd-ink); transform: scale(0.94); box-shadow: 0 0 0 6px var(--lcd-bg), 0 0 0 8px var(--lcd-ink); }
+.sm-mic.is-dim { background: var(--lcd-ink-secondary); opacity: 0.5; cursor: default; }
+.sm-mic:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 3px; }
+.sm-miclabel { font: 10px/1 var(--font-display); text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) { .sm-ping, .sm-ball.is-talking { animation: none; } .sm-bars { display: none; } }
