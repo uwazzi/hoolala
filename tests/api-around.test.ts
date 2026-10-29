@@ -260,11 +260,11 @@ describe("around me", () => {
     expect(rows).toEqual([{ value: 4 }]);
   });
 
-  it("ten scans an hour, then it rests", async () => {
+  it("twelve scans an hour, then it rests", async () => {
     const env = testEnv();
     const ana = await person(env, "Ana");
     seedPlace(env);
-    for (let i = 0; i < 10; i++) expect((await call(env, "POST", "/api/around/scan", ana, HERE)).status).toBe(200);
+    for (let i = 0; i < 12; i++) expect((await call(env, "POST", "/api/around/scan", ana, HERE)).status).toBe(200);
     expect((await call(env, "POST", "/api/around/scan", ana, HERE)).status).toBe(429);
   });
 });
