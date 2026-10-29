@@ -128,6 +128,7 @@ export async function startCheckin(
     db
       .prepare("INSERT INTO checkins (id, user_id, place_id, method, started_at, ends_at, left_at) VALUES (?, ?, ?, ?, ?, ?, NULL)")
       .bind(c.id, c.userId, c.placeId, c.method, c.startedAt, c.endsAt),
+    db.prepare("UPDATE places SET checkin_count = checkin_count + 1 WHERE id = ?").bind(c.placeId),
   ]);
 }
 

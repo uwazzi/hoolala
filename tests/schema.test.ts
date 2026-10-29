@@ -38,6 +38,7 @@ const TABLES = [
   "crew_invites",
   "crew_posts",
   "crew_nice",
+  "place_ratings",
 ];
 
 describe("D1 schema", () => {

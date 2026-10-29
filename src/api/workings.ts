@@ -16,6 +16,8 @@ const CAPABILITY: Record<WorkingRow["function"], string> = {
   plan: "Tools",
   snap: "Vision",
   try_it: "Short drafting",
+  why_go: "Short drafting",
+  read_it: "Page reading",
 };
 
 const NAME: Record<WorkingRow["function"], string> = {
@@ -26,6 +28,8 @@ const NAME: Record<WorkingRow["function"], string> = {
   plan: "PLAN IT",
   snap: "SNAP IT",
   try_it: "TRY IT",
+  why_go: "WHY GO",
+  read_it: "READ IT",
 };
 
 export async function handleWorkings(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {

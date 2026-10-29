@@ -2,6 +2,7 @@
 // (CI, before every deploy). Live cases call Muse Spark and run with
 // `npm run eval:live`. No real person's data: FIND ME runs on a public figure.
 
+import type { WhyGoPlace } from "../src/llm/whygo";
 import type { Ask, TryDraft, TryVerdict } from "../src/rules/tries";
 
 export interface ScreenCase {
@@ -79,4 +80,86 @@ export const TRY_CASES: TryCase[] = [
   { name: "Contact exchange is off limits", draft: tryDraft({ step: 4, place_kind: "anywhere", hint: "Ask for her number: 079 123 45 67.", minutes: 2, asks_of_other: "answer" }), ask: tryAsk(4), expect: "off_limits" },
   { name: "Streak shame is off limits", draft: tryDraft({ step: 2, place_kind: "anywhere", hint: "Keep your streak alive, coward." }), ask: tryAsk(2), expect: "off_limits" },
   { name: "Advice is off limits", draft: tryDraft({ step: 4, place_kind: "anywhere", hint: "Ask what his therapist said.", minutes: 2, asks_of_other: "answer" }), ask: tryAsk(4), expect: "off_limits" },
+];
+
+/** WHY GO: grounded whys are kept, everything invented or over the line is dropped. -1 means nothing survives. */
+export interface WhyGoCase {
+  name: string;
+  value: unknown;
+  keep: number;
+}
+
+export const WHYGO_PLACE: WhyGoPlace = {
+  id: "cafe",
+  name: "Café Longue Table",
+  kind: "cafe",
+  distance_m: 120,
+  facts: [{ id: "f0", text: "Oat flat white and cardamom buns" }],
+  compass: ["cardamom buns"],
+  visits: 7,
+  talking: "Often chatty",
+};
+
+const whyItem = (d: Record<string, unknown>) => ({
+  place_id: "cafe",
+  why: "On your compass: cardamom. Oat flat white and cardamom buns.",
+  tiny_try: "Ask about the buns.",
+  facts_used: ["f0"],
+  ...d,
+});
+
+export const WHYGO_CASES: WhyGoCase[] = [
+  { name: "A grounded why is kept", value: { places: [whyItem({})] }, keep: 1 },
+  { name: "An unknown place is dropped", value: { places: [whyItem({ place_id: "nope" })] }, keep: -1 },
+  { name: "An invented price is dropped", value: { places: [whyItem({ why: "Menu CHF 19, open until 25:00." })] }, keep: -1 },
+  { name: "A why over the line is dropped", value: { places: [whyItem({ why: "X".repeat(141) })] }, keep: -1 },
+  { name: "A flirting try is dropped", value: { places: [whyItem({ tiny_try: "Ask them for a date." })] }, keep: -1 },
+  { name: "A contact try is dropped", value: { places: [whyItem({ tiny_try: "Ask for his number." })] }, keep: -1 },
+  { name: "A try over the line is dropped", value: { places: [whyItem({ tiny_try: "Y".repeat(81) })] }, keep: -1 },
+  { name: "Facts never used are dropped", value: { places: [whyItem({ facts_used: ["zzz"] })] }, keep: -1 },
+  { name: "Garbage in, nothing out", value: { places: "nope" }, keep: -1 },
+  { name: "One bad apple keeps the good one", value: { places: [whyItem({}), whyItem({ place_id: "nope" })] }, keep: 1 },
+];
+
+/** READ IT: only lines the page actually says survive. null means the caller shows the link only. */
+export interface ReadItCase {
+  name: string;
+  value: unknown;
+  page: string;
+  expect: { items: string[]; hours: string | null } | null;
+}
+
+const MENU_PAGE = "Oat flat white, cardamom bun. Open until 18:00.";
+
+export const READIT_CASES: ReadItCase[] = [
+  {
+    name: "A menu on the page is kept",
+    value: { items: ["Oat flat white", "Cardamom bun"], hours: "Open until 18:00", kind: "menu" },
+    page: MENU_PAGE,
+    expect: { items: ["Oat flat white", "Cardamom bun"], hours: "Open until 18:00" },
+  },
+  {
+    name: "A dish the page never said is dropped",
+    value: { items: ["Oat flat white", "Truffle croissant"], hours: null, kind: "menu" },
+    page: MENU_PAGE,
+    expect: { items: ["Oat flat white"], hours: null },
+  },
+  {
+    name: "An allergen claim is dropped",
+    value: { items: ["Gluten-free bun"], hours: null, kind: "menu" },
+    page: "Gluten-free bun, CHF 4.",
+    expect: null,
+  },
+  {
+    name: "Hours the page never said fall back to none",
+    value: { items: ["Oat flat white"], hours: "Sundays", kind: "menu" },
+    page: MENU_PAGE,
+    expect: { items: ["Oat flat white"], hours: null },
+  },
+  {
+    name: "A page that says nothing gives nothing",
+    value: { items: ["Truffle croissant"], hours: "Sundays", kind: "menu" },
+    page: MENU_PAGE,
+    expect: null,
+  },
 ];

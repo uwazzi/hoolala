@@ -6,7 +6,7 @@ import type { CheckinView, NearbyPlace, PlaceKind, PlaceSummary } from "../../..
 import { api } from "../api";
 import { Screen } from "../components/Screen";
 
-type Step = "loading" | "signed-out" | "ask" | "locating" | "pick" | "add" | "search" | "checking" | "here";
+type Step = "loading" | "signed-out" | "ask" | "locating" | "pick" | "add" | "search" | "checking" | "here" | "goodbye";
 type Point = { lat: number; lng: number };
 
 const KINDS: { id: PlaceKind; label: string }[] = [
@@ -177,7 +177,15 @@ export function Arrive() {
     failed(res.data.error);
   }
 
+  /** GOODBYE first: the talking value needs the check-in still open. */
   async function leave() {
+    go("goodbye");
+  }
+
+  async function rate(value: 1 | 2 | 3 | null) {
+    if (value !== null && here) {
+      await api("POST", "/api/around/rate", { place_id: here.place.id, value });
+    }
     await api("POST", "/api/checkin/leave");
     setHere(null);
     go("ask", "You've left. See you next time.");
@@ -311,6 +319,19 @@ export function Arrive() {
             <li><a class="lcd-key lcd-key--primary" href="/here">What's here?</a></li>
             <li><button class="lcd-key" type="button" onClick={leave}>I'm leaving</button></li>
           </ul>
+        </>
+      )}
+
+      {step === "goodbye" && here && (
+        <>
+          <p class="lcd-block">One for the road. Could you talk to people at {here.place.name}?</p>
+          <ul class="key-list">
+            <li><button class="lcd-key" type="button" onClick={() => rate(1)}>Quiet, mostly</button></li>
+            <li><button class="lcd-key" type="button" onClick={() => rate(2)}>Chatty in places</button></li>
+            <li><button class="lcd-key" type="button" onClick={() => rate(3)}>Lively everywhere</button></li>
+            <li><button class="lcd-key" type="button" onClick={() => rate(null)}>Skip</button></li>
+          </ul>
+          <p class="lcd-small">Your value joins the crowd's. Nobody sees who said what.</p>
         </>
       )}
 
