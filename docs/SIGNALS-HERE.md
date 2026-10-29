@@ -24,7 +24,7 @@ Make it effortless to arrive, intriguing to discover, safe to respond and natura
 
 | Step | What happens | Model? |
 |---|---|---|
-| **0. Get started (once)** | Sign in, 18+. "Want a head start? OK to read your public profile?" If yes: Hoolala! looks up what's public about you, you tick what's really you, and it drafts your Personal Compass. If no: three quick questions instead. Nothing saved until LOOKS RIGHT. | **FIND ME** |
+| **0. Get started (once)** | Sign in, 18+. A short story about why small contacts matter, then three spoken questions about real moments. Each answer drafts one compass line; you check the sketch and the people in your days. Nothing saved until LOOKS RIGHT. | **COMPASS DRAFT** |
 | **1. Arrive** | "OK to share your location?" Hoolala! shows the places within about 150 m. Pick yours: checked in. Not listed? ADD THIS PLACE (name and kind); it's saved at your location. GPS off or wrong? Search the place by name. Partner places may also have a QR poster. | No, on purpose |
 | **2. The place** | A place card: what kind of place, hours, the menu, the good spots. Details the agent fetched (Google Maps, the place's own website) show as AI / FOUND with their source; details people confirmed show as CONFIRMED HERE. THAT'S RIGHT / FIX IT earns place points. | **PLACE IT** |
 | **3. Peek** | "3 signals here right now", topics only, no names. | No |
@@ -37,16 +37,15 @@ Make it effortless to arrive, intriguing to discover, safe to respond and natura
 | **10. Stay in touch?** | Only if both choose it. | No |
 | **11. Go live** | HOOLALA! IS OFF. YOU'RE ON. | No |
 
-## 4. Get started: FIND ME and the Personal Compass
+## 4. Get started: three questions and the Personal Compass
 
-- **Ask first, plainly.** "Want a head start? Hoolala! can look at what's public about you online (a website, a public profile, talks, articles) to guess what you like talking about. OK?" YES, HAVE A LOOK / NO, I'LL TELL YOU.
-- **What the person gives:** the name they use online and their city, plus optional links they choose (personal site, Substack, GitHub, a public LinkedIn URL). Hoolala! never looks anyone else up.
-- **What Muse Spark does:** up to 3 web searches with citations, then a structured list of findings, each with its source: IS THIS YOU? with THAT'S ME / NOT ME. Namesakes are expected; nothing unticked is used.
-- **The compass:** from the ticked findings plus one or two questions, Muse Spark drafts "What you're curious about right now": interests, things you could talk about for ten minutes, what you'd like more of. Every line shows where it came from (a source, or "you said"). LOOKS RIGHT / CHANGE SOMETHING / START AGAIN. Editable later in plain words, with undo.
-- **What is stored:** only the compass lines and the source link behind each. Never the raw search results, never anything unticked.
-- **What it's for:** SUGGEST IT topics that fit you and the place, and putting signals that fit you first (a small FITS YOU, shown only to you). **Never shown to anyone else, never used to match or rank people.** Anonymity until both accept is unchanged.
-- **What it never is:** a personality type, a score or a judgement. Interests in your own words only. Platform rules respected: we read what is publicly reachable through web search and links people give us; we never log in to or scrape LinkedIn, Instagram or any other network.
-- Model off or NO: three scripted questions with chips (what you'd happily chat about, what you'd like more of, how chatty you're feeling).
+- **First open.** A six-beat story about why small contacts matter, then LET'S GO: the same voice UI as Surprise me, three questions about real past moments.
+- **What Muse Spark does:** one structured draft per answer: the line (60 characters, what happened), its topic, place, pace and the people in it. Code validates every draft; a bad one falls back to the trimmed answer. Transcripts are never stored.
+- **The compass check:** "A FIRST SKETCH OF YOU, IN N LINES." The lines by direction, each "you said", plus PEOPLE IN YOUR DAYS (roles only, never names). LOOKS RIGHT. MAKE MY GAME saves; CHANGE SOMETHING starts over. Editable later in plain words, with undo.
+- **What is stored:** only the confirmed lines and roles. Nothing before LOOKS RIGHT.
+- **What it's for:** SUGGEST IT topics that fit you and the place, your game of tiny tries, and putting signals that fit you first (a small FITS YOU, shown only to you). **Never shown to anyone else, never used to match or rank people.** Anonymity until both accept is unchanged.
+- **What it never is:** a personality type, a score or a judgement. Interests in your own words only.
+- Model off: the same three questions; the answer trimmed to a line with keyword roles.
 
 ## 5. Arrive: share location, pick the place
 
@@ -102,7 +101,7 @@ Full detail: `MUSE-SPARK-BY-FUNCTION.md`.
 
 | Function | What it does | Capability | Guardrail | Fallback |
 |---|---|---|---|---|
-| **FIND ME** | Public footprint to a draft Personal Compass | Web search with citations, structured output | Only the person themselves, with consent; IS THIS YOU? before use; every line traced to a ticked source or their words; no personality labels; nothing saved before LOOKS RIGHT | Three scripted questions |
+| **COMPASS DRAFT** | One spoken answer to a compass line with topic, place, pace and people | Structured output | The question's part; roles from the allow-list, never names; banned labels rejected; transcripts never stored; nothing saved before LOOKS RIGHT | The trimmed answer with keyword roles |
 | **PLACE IT** | Fetches a place's details: hours, menu, spots | Parallel tool calling (Google Maps details, web search, our facts), structured output | Facts carry their source; fetched facts never become Hoolala! data without a person confirming; Google content shown live with attribution | Place card with people's details only |
 | **SUGGEST IT** | Three topics that fit you, the place (its menu, its spots) and what's on nearby today | Web search with citations, structured output | Dashed AI block, never posted automatically; cited events must come from returned sources | Hand-written topics by time of day |
 | **SCREEN IT** | Checks every topic, reply and place detail; translates FR/EN | Structured output | Code rules first; approve or reject, never rewrite | Code rules only |
@@ -116,7 +115,7 @@ The model steps out on purpose for **ARRIVE**, **MEET IT**, **STAY IN TOUCH** an
 
 - 18+ at sign-in. Only checked-in people can see or answer signals.
 - Anonymous until both accept; first names only after; no photos, profiles or compass shown to others.
-- FIND ME only with an explicit OK, only about the person themselves, only public pages; raw results never stored; the compass is deleted with the account.
+- Spoken answers draft the compass; transcripts and audio never stored; people as roles only; the compass is deleted with the account.
 - Location: used to find places, then discarded. Saved: places people add, and check-ins for 24 hours. No location history, no map of people.
 - Places are public places only (no homes, no private addresses); a reported place is hidden at once.
 - Block works both ways, everywhere, immediately. Report hides a signal, reply or place detail at once.
@@ -135,7 +134,7 @@ The model steps out on purpose for **ARRIVE**, **MEET IT**, **STAY IN TOUCH** an
 | **Real-world connection rate (north star)** | Accepted signals that end in a QR-confirmed meet-up |
 | Stay-in-touch rate | Confirmed meet-ups where both choose STAY IN TOUCH |
 | Place data quality | Share of fetched details confirmed or fixed by people; places added and visited by someone else |
-| Head-start take-up | Share who say yes to FIND ME, and how many compass lines they keep unchanged |
+| Get-personal completion | Share who finish LOOKS RIGHT, and how many drafts they change first |
 | Understood without help, comfort | Pilot observation and two questions afterwards |
 
 Never time in app, opens or "engagement".
@@ -153,6 +152,6 @@ Never time in app, opens or "engagement".
 
 ## 13. What happens to everything else
 
-- **Built for 4 Nov:** sign-in (Telegram Mini App, email on the web), FIND ME and the Personal Compass, places with location check-in and ADD THIS PLACE, PLACE IT and place points, Signals here, mutual accept, quick replies, SUGGEST IT, SCREEN IT, PLAN IT, CHECK IT, mutual QR, Live page, STAY IN TOUCH, Go live.
+- **Built for 4 Nov:** sign-in (Telegram Mini App, email on the web), the Personal Compass from spoken answers, places with location check-in and ADD THIS PLACE, PLACE IT and place points, Signals here, mutual accept, quick replies, SUGGEST IT, SCREEN IT, PLAN IT, CHECK IT, mutual QR, Live page, STAY IN TOUCH, Go live.
 - **If time (after Sun 1):** share card image, SNAP IT for menus, friends' Little Signals and Anyone around?, quick notes and invitations.
 - **After 4 Nov:** briefings (FIND IT), Telegram bot briefings, SAY IT, small talk missions, Sounds familiar?, Outside picks, NFC.

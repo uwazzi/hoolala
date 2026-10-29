@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { displayLink, isLoginWalled, isReadableLink, pageText } from "../src/rules/pages";
 
-describe("which links FIND ME may read", () => {
+describe("which links may be read", () => {
   it("reads people's own public pages", () => {
     for (const u of ["https://ana-lopes.example/blog", "https://github.com/analopes", "https://analopes.substack.com"]) expect(isReadableLink(u)).toBe(true);
   });

@@ -50,11 +50,10 @@ export function Privacy() {
           as one collective number. If you both choose STAY IN TOUCH, you become friends; if only one of you does, nobody is told.
         </p>
 
-        <h2>Your Personal Compass (FIND ME)</h2>
+        <h2>Your Personal Compass</h2>
         <p>
-          Only if you say yes. Hoolala! searches the web for you, and only you: the name, town and links you give, at most three times. It never logs
-          in to any social network. You tick what's really you. The search results are never stored. Only the compass lines you confirm with LOOKS
-          RIGHT are kept, each with its source or "you said".
+          Three spoken questions about real moments. Your voice becomes words and is never kept; transcripts are never stored. Each answer drafts one
+          compass line, and only the lines you confirm with LOOKS RIGHT are kept, as "you said". People appear as roles only, never names.
         </p>
         <p>
           Your compass is private. It only puts signals that fit you first, on your own screen. It's never shown to anyone and never used to match,
@@ -69,7 +68,7 @@ export function Privacy() {
         <ul class="prose-list">
           <li>Checking a post (SCREEN IT): the line you wrote. It approves or refuses and translates; it never changes your words.</li>
           <li>Topic ideas (SUGGEST IT): the place, the time and its spots. Nothing about you.</li>
-          <li>FIND ME: the name, town and links you give, then the findings you ticked.</li>
+          <li>Your compass (COMPASS DRAFT): one question and your answer, to draft a line. Transcripts are never stored.</li>
           <li>Meeting point (PLAN IT): the signal, the place's spots and the quick replies, by role. No names.</li>
         </ul>
         <p>

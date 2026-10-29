@@ -138,7 +138,7 @@ export function SignIn() {
           <p class="lcd-block">Hello, {me.firstName}. You're signed in.</p>
           <ul class="key-list">
             <li><a class="lcd-key lcd-key--primary" href="/arrive">Where are you?</a></li>
-            <li><a class="lcd-key" href="/start">Want a head start?</a></li>
+            <li><a class="lcd-key" href="/surprise">Want a head start?</a></li>
             <li><button class="lcd-key" type="button" onClick={signOut}>Sign out</button></li>
             <li><button class="lcd-key" type="button" onClick={() => go("delete")}>Delete my account</button></li>
           </ul>

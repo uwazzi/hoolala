@@ -10,8 +10,8 @@ import {
 } from "../src/rules/surprise";
 
 const turns = [
-  { q: QUESTIONS[0].q, a: "Chess, and cycling around the lake" },
-  { q: QUESTIONS[1].q, a: "Slow evenings" },
+  { q: QUESTIONS[0].q, a: "Chess with my neighbour last Tuesday" },
+  { q: QUESTIONS[1].q, a: "A supper club, three so far" },
 ];
 
 function wav(rate = 16000, channels = 1, bits = 16, samples = 160): Uint8Array {
@@ -34,25 +34,21 @@ function wav(rate = 16000, channels = 1, bits = 16, samples = 160): Uint8Array {
   return bytes;
 }
 
-describe("the five questions", () => {
-  it("are asked in order, each filling its direction, the last one open", () => {
-    expect(questionAt([])).toEqual({ q: "What could you talk about for an hour?", part: "interest" });
-    expect(questionAt(turns)).toEqual({ q: "What drains you, or what should I leave alone?", part: "filter" });
-    expect(questionAt(QUESTIONS.slice(0, 4).map((q) => ({ q: q.q, a: "x" })))).toEqual({
-      q: "Anything else I should know about you?",
-      part: null,
-    });
+describe("the three questions", () => {
+  it("are asked in order, each filling its direction", () => {
+    expect(questionAt([])).toEqual({ q: "When did you last have a good chat with someone? What about?", part: "interest" });
+    expect(questionAt(turns)).toEqual({ q: "Who do you bump into in a normal week?", part: "delivery" });
     const full = QUESTIONS.map((q) => ({ q: q.q, a: "x" }));
     expect(isFinished(full)).toBe(true);
     expect(questionAt(full)).toBeNull();
   });
 
-  it("covers every direction across the first four", () => {
-    expect(QUESTIONS.map((q) => q.part)).toEqual(["interest", "intention", "filter", "delivery", null]);
+  it("covers talk, making and people", () => {
+    expect(QUESTIONS.map((q) => q.part)).toEqual(["interest", "intention", "delivery"]);
   });
 
   it("reads the turns the client sends back, and nothing else", () => {
-    expect(readTurns(turns)).toEqual([turns[0], { q: turns[1].q, a: "Slow evenings" }]);
+    expect(readTurns(turns)).toEqual(turns);
     expect(readTurns([{ q: "Hi?", a: "  lots   of\nspace " }])).toEqual([{ q: "Hi?", a: "lots of space" }]);
     expect(readTurns([{ q: QUESTIONS[0].q, a: "" }])).toEqual([{ q: QUESTIONS[0].q, a: "" }]);
     expect(readTurns("hello")).toBeNull();

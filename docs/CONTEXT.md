@@ -1,6 +1,6 @@
 # Hoolala! project context (Meta hackathon)
 
-Read this first in every chat in this project. Updated 27 Oct 2026: **Signals here is the hackathon hero** (v5: any place, FIND ME onboarding, PLACE IT and place points). These docs, and nothing else, define the project:
+Read this first in every chat in this project. Updated 29 Oct 2026: **Signals here is the hackathon hero** (v6.2: onboarding story, get personal, the game, simplified Today; any place, PLACE IT and place points). These docs, and nothing else, define the project:
 
 | Doc | What it decides |
 |---|---|
@@ -13,7 +13,7 @@ Read this first in every chat in this project. Updated 27 Oct 2026: **Signals he
 | `AGENTS.md` | Rules for every coding agent |
 | `docs/DESIGN.md` | Mono LCD design system, voice and product rules |
 | `docs/COMPETITOR-REVIEWS.md` | The review research behind the 27 Oct decision |
-| `docs/PROJECT-INSTRUCTIONS-v3.2.md` | Go App-Free: the compass ideas now feed FIND ME; briefings and the rest are after 4 Nov |
+| `docs/PROJECT-INSTRUCTIONS-v3.2.md` | Go App-Free: the compass ideas now feed Let's get personal; briefings and the rest are after 4 Nov |
 | `docs/CHANGELOG.md` | History of decisions |
 
 ## The event
@@ -37,9 +37,9 @@ Read this first in every chat in this project. Updated 27 Oct 2026: **Signals he
 - Voice: witty, observational, never preachy. What we say / what actually happens: **"We've sat at the same table for six months." / Never spoken.**
 - Look: Nokia 3210-era green monochrome LCD, Silkscreen and Space Mono (`docs/DESIGN.md`).
 
-### The hackathon build: Signals here (`docs/SIGNALS-HERE.md`, v5)
+### The hackathon build: Signals here (`docs/SIGNALS-HERE.md`, v6.2)
 Works at **any public place**: a café, a bar, a coworking space, a library. No partner or host needed.
-0. **Get started (FIND ME):** "Want a head start? OK to read your public profile?" Muse Spark searches what's public about the person (their name, city, links they give), they tick IS THIS YOU?, and it drafts their **Personal Compass** with a source on every line. Private: used only for their own topic ideas and to show signals that fit them first. NO means three quick questions.
+0. **Get started:** first open plays a six-beat onboarding story, then **Let's get personal:** three spoken questions about real moments; each answer drafts a **Personal Compass** line, and the compass check shows the sketch with PEOPLE IN YOUR DAYS. Nothing is saved before LOOKS RIGHT. Private: used only for their own topic ideas, their game of tiny tries, and to show signals that fit them first. Then the game (nine tries across SOFT, BRAVE and BOLD) and a simplified Today.
 1. **Arrive** (no AI, on purpose): share location, pick the place; not listed, ADD THIS PLACE (saved at that location); GPS wrong, search by name; QR poster optional for partner places. The person's coordinates are discarded after the lookup.
 2. **The place (PLACE IT):** hours, menu, spots fetched from Google Maps and the place's website with sources; people confirm or fix them and earn private **place points**.
 3. **Peek and discover:** up to 3 open signals from people checked in at the same place, anonymous, translated FR/EN, FITS YOU marked only for you.
@@ -51,7 +51,7 @@ Works at **any public place**: a café, a bar, a coworking space, a library. No 
 9. **Go live:** HOOLALA! IS OFF. YOU'RE ON.
 
 ### How Muse Spark is used (see `docs/MUSE-SPARK-BY-FUNCTION.md`)
-- **FIND ME:** web search with citations about the person (with consent) and a structured compass draft they confirm.
+- **COMPASS DRAFT:** one structured call per spoken answer drafts a compass line (the question's part, ≤60 characters about what happened, roles only never names); nothing saved before LOOKS RIGHT.
 - **PLACE IT:** an agent with parallel tools (Google Maps details live, web search for the menu, our confirmed facts) that returns sourced place facts for people to confirm.
 - **SUGGEST IT:** topic ideas from the place, the time and what's on nearby, with web search citations.
 - **SCREEN IT:** structured verdicts on every topic and reply (no dating, selling, personal data, harassment), plus FR/EN translation. Code rules first; the model never rewrites silently.
@@ -61,7 +61,7 @@ Works at **any public place**: a café, a bar, a coworking space, a library. No 
 - No AI on purpose: ARRIVE, MEET IT, STAY IN TOUCH, GO LIVE. Muse Code builds it (`Agent: Muse Code` trailer).
 
 ### Moved to after 4 Nov
-Briefings (FIND IT), Telegram bot briefings (the rest of Go App-Free; brief kept in `PROJECT-INSTRUCTIONS-v3.2.md`), SAY IT, small talk missions, Sounds familiar?, Find a plan, Unplug, Outside picks, NFC. The Personal Compass is back in the build through FIND ME. If time after Sun 1: share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations.
+Briefings (FIND IT), Telegram bot briefings (the rest of Go App-Free; brief kept in `PROJECT-INSTRUCTIONS-v3.2.md`), SAY IT, small talk missions, Sounds familiar?, Find a plan, Unplug, Outside picks, NFC. The Personal Compass is in the build through Let's get personal (FIND ME removed in v6.2). If time after Sun 1: share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations.
 
 ### Success metrics
 **North star: real-world connection rate** (accepted signals that end in a QR-confirmed meet-up). Also: first-attempt check-in success rate, signal-to-response conversion, response-to-accept, stay-in-touch rate, and in the pilot whether people understood signals without help and how comfortable replying felt. Never time in app, opens or "engagement".
@@ -76,7 +76,7 @@ One busy Lausanne place, decided by Thu 29 Oct (a coworking space first; a café
 By 4 Nov, at a real café or coworking space: people get a head start from their public footprint, check in on the first try, see place details they can fix, see and post signals, reply and accept anonymously, get a proposed meeting point, meet and confirm with two phones, and the Live page shows the connection rate. Every AI answer can SHOW THE WORKINGS; the eval pass rate is in the README.
 
 ### Demo video (3 minutes)
-Beat sheet in `MUSE-SPARK-BY-FUNCTION.md`: the coworking table line; FIND ME with a namesake ticked NOT ME; share location and check in (with the GPS failure and search by name); the place card with a fixed price; three signals, one translated; SUGGEST IT with a cited idea and a dating line politely refused; I'M CURIOUS, accept, first names, PLAN IT; MEET IT on the terrace and the connection rate; SHOW THE WORKINGS; STAY IN TOUCH; GO LIVE. One plain line that the visual design and a mock-up pre-date the event.
+Beat sheet in `MUSE-SPARK-BY-FUNCTION.md`: the coworking table line; the story, three spoken questions and the compass check; share location and check in (with the GPS failure and search by name); the place card with a fixed price; three signals, one translated; SUGGEST IT with a cited idea and a dating line politely refused; I'M CURIOUS, accept, first names, PLAN IT; MEET IT on the terrace and the connection rate; SHOW THE WORKINGS; STAY IN TOUCH; GO LIVE. One plain line that the visual design and a mock-up pre-date the event.
 
 ## Design principles (non-negotiable)
 - No feed, no likes, no follower counts, no streaks, no leaderboards, no map of people. The only public numbers are collective. Place points are private.

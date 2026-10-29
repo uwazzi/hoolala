@@ -1,59 +1,56 @@
-// WP24 FIND ME and the Personal Compass. WP33 SAY IT YOUR WAY. WP34 Surprise Me keeps.
-// POST /api/me/find {consent, name, town, links} · POST /api/me/compass/draft {kept, answers} ·
-// POST /api/me/compass/confirm {lines, origin} · GET /api/me/compass ·
+// The Personal Compass. WP33 SAY IT YOUR WAY. WP36 get personal (FIND ME removed).
+// GET /api/me/compass · GET /api/me/compass/people · DELETE /api/me/compass/people/:role ·
+// POST /api/me/compass/draft-line {questionId, answer} (dry run, never saves) ·
+// POST /api/me/compass/save {lines, people} (LOOKS RIGHT: the one save of onboarding) ·
 // POST /api/me/compass/propose {lineId?, part?, words?, feedback?, reviewed?, fix?} (dry run, never saves) ·
 // POST /api/me/compass/confirm_line {lineId, part, words, source?, tryId?} ·
-// POST /api/me/compass/keep {part, words} (one new line, Surprise Me) ·
 // POST /api/me/compass/undo · GET /api/me/compass/changes · DELETE /api/me/compass/:id · DELETE /api/me/compass
-// FIND ME needs consent and looks up only the person: the name must contain
-// their own first name. Findings are returned, never stored; nothing is saved
-// before LOOKS RIGHT. The compass is only ever returned to its owner.
+// The compass is spoken answers only: drafts are returned, never stored;
+// nothing is saved before LOOKS RIGHT. People appear as roles, never names.
+// The compass is only ever returned to its owner.
 // SAY IT YOUR WAY never edits the person's words: propose guesses a line
 // from their words, confirm saves exactly those words after a tap, and every
 // confirm and REMOVE is recorded for one UNDO.
 
 import {
-  addCompassLine,
   deleteCompass,
   getCompass,
   getCompassLine,
   latestUndoable,
+  listCompassPeople,
   markUndone,
   recentChanges,
   recordChange,
   removeCompassLine,
-  replaceCompass,
+  removeCompassPerson,
   restoreCompassLine,
+  saveCompass,
   setCompassOrigin,
   updateCompassLine,
 } from "../db/compass";
-import { llmEnabled, writeWorking } from "../llm/client";
-import { draftCompass, type Finding, findMe } from "../llm/findme";
+import { draftAnswer } from "../llm/compassdraft";
 import {
-  type Answers,
   changeRemove,
-  cleanCompass,
-  isOwnName,
-  MAX_FINDINGS,
-  normalizeLinks,
-  normalizeSearchName,
+  cleanRole,
   PARTS,
   partForWords,
+  type PeopleRole,
   proposeFeedback,
+  roleClass,
   type TryFeedback,
   validateProposal,
 } from "../rules/compass";
-import { normalizeLocality } from "../rules/checkin";
+import { SCREEN_MESSAGES, screenText } from "../rules/screening";
+import { MAX_ANSWER, QUESTIONS } from "../rules/surprise";
 import { sourceDomain } from "../rules/grounding";
 import type { CompassItemRow, CompassOrigin, CompassPart, Env } from "../types";
 import { json } from "./health";
 import { overLimit, readJson } from "./request";
 import { getSessionUser } from "./session";
 
-const FIND_LIMIT = { max: 5, windowS: 24 * 60 * 60 };
-const DRAFT_LIMIT = { max: 20, windowS: 60 * 60 };
+const DRAFT_LINE_LIMIT = { max: 30, windowS: 60 * 60 };
+const SAVE_LIMIT = { max: 30, windowS: 60 * 60 };
 const PROPOSE_LIMIT = { max: 30, windowS: 60 * 60 };
-const KEEP_LIMIT = { max: 30, windowS: 60 * 60 };
 
 const FEEDBACKS: readonly TryFeedback[] = ["went_well", "awkward", "no_reply", "didnt_happen"];
 
@@ -91,89 +88,6 @@ function view(rows: CompassItemRow[]) {
     source: r.source_url ? sourceDomain(r.source_url) : "you said",
     origin: r.origin,
   }));
-}
-
-export async function handleFind(request: Request, env: Env, now = new Date()): Promise<Response> {
-  const user = await getSessionUser(request, env, now);
-  if (!user) return json({ error: "signed_out" }, 401);
-  const body = await readJson(request);
-  if (body.consent !== true) return json({ error: "consent_required" }, 400);
-  if (!user.first_name) return json({ error: "first_name_required" }, 400);
-  const name = normalizeSearchName(body.name);
-  if (!name) return json({ error: "bad_name" }, 400);
-  // Hoolala! never looks anyone else up.
-  if (!isOwnName(name, user.first_name)) return json({ error: "not_you" }, 403);
-  const links = normalizeLinks(body.links);
-  if (!links) return json({ error: "bad_links" }, 400);
-  const town = body.town ? normalizeLocality(body.town) : null;
-  if (!llmEnabled(env)) return json({ error: "ai_off" }, 503);
-  if (await overLimit(env, `rl:find:${user.id}`, FIND_LIMIT)) return json({ error: "too_many" }, 429);
-
-  const found = await findMe(env, { name, town, links });
-  if (!found) return json({ error: "ai_failed" }, 503);
-  // CHECK IT records counts only: no URLs, no text, nothing about the person.
-  const workingsId = await writeWorking(env, {
-    userId: user.id,
-    fn: "findme",
-    tools: found.searches ? Array(found.searches).fill("web_search") : [],
-    grounded: found.findings.length,
-    total: found.total,
-    effort: "low",
-  });
-  return json({
-    workingsId,
-    findings: found.findings.map((f) => ({ text: f.text, url: f.url, source: sourceDomain(f.url) })),
-  });
-}
-
-function readKept(raw: unknown): Finding[] | null {
-  if (raw === undefined) return [];
-  if (!Array.isArray(raw) || raw.length > MAX_FINDINGS) return null;
-  const kept: Finding[] = [];
-  for (const k of raw) {
-    if (!k || typeof k !== "object") return null;
-    const { text, url } = k as { text?: unknown; url?: unknown };
-    if (typeof text !== "string" || typeof url !== "string" || text.length > 200 || !/^https:\/\//.test(url)) return null;
-    kept.push({ text: text.trim(), url });
-  }
-  return kept;
-}
-
-function readAnswers(raw: unknown): Answers {
-  const a = (raw ?? {}) as Record<string, unknown>;
-  const pick = (v: unknown) => (typeof v === "string" ? v.slice(0, 200) : undefined);
-  return { talk: pick(a.talk), more: pick(a.more), avoid: pick(a.avoid) };
-}
-
-/** A draft from what the person ticked and answered. Nothing is saved here. */
-export async function handleDraft(request: Request, env: Env, now = new Date()): Promise<Response> {
-  const user = await getSessionUser(request, env, now);
-  if (!user) return json({ error: "signed_out" }, 401);
-  const body = await readJson(request);
-  const kept = readKept(body.kept);
-  if (!kept) return json({ error: "bad_findings" }, 400);
-  if (await overLimit(env, `rl:draft:${user.id}`, DRAFT_LIMIT)) return json({ error: "too_many" }, 429);
-  const draft = await draftCompass(env, kept, readAnswers(body.answers));
-  return json({
-    source: draft.source,
-    lines: draft.lines.map((l) => ({ ...l, source: l.sourceUrl ? sourceDomain(l.sourceUrl) : "you said" })),
-  });
-}
-
-/** LOOKS RIGHT: the person confirms these exact lines; only now is anything saved. */
-export async function handleConfirm(request: Request, env: Env, now = new Date()): Promise<Response> {
-  const user = await getSessionUser(request, env, now);
-  if (!user) return json({ error: "signed_out" }, 401);
-  const body = await readJson(request);
-  if (!Array.isArray(body.lines)) return json({ error: "bad_lines" }, 400);
-  const raw = body.lines as { part: unknown; text: unknown; sourceUrl?: unknown }[];
-  // Sources here are the ones the person kept on the draft they're confirming.
-  const sources = raw.map((l) => l.sourceUrl).filter((u): u is string => typeof u === "string" && /^https:\/\//.test(u));
-  const lines = cleanCompass(raw, sources, true);
-  if (!lines.length) return json({ error: "bad_lines" }, 400);
-  const origin = body.origin === "questions" ? "questions" : "find_me";
-  await replaceCompass(env.DB, user.id, lines, origin, now.toISOString());
-  return json({ compass: view(await getCompass(env.DB, user.id)) });
 }
 
 export async function handleCompass(request: Request, env: Env, now = new Date()): Promise<Response> {
@@ -249,20 +163,77 @@ export async function handleConfirmLine(request: Request, env: Env, now = new Da
 }
 
 /**
- * SURPRISE ME, the KEEP tap. Saves one new line from the person's own
- * words, through the same validator the proposal used. Nothing is saved
- * before this tap. Kept lines are removed on the compass screen; they
- * never enter the UNDO log.
+ * GET PERSONAL, one answer: draft its compass line with topic, place, pace
+ * and people. Dry run, never saves. The server retries a bad draft once,
+ * then falls back to the trimmed answer with keyword roles.
  */
-export async function handleKeep(request: Request, env: Env, now = new Date()): Promise<Response> {
+export async function handleDraftLine(request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
   if (!user) return json({ error: "signed_out" }, 401);
   const body = await readJson(request);
-  if (await overLimit(env, `rl:keep:${user.id}`, KEEP_LIMIT)) return json({ error: "too_many" }, 429);
-  const check = validateProposal(body.part, body.words);
-  if (!check.ok) return json({ error: check.error, why: check.why }, 422);
-  await addCompassLine(env.DB, user.id, check.line!.part, check.line!.words, "questions", now.toISOString());
-  return json({ compass: view(await getCompass(env.DB, user.id)) });
+  const questionId = typeof body.questionId === "string" ? body.questionId : "";
+  const index = ["q1", "q2", "q3"].indexOf(questionId);
+  if (index < 0) return json({ error: "bad_question" }, 400);
+  const answer = typeof body.answer === "string" ? body.answer.trim().replace(/\s+/g, " ") : "";
+  if (!answer || answer.length > MAX_ANSWER) return json({ error: "bad_answer" }, 400);
+  const screen = screenText(answer, MAX_ANSWER);
+  if (!screen.ok) {
+    if (screen.category === "crisis") return json({ error: "crisis", why: SCREEN_MESSAGES.crisis }, 422);
+    if (screen.category === "dating") return json({ error: "not_allowed", why: SCREEN_MESSAGES.dating }, 422);
+    return json({ error: "not_allowed", why: SCREEN_MESSAGES[screen.category ?? "length"] }, 422);
+  }
+  if (await overLimit(env, `rl:draftline:${user.id}`, DRAFT_LINE_LIMIT)) return json({ error: "too_many" }, 429);
+  const question = QUESTIONS[index];
+  const { draft, fallback } = await draftAnswer(env, user.id, { id: questionId, part: question.part!, text: question.q }, answer);
+  return json({ draft, fallback });
+}
+
+/**
+ * LOOKS RIGHT: the one save of onboarding. Validates every line and role
+ * again, then stores them. Empty saves are a no-op.
+ */
+export async function handleSave(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const body = await readJson(request);
+  if (!Array.isArray(body.lines) || body.lines.length > 8 || (body.people !== undefined && !Array.isArray(body.people))) {
+    return json({ error: "bad_lines" }, 400);
+  }
+  const lines: { part: CompassPart; words: string }[] = [];
+  for (const l of body.lines) {
+    const check = validateProposal((l as { part?: unknown })?.part, (l as { words?: unknown })?.words);
+    if (!check.ok) return json({ error: check.error, why: check.why }, 422);
+    lines.push(check.line!);
+  }
+  const people: PeopleRole[] = [];
+  for (const p of body.people ?? []) {
+    const role = cleanRole(typeof p === "string" ? p : (p as { role?: unknown })?.role);
+    if (!role) return json({ error: "bad_role", why: "People are saved as roles only." }, 422);
+    if (!people.includes(role)) people.push(role);
+  }
+  if (await overLimit(env, `rl:save:${user.id}`, SAVE_LIMIT)) return json({ error: "too_many" }, 429);
+  await saveCompass(
+    env.DB,
+    user.id,
+    lines,
+    people.map((role) => ({ role, roleClass: roleClass(role) })),
+    now.toISOString(),
+  );
+  return json({ compass: view(await getCompass(env.DB, user.id)), people: people.map((role) => ({ role })) });
+}
+
+export async function handlePeople(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  return json({ people: (await listCompassPeople(env.DB, user.id)).map((p) => ({ role: p.role })) });
+}
+
+export async function handleRemovePerson(role: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  if (!cleanRole(role)) return json({ error: "bad_role" }, 400);
+  if (!(await removeCompassPerson(env.DB, user.id, cleanRole(role)!))) return json({ error: "not_found" }, 404);
+  return json({ people: (await listCompassPeople(env.DB, user.id)).map((p) => ({ role: p.role })) });
 }
 
 export async function handleRemoveLine(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {

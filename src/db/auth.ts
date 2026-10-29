@@ -129,6 +129,7 @@ export async function deleteAccount(db: D1Database, userId: string, email: strin
     "DELETE FROM blocks WHERE blocker_id = ?1 OR blocked_id = ?1",
     "DELETE FROM checkins WHERE user_id = ?1",
     "DELETE FROM compass_items WHERE user_id = ?1",
+    "DELETE FROM compass_people WHERE user_id = ?1",
     "DELETE FROM compass_changes WHERE user_id = ?1",
     "DELETE FROM place_contributions WHERE user_id = ?1",
     "DELETE FROM workings WHERE user_id = ?1",

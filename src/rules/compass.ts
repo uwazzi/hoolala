@@ -1,18 +1,15 @@
-// WP24 Personal Compass rules. Pure. The compass is the person's own words
+// Personal Compass rules. Pure. The compass is the person's own words
 // about what they like talking about: private, never shown to anyone else,
-// never used to match or rank people. Every line has a ticked source or is
-// "you said". Never a personality type, score or a health, political,
-// religious or sexuality label.
+// never used to match or rank people. Every line is "you said" (v6.2: spoken
+// answers only, FIND ME removed). Never a personality type, score or a health,
+// political, religious or sexuality label. People appear as roles, never names.
 
 import type { CompassPart } from "../types";
-import { canonicalUrl } from "./grounding";
 import { SCREEN_MESSAGES, screenText } from "./screening";
 
 export const PARTS: readonly CompassPart[] = ["interest", "intention", "filter", "delivery", "action"];
 export const MAX_LINES = 8;
 export const MAX_LINE = 60;
-export const MAX_FINDINGS = 6;
-export const MAX_LINKS = 3;
 
 // Labels about a person we never keep. A "filter" line (what they'd rather not
 // talk about) may name such a topic: "no politics" is a choice, not a label.
@@ -38,98 +35,10 @@ export function hasBannedLabel(text: string): boolean {
 
 const fold = (s: string) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-/** FIND ME looks up only the person: the name searched must contain their own first name. */
-export function isOwnName(searchName: string, firstName: string | null): boolean {
-  if (!firstName) return false;
-  const tokens = fold(searchName).split(/[^a-z0-9']+/).filter(Boolean);
-  const first = fold(firstName).split(/[\s-]+/)[0];
-  return tokens.includes(first);
-}
-
-export function normalizeSearchName(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  const name = raw.trim().replace(/\s+/g, " ");
-  if (name.length < 2 || name.length > 80) return null;
-  if (!/^\p{L}[\p{L}\p{M} .'’-]*$/u.test(name)) return null;
-  return name;
-}
-
-/** Up to 3 public https links the person chooses; nothing else. */
-export function normalizeLinks(raw: unknown): string[] | null {
-  if (raw === undefined || raw === null) return [];
-  if (!Array.isArray(raw) || raw.length > MAX_LINKS) return null;
-  const links: string[] = [];
-  for (const r of raw) {
-    if (typeof r !== "string" || r.length > 300) return null;
-    let u: URL;
-    try {
-      u = new URL(r.trim());
-    } catch {
-      return null;
-    }
-    if (u.protocol !== "https:") return null;
-    links.push(u.toString());
-  }
-  return links;
-}
-
 export interface CompassLine {
   part: CompassPart;
   text: string;
   sourceUrl: string | null; // null means "you said"
-}
-
-/**
- * The lines that may be shown in a draft and saved: a known part, 2 to 60
- * characters, no banned label (except as a filter), and either a source the
- * person ticked or "you said" when they answered questions. Max 8, no repeats.
- */
-export function cleanCompass(lines: { part: unknown; text: unknown; source_url?: unknown; sourceUrl?: unknown }[], tickedUrls: string[], answered: boolean): CompassLine[] {
-  const ticked = new Map(tickedUrls.map((u) => [canonicalUrl(u), u]));
-  const seen = new Set<string>();
-  const out: CompassLine[] = [];
-  for (const l of lines) {
-    if (!PARTS.includes(l.part as CompassPart) || typeof l.text !== "string") continue;
-    const text = l.text.trim().replace(/\s+/g, " ");
-    if (text.length < 2 || text.length > MAX_LINE) continue;
-    if (l.part !== "filter" && hasBannedLabel(text)) continue;
-    const raw = (l.source_url ?? l.sourceUrl ?? null) as string | null;
-    let sourceUrl: string | null = null;
-    if (raw) {
-      const known = ticked.get(canonicalUrl(raw));
-      if (!known) continue;
-      sourceUrl = known;
-    } else if (!answered) {
-      continue;
-    }
-    const key = `${l.part}:${fold(text)}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ part: l.part as CompassPart, text, sourceUrl });
-    if (out.length === MAX_LINES) break;
-  }
-  return out;
-}
-
-export interface Answers {
-  talk?: string;
-  more?: string;
-  avoid?: string;
-}
-
-/** NO, I'LL TELL YOU: three questions straight to compass lines. No model. */
-export function compassFromAnswers(a: Answers): CompassLine[] {
-  const split = (s: string | undefined) => (s ?? "").split(/[,;\n]+/).map((x) => x.trim()).filter(Boolean);
-  const lines = [
-    ...split(a.talk).map((text) => ({ part: "interest", text })),
-    ...split(a.more).map((text) => ({ part: "intention", text })),
-    ...split(a.avoid).map((text) => ({ part: "filter", text })),
-  ];
-  return cleanCompass(lines, [], true);
-}
-
-export function hasAnswers(a: Answers | undefined): boolean {
-  return Boolean(a && [a.talk, a.more, a.avoid].some((x) => typeof x === "string" && x.trim()));
 }
 
 /**
@@ -224,4 +133,120 @@ export function proposeFeedback(feedback: TryFeedback): { words: string; part: C
 /** REMOVEs and edits are recorded before/after so UNDO restores exactly the last edit. */
 export function changeRemove(words: string): { before: string; after: null } {
   return { before: words, after: null };
+}
+
+// ---- v6.2: PEOPLE IN YOUR DAYS. Roles only, never names.
+
+export const PEOPLE_ROLES = [
+  "barista",
+  "boss",
+  "brother",
+  "child",
+  "colleague",
+  "dad",
+  "friend",
+  "mum",
+  "neighbour",
+  "regular",
+  "sister",
+  "teammate",
+] as const;
+
+export type PeopleRole = (typeof PEOPLE_ROLES)[number];
+
+const CLOSE_ROLES: readonly string[] = ["brother", "child", "dad", "friend", "mum", "neighbour", "sister"];
+
+/** Close roles (family, friends, neighbours) can appear anywhere; service roles stay light and public. */
+export function roleClass(role: PeopleRole): "close" | "service" {
+  return CLOSE_ROLES.includes(role) ? "close" : "service";
+}
+
+const ROLE_WORDS: [RegExp, PeopleRole][] = [
+  [/\bbarista\b/i, "barista"],
+  [/\bboss\b/i, "boss"],
+  [/\bbrother\b/i, "brother"],
+  [/\b(child|children|kid|son|daughter)\b/i, "child"],
+  [/\bcolleague\b/i, "colleague"],
+  [/\b(dad|father)\b/i, "dad"],
+  [/\bfriends?\b/i, "friend"],
+  [/\b(mum|mom|mother)\b/i, "mum"],
+  [/\bneighbou?r\b/i, "neighbour"],
+  [/\bregular\b/i, "regular"],
+  [/\bsister\b/i, "sister"],
+  [/\bteammate\b/i, "teammate"],
+];
+
+/** Roles named in own words, first mention first. Strangers are nobody. */
+export function extractRoles(answer: string): PeopleRole[] {
+  const found: { role: PeopleRole; at: number }[] = [];
+  for (const [re, role] of ROLE_WORDS) {
+    const at = answer.search(re);
+    if (at >= 0) found.push({ role, at });
+  }
+  return found.sort((a, b) => a.at - b.at).map((f) => f.role);
+}
+
+/** A proposed role folded to the allow-list, or dropped. Names never survive. */
+export function cleanRole(raw: unknown): PeopleRole | null {
+  if (typeof raw !== "string") return null;
+  return extractRoles(raw)[0] ?? null;
+}
+
+// ---- v6.2: COMPASS DRAFT. One structured call per spoken answer.
+
+export type DraftPace = "gentle" | "social" | "bold";
+
+export interface CompassDraft {
+  part: CompassPart;
+  line: string;
+  topic: string | null;
+  placeKind: string | null;
+  pace: DraftPace;
+  people: PeopleRole[];
+}
+
+const SHORT = /^[a-z][a-z ]{0,23}$/i;
+const IS_LINE = /^(you are|you're|you\u2019re|i am|i'm|i\u2019m)\b/i;
+
+/** A long answer cut to a compass line at a word boundary. */
+export function trimDraft(words: string): string {
+  const clean = words.trim().replace(/\s+/g, " ");
+  if (clean.length <= MAX_LINE) return clean;
+  const cut = clean.slice(0, MAX_LINE);
+  const at = cut.lastIndexOf(" ");
+  return (at > 20 ? cut.slice(0, at) : cut).trim();
+}
+
+/**
+ * A model-drafted line: the question's part, 2 to 60 characters, about what
+ * happened (never a label, never you-are). Roles fold to the allow-list;
+ * topic and place are short plain words or dropped; pace falls back gentle.
+ * Null when the draft is unusable (the caller retries once, then falls back).
+ */
+export function validateDraft(expected: CompassPart, value: unknown): CompassDraft | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  if (v.part !== expected) return null;
+  if (typeof v.line !== "string") return null;
+  const line = trimDraft(v.line);
+  if (line.length < 2) return null;
+  if (IS_LINE.test(line)) return null;
+  if (expected !== "filter" && hasBannedLabel(line)) return null;
+  if (!screenText(line, MAX_LINE).ok) return null;
+  const short = (x: unknown): string | null => (typeof x === "string" && SHORT.test(x.trim()) ? x.trim().toLowerCase() : null);
+  const pace: DraftPace = v.pace === "social" || v.pace === "bold" ? v.pace : "gentle";
+  const people: PeopleRole[] = [];
+  if (Array.isArray(v.people)) {
+    for (const p of v.people) {
+      const role = cleanRole(typeof p === "string" ? p : (p as { role?: unknown })?.role);
+      if (role && !people.includes(role)) people.push(role);
+      if (people.length === 3) break;
+    }
+  }
+  return { part: expected, line, topic: short(v.topic), placeKind: short(v.place_kind), pace, people };
+}
+
+/** No model, or two bad drafts: the answer trimmed, keyword roles, gentle pace. */
+export function fallbackDraft(expected: CompassPart, answer: string): CompassDraft {
+  return { part: expected, line: trimDraft(answer), topic: null, placeKind: null, pace: "gentle", people: extractRoles(answer).slice(0, 3) };
 }
