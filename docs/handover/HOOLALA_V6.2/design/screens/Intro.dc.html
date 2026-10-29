@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! onboarding: why go</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}
+@keyframes hl-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes hl-rise{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes hl-drift{0%{transform:translate(0,0);opacity:1}100%{transform:translate(22px,14px);opacity:0.35}}
+@keyframes hl-fillin{to{fill:#182513}}
+@keyframes hl-pop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes hl-beat{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes hl-lean{0%{transform:translateX(0)}100%{transform:translateX(14px)}}
+@keyframes hl-leanl{0%{transform:translateX(0)}100%{transform:translateX(-14px)}}
+@keyframes hl-pass{0%{transform:translateX(0)}100%{transform:translateX(96px)}}
+.hl-pass{animation:hl-pass 1.2s steps(6) 0.4s forwards}
+.hl-cursor{display:inline-block;width:12px;height:0.9em;background:#182513;vertical-align:-2px;margin-left:3px;animation:hl-blink 0.9s steps(1) infinite}
+.hl-rise{animation:hl-rise 0.3s ease-out both}
+.hl-drift{animation:hl-drift 1.6s steps(8) 0.3s forwards}
+.hl-pop{transform-origin:50% 100%;animation:hl-pop 0.35s steps(4) both}
+.hl-beat{animation:hl-beat 1.2s steps(3) infinite}
+.hl-lean{animation:hl-lean 0.8s steps(4) forwards}
+.hl-leanl{animation:hl-leanl 0.8s steps(4) forwards}
+.hl-key:hover{outline:2px solid #182513;outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.hl-pass,.hl-drift,.hl-pop,.hl-beat,.hl-lean,.hl-leanl,.hl-rise{animation-duration:0.01s!important;animation-iteration-count:1!important}.hl-cursor{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; position: relative">
+  <header style="flex-shrink: 0; margin: 0 24px; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px dashed #304327">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 11px; line-height: 1.3; color: #304327; text-align: right">You never know until you go.</div>
+  </header>
+
+  <div onClick="{{ tapNext }}" style="flex-grow: 1; padding: 24px 24px 12px 24px; display: flex; flex-direction: column; gap: 16px; cursor: pointer">
+    <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327; letter-spacing: 1px">{{ kicker }}</div>
+    <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 28px; line-height: 1.15; min-height: 98px">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+
+    <div style="flex-grow: 1; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; position: relative; overflow: hidden">
+
+      <sc-if value="{{ isPeople }}" hint-placeholder-val="{{ true }}">
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 40px">
+          <sc-for list="{{ six }}" as="f" hint-placeholder-count="6">
+            <div class="{{ f.cls }}"><svg width="40" height="60" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg></div>
+          </sc-for>
+        </div>
+        <div style="position: absolute; bottom: 14px; left: 0; right: 0; text-align: center; font-family: 'Silkscreen', monospace; font-size: 12px">1 · 2 · 3 · 4 · 5 · <span style="text-decoration: underline">6</span></div>
+      </sc-if>
+
+      <sc-if value="{{ isHealth }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-beat"><svg width="120" height="104" viewBox="0 0 15 13" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v1h1v1h1V1h1V0h4v1h1v1h1v5h-1v1h-1v1h-1v1h-1v1h-1v1H8v1H7v-1H6v-1H5v-1H4V9H3V8H2V7H1V2h1z" fill="#182513"></path><path d="M3 2h2v1H3zM2 3h1v2H2z" fill="#DDE7C6"></path></svg></div>
+      </sc-if>
+
+      <sc-if value="{{ isHours }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 14px">
+          <div style="display: flex; align-items: flex-end; gap: 20px">
+            <svg width="40" height="60" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg>
+            <div class="hl-pop" style="margin-bottom: 40px; padding: 6px 10px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 14px">HELLO!</div>
+            <svg width="40" height="60" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 240px">
+            <sc-for list="{{ hours }}" as="h" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+                <div style="{{ h.style }}"></div>
+                <span style="font-family: 'Silkscreen', monospace; font-size: 11px">{{ h.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">FEELING LESS ALONE, HOURS LATER</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isKind }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 260px">
+          <div style="min-height: 40px; display: flex; justify-content: flex-end; width: 200px">
+            <sc-if value="{{ flipped }}" hint-placeholder-val="{{ false }}">
+              <div class="hl-pop" style="padding: 6px 10px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 14px">THANKS!</div>
+            </sc-if>
+          </div>
+          <div style="position: relative; display: flex; justify-content: space-between; width: 200px; align-items: flex-end">
+            <svg width="44" height="66" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg>
+            <div class="hl-pass" style="position: absolute; left: 44px; bottom: 26px"><svg width="24" height="24" viewBox="0 0 6 6" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 1h4v1h2v2H4v2H0z M4 2v1h1V2z" fill="#182513" fill-rule="evenodd"></path><path d="M1 0h1v1H1zM2 -1h1v1H2z" fill="#304327"></path></svg></div>
+            <svg width="44" height="66" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg>
+          </div>
+          <div style="width: 240px; border-top: 2px solid #182513"></div>
+          <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">A SMALL KINDNESS. TWO BETTER MOODS.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isFear }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 260px">
+          <div class="hl-pop" style="align-self: flex-start; margin-left: 0; padding: 10px 12px; background: #BED39C; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 13px; line-height: 1.3; max-width: 200px">{{ bubble }}</div>
+          <div style="display: flex; gap: 8px; margin-left: 18px"><div style="width: 8px; height: 8px; border: 2px solid #182513"></div></div>
+          <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-end">
+            <svg width="44" height="66" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg>
+            <sc-if value="{{ flipped }}" hint-placeholder-val="{{ false }}">
+              <div class="hl-pop"><svg width="28" height="24" viewBox="0 0 7 6" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 0h2v1h1V0h2v1h1v2H6v1H5v1H4v1H3V5H2V4H1V3H0V1h1z" fill="#182513"></path></svg></div>
+            </sc-if>
+            <svg width="44" height="66" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#304327"></path></svg>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTalk }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 260px">
+          <div style="display: flex; justify-content: space-between; width: 200px; min-height: 40px">
+            <div class="hl-pop" style="padding: 6px 10px; background: #BED39C; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 14px">HI!</div>
+            <sc-if value="{{ flipped }}" hint-placeholder-val="{{ false }}">
+              <div class="hl-pop" style="padding: 6px 10px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 14px">OH, HI!</div>
+            </sc-if>
+          </div>
+          <div style="display: flex; justify-content: space-between; width: 200px; align-items: flex-end">
+            <div class="hl-lean"><svg width="44" height="66" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg></div>
+            <div class="hl-leanl"><svg width="44" height="66" viewBox="0 0 8 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v4H2zM1 5h6v4H1zM2 9h1v3H2zM5 9h1v3H5z" fill="#182513"></path></svg></div>
+          </div>
+          <div style="width: 240px; border-top: 2px solid #182513; margin-top: 2px"></div>
+          <div style="display: flex; gap: 18px; font-family: 'Silkscreen', monospace; font-size: 11px; margin-top: 6px">
+            <span>EXPECTED ■■□□□</span><span>GOT ■■■■□</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isGrow }}" hint-placeholder-val="{{ false }}">
+        <svg width="150" height="190" viewBox="0 0 15 19" shape-rendering="crispEdges" aria-hidden="true">
+          <g style="{{ g1 }}"><path d="M7 9h1v6H7z" fill="#182513"></path></g>
+          <g style="{{ g2 }}"><path d="M4 10h3v1H4zM3 9h2v1H3z" fill="#182513"></path></g>
+          <g style="{{ g3 }}"><path d="M8 7h3v1H8zM10 6h2v1h-2zM7 5h1v4H7z" fill="#182513"></path></g>
+          <g style="{{ g4 }}"><path d="M6 1h3v1H6zM5 2h1v2H5zM9 2h1v2H9zM6 4h3v1H6z" fill="#182513"></path><path d="M6 2h3v2H6z" fill="#BED39C"></path></g>
+          <path d="M3 15h9v1H3zM4 16h7v3H4z" fill="#304327"></path>
+        </svg>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ done }}" hint-placeholder-val="{{ true }}">
+      <div class="hl-rise" style="display: flex; flex-direction: column; gap: 6px">
+        <p style="margin: 0; font-size: 14px; line-height: 1.5">{{ body }}</p>
+        <p style="margin: 0; font-size: 11px; line-height: 1.4; color: #304327">{{ source }}</p>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ isLast }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 0 24px 12px 24px">
+      <sc-if value="{{ done }}" hint-placeholder-val="{{ true }}">
+        <a class="hl-key hl-rise" href="Onboard.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 16px; text-decoration: none"><span>LET'S GO</span><span>&gt;</span></a>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <nav aria-label="Intro controls" style="display: flex; align-items: center; border-top: 2px solid #182513; flex-shrink: 0; min-height: 52px">
+    <sc-if value="{{ first }}" hint-placeholder-val="{{ true }}">
+      <a href="Onboard.dc.html" style="flex: 1; display: flex; align-items: center; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; text-decoration: none">SKIP</a>
+    </sc-if>
+    <sc-if value="{{ notFirst }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ back }}" style="flex: 1; display: flex; align-items: center; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; cursor: pointer">&lt; BACK</div>
+    </sc-if>
+    <div aria-label="{{ stepLabel }}" style="flex: 1; display: flex; justify-content: center; gap: 6px">
+      <sc-for list="{{ dots }}" as="d" hint-placeholder-count="7">
+        <span style="{{ d.style }}"></span>
+      </sc-for>
+    </div>
+    <sc-if value="{{ notLast }}" hint-placeholder-val="{{ true }}">
+      <div onClick="{{ next }}" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; cursor: pointer">NEXT &gt;</div>
+    </sc-if>
+    <sc-if value="{{ isLast }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ replay }}" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; cursor: pointer">REPLAY</div>
+    </sc-if>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"autoplay":{"editor":"boolean","default":true},"showHealthBeat":{"editor":"boolean","default":false},"typingSpeed":{"editor":"range","default":35,"min":10,"max":80,"step":5,"unit":"ms"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { beat: 0, typed: 0, held: 0 }; }
+  componentDidMount() {
+    var rm = false;
+    try { rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    this.reduced = rm;
+    this.start();
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  start() {
+    clearInterval(this.timer);
+    var speed = this.props.typingSpeed ?? 35;
+    this.timer = setInterval(() => this.tick(speed), speed);
+  }
+  beats() {
+    var list = [
+      { id: 'people', kicker: 'WHY GO? · THE NUMBERS', head: '1 IN 6 OF US FEEL ALONE.',
+        body: 'Around the world, about one person in six. Rates are highest among young people.',
+        source: 'Source: World Health Organization, 2025.' },
+      { id: 'health', kicker: 'WHY GO? · THE NUMBERS', head: 'IT WEIGHS ON MIND AND BODY.',
+        body: 'Adults who felt alone had nearly three times the odds of depression. It is also linked to heart disease, stroke and dementia.',
+        source: 'Sources: Abdalla et al., 2026; World Health Organization, 2025.' },
+      { id: 'talk', kicker: 'WHY GO? · THE CATCH', head: "WE EXPECT AWKWARD. IT ISN'T.",
+        body: 'People expect chats with strangers to be more awkward than they are, and expect others to care less than they really do.',
+        source: 'Source: Kardas, Kumar and Epley, 2022.' },
+      { id: 'fear', kicker: 'WHY GO? · THE LIKING GAP', head: "WE THINK THEY WON'T LIKE US.",
+        body: 'After a chat, people think the other person liked them less than they did. The gap is widest for people who feel less sure of themselves.',
+        source: 'Source: Tissera et al., 2025.' },
+      { id: 'hours', kicker: 'WHY GO? · THE GOOD NEWS', head: 'ONE HELLO. A LIFT FOR HOURS.',
+        body: 'A face-to-face chat predicts feeling less alone a few hours later. Brief contacts with familiar faces lift mood and belonging.',
+        source: 'Sources: Wild et al., 2025; Drebing et al., 2025.' },
+      { id: 'kind', kicker: 'WHY GO? · GIVING HELPS TOO', head: 'A SMALL KINDNESS COUNTS.',
+        body: 'Small acts of kindness ease feeling alone in the moment and lift mood. Kindness to familiar faces helped more than to strangers.',
+        source: 'Sources: Lanser and Eisenberger, 2022; Lee et al., 2025.' },
+      { id: 'grow', kicker: 'SO, HOOLALA!', head: 'GET OUTSIDE. MEET PEOPLE. GROW INSIDE.',
+        body: 'A hello, a kindness, a chat. A few quick questions, then your own game of tiny tries. Soft, brave or bold: you pick.',
+        source: 'No streaks. No scores. You never know until you go.' }
+    ];
+    if (!(this.props.showHealthBeat ?? false)) list = list.filter((b) => b.id !== 'health');
+    return list;
+  }
+  tick(speed) {
+    var bs = this.beats(), b = bs[this.state.beat];
+    if (!b) return;
+    if (this.state.typed < b.head.length) {
+      this.setState({ typed: this.reduced ? b.head.length : this.state.typed + 1 });
+      return;
+    }
+    var held = this.state.held + speed;
+    var last = this.state.beat >= bs.length - 1;
+    if ((this.props.autoplay ?? true) && !last && held >= 4200) { this.go(this.state.beat + 1); return; }
+    if (held < 6000) this.setState({ held: held });
+  }
+  go(i) {
+    var n = this.beats().length;
+    var k = Math.max(0, Math.min(n - 1, i));
+    this.setState({ beat: k, typed: 0, held: 0 });
+  }
+  renderVals() {
+    var bs = this.beats(), i = Math.min(this.state.beat, bs.length - 1), b = bs[i];
+    var done = this.state.typed >= b.head.length, held = this.state.held;
+    var last = i === bs.length - 1;
+    var show = (ms) => (done && held >= ms) ? 'opacity:1' : 'opacity:0';
+    return {
+      kicker: b.kicker,
+      headShown: b.head.slice(0, this.state.typed),
+      typing: !done, done: done,
+      body: b.body, source: b.source,
+      isPeople: b.id === 'people', isHealth: b.id === 'health', isHours: b.id === 'hours',
+      isFear: b.id === 'fear', isTalk: b.id === 'talk', isGrow: b.id === 'grow', isKind: b.id === 'kind',
+      six: [0, 1, 2, 3, 4, 5].map((k) => ({ cls: (k === 4 && done) ? 'hl-drift' : '' })),
+      hours: ['1H', '2H', '3H', '4H'].map((l, k) => ({ label: l, style: 'width:40px;height:40px;box-sizing:border-box;border:2px solid #182513;border-radius:2px;' + (done && held >= 600 + k * 500 ? 'background:#182513' : 'background:transparent') })),
+      flipped: done && held >= 1400,
+      bubble: (done && held >= 1400) ? 'THEY LIKED ME MORE THAN I THOUGHT.' : "THEY WON'T LIKE ME.",
+      g1: show(0), g2: show(500), g3: show(1000), g4: show(1600),
+      first: i === 0, notFirst: i > 0, isLast: last, notLast: !last,
+      stepLabel: 'Step ' + (i + 1) + ' of ' + bs.length,
+      dots: bs.map((x, k) => ({ style: 'display:inline-block;width:8px;height:8px;border:2px solid #182513;' + (k === i ? 'background:#182513' : 'background:transparent') })),
+      next: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.go(i + 1); },
+      back: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.go(i - 1); },
+      tapNext: () => { if (!done) { this.setState({ typed: b.head.length }); return; } if (!last) this.go(i + 1); },
+      replay: () => this.go(0)
+    };
+  }
+}
+</script>
+</body>
+</html>

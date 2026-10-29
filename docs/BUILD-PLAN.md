@@ -50,11 +50,13 @@ Never cut: ARRIVE with location, add place and search by name, email sign-in, FI
 
 | Table | Key fields |
 |---|---|
-| `users` | id, email (unique, nullable), telegram_user_id (unique, nullable), first_name, is_adult (bool), created_at, deleted_at |
+| `users` | id, email (unique, nullable), telegram_user_id (unique, nullable), first_name, is_adult (bool), created_at, deleted_at, intro_seen_at (nullable) |
 | `sessions` | id, user_id, expires_at (also cached in KV) |
 | `login_tokens` | token_hash, email, expires_at, used_at |
 | `compass_items` | id, user_id, part (interest, talk_about, more_of, filter), text, source_url (nullable; null means "you said"), origin (find_me, questions, edit), active, created_at |
 | `compass_changes` | id, user_id, before, after, words, confirmed_at, undone_at |
+| `compass_people` | user_id, role (fixed allow-list), role_class (close, service), source (surprise), created_at. Roles only, never names; deleted with the account. |
+| `game_tries` | id, user_id, game_id, level (soft, brave, bold), step, kind (talk, kind), who_role (nullable), title, source (ai, library), created_at, picked_at. Games older than 7 days deleted. |
 | `places` | id, slug, name, kind (cafe, bar, coworking, library, other), city, lat, lng (from the person who added it, or the poster setup; never copied from Google), radius_m (default 150), google_place_id (nullable), spots_json, code (nullable, partner places), poster_key_hash (nullable), added_by, status (new, active, hidden), first_other_checkin_at, created_at |
 | `place_facts` | id, place_id, field (hours, menu_item, price, spot, wifi, sockets, quiet, rule), value, source (people, google, web, snap), source_url, state (found, confirmed, disputed), added_by (nullable), confirmations, updated_at. Google-sourced rows are never stored: they are fetched live; `found` rows from the web expire after 30 days. |
 | `place_contributions` | id, user_id, place_id, fact_id (nullable), action (add_place, add_fact, fix_fact, confirm_fact), points, state (pending, counted, rejected), created_at, counted_at. UNIQUE(user_id, fact_id, action, month) for confirms. |
@@ -132,6 +134,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Staging acceptance at a real café: nearby list shows OpenStreetMap places, check in, leave, repeat with location denied (search). Not testable from the agent's sandbox, which can't reach Overpass.
 
 ### WP24 FIND ME and the Personal Compass (Fri 30, afternoon)
+> Removed in v6.2 (WP36, owner-confirmed): no public-profile search; the compass comes from three spoken questions. Only this section remains.
 - [x] Consent screen first; NO goes to three scripted questions. Inputs: name used online, city, optional links (max 3).
 - [x] `src/llm/findme.ts`: at most 3 `web_search` calls about this person only; schema `{findings[{text, url}]}`; IS THIS YOU? with THAT'S ME / NOT ME.
 - [x] Compass draft from ticked findings and answers: schema `{compass[{part, text, source_url}]}`; `src/rules/compass.ts` drops lines without a ticked source or "you said", and any personality, health, political, religious or sexuality label. LOOKS RIGHT / CHANGE SOMETHING / START AGAIN; nothing saved before LOOKS RIGHT.
@@ -201,6 +204,32 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 
 ### WP31 Staging fixes (Fri 30)
 - [x] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
+
+### WP35 Onboarding story (v6.2, Fri 30)
+- [ ] Story on first open: six beats per `specs/onboarding-story.md` (copy final, sources shown); typed headline at 35 ms a character, stepped pixel animations, tap advances, SKIP/BACK · dots · NEXT/REPLAY row, LET'S GO on the last beat; `intro_seen_at` on the account plus a local flag. The health beat stays out.
+- [ ] Reduced motion: headline whole, pictures end state, no auto-advance; aria-live headline, decorative pictures, 44 px controls.
+- [ ] Full references in the README and `docs/RESEARCH.md` (Abdalla and Lanser details still open with the owner).
+- [ ] Tests first: first open shows beat 1; LET'S GO and SKIP set the seen flag and open WP36; tap completes then advances; six beats in order, no invented numbers.
+
+### WP36 Let's get personal (v6.2, Sat 31)
+- [ ] Reuse the WP34 voice component (no duplicate): new intro, three Mom Test questions, three dots (`Qn OF 3 · FILLS ...`), NEXT saves the draft; progress strip SURPRISE ME · COMPASS · GAME · AROUND?; entry after the story and from Around me's SET IT UP.
+- [ ] COMPASS DRAFT (Muse Spark): one structured call per answer `{part, line, topic, place_kind, pace, people}`; code validator (part matches the question, roles from the allow-list, names stripped, banned labels, what happened never who); fallback trims to 60, keyword roles, gentle pace. Transcripts never stored.
+- [ ] Compass check: typed count headline, 2×2 grid with sources, PEOPLE IN YOUR DAYS box (roles only); LOOKS RIGHT. MAKE MY GAME saves lines and roles (`compass_people`); CHANGE SOMETHING clears the drafts.
+- [ ] FIND ME removed: consent, IS THIS YOU?, find and draft paths gone; footprint sources gone from the compass; roles removable via REMOVE.
+- [ ] Tests first: shared voice component; names become roles only; off-list roles dropped; labels rejected to fallback; nothing saved before LOOKS RIGHT; full flow with `LLM_ENABLED=false`; no transcripts in logs.
+
+### WP37 Your game of tiny tries (v6.2, Sat 31 to Sun 1)
+- [ ] Library fallback first: 24 hand-written tries filled with topic, place and roles; a full game of 9 renders with `LLM_ENABLED=false`, 3 per level, talk and kind in each.
+- [ ] TRY IT game generation: one call for 9 tries `{title, level, kind, who_role, place_kind, why}`; code assigns step and minutes; validator (talk and kind per level, compass roles only, service roles light, no buying, looks, contact details or LESS OF, words_max, UK English, no em dashes); rejected twice swaps in a library try.
+- [ ] Screens: WRITING YOUR GAME checklist; tabs with START HERE on the pace tab; try cards with info line and NEW ONE (never repeats in the game); NEW GAME FROM SCRATCH; safety footnote; pick stores today's try, then Around me or skip. `game_tries` rows, games purged after 7 days; 20 NEW ONE and 3 NEW GAME a day, then the library.
+- [ ] 15 eval cases (5 pass, 10 reject).
+- [ ] Tests first: library game shape; model step ignored; NEW ONE never repeats; every validator rule rejects; limits fall back to library; pick stores today's try.
+
+### WP38 Today, simplified (v6.2, Fri 30)
+- [ ] Home per spec: compact plant row, TODAY'S TRY · STEP n typed with hint and FROM YOUR COMPASS >, LET'S GO with ANOTHER ONE and NOT TODAY; motto, big plant card, MY COMPASS box, DARE A FRIEND, WHERE? chips, Around link and TELL MY FRIENDS removed.
+- [ ] Today's try is the picked game try (v6 library fallback for old accounts); ANOTHER ONE draws the next unpicked try at the level (a new game in the background when used up); NOT TODAY is the later state, no reminder.
+- [ ] Off you go, I'M BACK, outcomes, NEXT TIME, plant growth and the COMPASS? row unchanged.
+- [ ] Tests first: one primary key and two text links; try equals the pick; ANOTHER ONE keeps the level without repeats; removed items gone.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 > Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. The `wp21/telegram` work branch was deleted the same day; only this section remains.

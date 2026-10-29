@@ -1,5 +1,13 @@
 # Hoolala! changelog
 
+## 2026-10-29: First minutes rebuilt (v6.2)
+
+- **Onboarding story (WP35):** on first open, six animated pixel beats with sourced findings (1 in 6 feel alone; we expect awkward; the liking gap; one hello lifts you for hours; a small kindness counts), ending on GET OUTSIDE. MEET PEOPLE. GROW INSIDE. and LET'S GO.
+- **Let's get personal (WP36):** the existing Surprise me voice UI with a new intro, three Mom Test questions about real past moments, NEXT instead of KEEP, and a compass check that adds PEOPLE IN YOUR DAYS (roles only, never names). FIND ME removed.
+- **Your game of tiny tries (WP37):** Muse Spark (TRY IT) writes nine tries in SOFT, BRAVE and BOLD, mixing SMALL TALK and KIND IT, personalised with topic, place and people; NEW ONE per try and NEW GAME FROM SCRATCH; code sets levels and validates; picking a try offers Around me (optional) or skip.
+- **Today, simplified (WP38):** one try and one LET'S GO key, with ANOTHER ONE and NOT TODAY; compact plant row ("Your plant. It only grows."); friend, compass, place and Around links removed from Today (softkeys cover them).
+- MY COMPASS: FIND ME sources removed; Around me's SET IT UP opens Let's get personal.
+
 ## 2026-10-29: v6.1, the rest of the app as clear as the home
 
 - **Navigation and Here (WP31b):** softkeys TODAY · AROUND · FRIENDS on every top-level screen; duplicate POST ONE removed; typed headline; talking meter; I'M LEAVING opens the talking rating.
