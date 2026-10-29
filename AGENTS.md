@@ -83,7 +83,7 @@ npm run deploy
 - **The plant and the step are private.** Never shown to others, never on the Live page, never compared. Colour only in the plant.
 - **Crew posts are stories, not chat.** Small private crew by invite link (one crew, link expires in 7 days); posts are screened like topics; NICE ONE only; no replies thread, no counts per person, no leaves for posting. No names, faces or photos of strangers.
 - **Invites are never auto-sent.** WhatsApp, Messenger or copied link, opened by the person's tap; we never read contacts.
-- **Scans borrow location, never keep it.** Around me sends coordinates once per scan; never stored, never logged (a geohash at most); 10 scans an hour; widening only on tap, max 2 km.
+- **Scans borrow location, never keep it.** Around me sends coordinates once per scan; never stored, never logged (a geohash at most); 12 scans an hour; widening only on tap, max 2 km.
 - **Talking ratings are collective or nothing.** Median from 3+ verified visits in 90 days, on I'M LEAVING; never per person, never names or comments.
 - **No free chat.** Quick replies only (on my way, five minutes late, can't make it, at the spot). (Crew posts follow the crew rule above.)
 - **Screening on every topic, reply line and suggestion:** `src/rules/screening.ts` first, then SCREEN IT. The model approves or rejects with a reason; it never rewrites text silently. Rejected text is never shown to anyone else.
