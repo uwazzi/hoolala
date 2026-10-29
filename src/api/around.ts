@@ -31,7 +31,8 @@ import { json } from "./health";
 import { overLimit, readJson } from "./request";
 import { getSessionUser } from "./session";
 
-const SCAN_LIMIT = { max: 12, windowS: 60 * 60 };
+// TEMP testing: 20 scans an hour; revert to 10 after the test (owner call).
+const SCAN_LIMIT = { max: 20, windowS: 60 * 60 };
 const RATE_LIMIT = { max: 20, windowS: 24 * 60 * 60 };
 const MAX_PLACES = 8;
 const READ_PLACES = 3;
