@@ -32,6 +32,7 @@ const TABLES = [
   "workings",
   "llm_calls",
   "metrics_daily",
+  "tries",
 ];
 
 describe("D1 schema", () => {

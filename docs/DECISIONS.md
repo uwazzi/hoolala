@@ -68,6 +68,9 @@ One line per decision: date, decision, why. Newest at the bottom.
 
 - 2026-10-29 (WP31): An accepted card shows one next step: PLAN until a meeting point is set, ON MY WAY (the quick replies) until you send it, then MEET; the other two sit behind MORE. FRIENDS softkey points at `/friends` (NotFound until WP30 lands).
 
+- 2026-10-29 (WP28): Home v6 with the one-screen try flow (GET A TRY > GO > TELL ME > NEXT TIME), the 15-try library in `src/content/tries.ts`, `tries` table plus `users.current_step` (migration 0006, `src/types.ts` gains `TryRow`), API (`GET /api/tries/today`, `POST /api/tries`, `POST /api/tries/step`, `GET /api/me/plant`), the 14x18 plant and typed HOOLALA! SAYS (rule 43). The NEXT TIME suggestion is the one-line rule-14 mapping inline in the API; WP29 moves it into `src/rules/tries.ts`. Deviations from the handoff: the plant card has no link (no My moments page is scheduled); the intro keeps a small menu (check-in, compass, account have no other route); outcomes say NO REPLY / GHOSTED (owner chose the prototype wording 29 Oct).
+- 2026-10-29 (WP28, types): `UserRow.current_step` (ladder 1 to 5, default 1, reset on delete) and `TryRow` added to the contract; outcome/step stay plain string/number until WP29's strict unions.
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.
