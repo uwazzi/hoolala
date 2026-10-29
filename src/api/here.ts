@@ -9,6 +9,8 @@
 
 import { compassTexts } from "../db/compass";
 import { getActiveCheckin, getPlace } from "../db/places";
+import { talkingRatings } from "../db/around";
+import { talkingLabel, talkingWord } from "../rules/places";
 import { fitsYou } from "../rules/compass";
 import { ensureSample, isSampleUser } from "../db/sample";
 import { SAMPLE_PLACE } from "../rules/sample";
@@ -113,6 +115,8 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
 
   const place = await getPlace(env.DB, checkin.place_id);
   const blocked = await blockedIds(env.DB, user.id);
+  const talkingLevel = talkingLabel(await talkingRatings(env.DB, checkin.place_id), nowIso);
+  const talking = talkingLevel ? { level: talkingLevel, word: talkingWord(talkingLevel) } : null;
 
   // My signals, with curious requests (names only once accepted) and replies.
   const mine = await ownSignals(env.DB, user.id, nowIso);
@@ -152,6 +156,7 @@ export async function handleHere(request: Request, env: Env, now = new Date()): 
       method: checkin.method,
       endsAt: checkin.ends_at,
     },
+    talking,
     spots: placeSpots(place?.spots_json ?? null),
     mine: mine.map((s) => ({
       id: s.id,

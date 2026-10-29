@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect } from "preact/hooks";
-
-export type TopTab = "today" | "around" | "friends";
+import { useLocation } from "preact-iso";
+import { tabForPath, type TopTab } from "../tabs";
 
 interface Props {
   /** Shown in the browser tab as "<title>. Hoolala!" */
@@ -9,8 +9,6 @@ interface Props {
   /** Left softkey; BACK goes home. Omit on the home screen. */
   back?: boolean;
   softkeys?: ComponentChildren;
-  /** Top-level screens get the TODAY · AROUND · FRIENDS trio with one active. */
-  tab?: TopTab;
   children: ComponentChildren;
 }
 
@@ -20,8 +18,10 @@ const TABS: { id: TopTab; label: string; href: string }[] = [
   { id: "friends", label: "Friends", href: "/friends" },
 ];
 
-/** One LCD screen: brand bar, content, then the softkey bar. */
-export function Screen({ title, back = true, softkeys, tab, children }: Props) {
+/** One LCD screen: brand bar, content, then the softkey bar. The trio follows the route. */
+export function Screen({ title, back = true, softkeys, children }: Props) {
+  const { path } = useLocation();
+  const tab = tabForPath(path);
   useEffect(() => {
     document.title = title ? `${title}. Hoolala!` : "Hoolala!";
   }, [title]);

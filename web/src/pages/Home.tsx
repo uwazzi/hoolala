@@ -25,7 +25,7 @@ export function Home() {
   }, []);
 
   return (
-    <Screen back={false} tab="today">
+    <Screen back={false}>
       {!me ? (
         <>
           <h1 class="hero-display">Get outside. Meet people. Grow inside.</h1>
