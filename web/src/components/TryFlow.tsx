@@ -27,7 +27,7 @@ type OutcomeKind = "went_well" | "no_reply" | "awkward" | "didnt_happen";
 
 const OUTCOMES: { kind: OutcomeKind; label: string; note: string; lead: string; title: string; past: string }[] = [
   { kind: "went_well", label: "Went well", note: "+1 leaf", lead: "A new leaf just grew.", title: "Lovely. That was you.", past: "Last one went well." },
-  { kind: "no_reply", label: "No reply", note: "+1 leaf", lead: "No worries, sometimes it happens. It says nothing about you.", title: "Still a leaf. You went.", past: "Last one got no reply. Happens." },
+  { kind: "no_reply", label: "No reply / ghosted", note: "+1 leaf", lead: "No worries, sometimes it happens. It says nothing about you.", title: "Still a leaf. You went.", past: "Last one got no reply. Happens." },
   { kind: "awkward", label: "Awkward but done", note: "+1 leaf", lead: "Awkward just means new. It wears off.", title: "A leaf for going anyway.", past: "Last one felt awkward." },
   { kind: "didnt_happen", label: "Didn't happen", note: "No problem", lead: "That’s fine. Some days are like that.", title: "The plant doesn’t mind.", past: "Last one didn’t happen. Fine." },
 ];
