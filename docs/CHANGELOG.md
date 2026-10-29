@@ -1,5 +1,15 @@
 # Hoolala! changelog
 
+## 2026-10-29: Tiny tries lead (v6)
+
+- **Decision:** the first screen says why Hoolala! exists: GET OUTSIDE. MEET PEOPLE. The daily **tiny try** is the hero; Signals here becomes the second path ("At a café or coworking? See who here would like to talk"). Reverses the 27 Oct decision. Reason: first user test (Sylvie) did not know what to do on opening the app.
+- **Small talk (rule 14) moves from ROADMAP into the build**, simplified: GET A TRY > GO > TELL ME on one screen. Four honest answers: WENT WELL, NO REPLY, AWKWARD BUT DONE, DIDN'T HAPPEN. Then NEXT TIME: GENTLER / SAME STEP / BRAVER, with a suggestion the person can ignore. The guess and plot twist move to ROADMAP.
+- **The plant (private):** one leaf per try (went well, no reply, awkward); nothing for didn't happen; every third leaf flowers. Never wilts, no streaks, no reminders. Colour appears only in the plant (rule 42).
+- **Hoolala! types:** prompts appear letter by letter; keys rise in after (rule 43).
+- **TRY IT (Muse Spark):** writes the next try inside step bounds that code sets and checks. Code owns the step and the leaves (rule 44).
+- **Friends (slim):** DARE A FRIEND sends this week's try by WhatsApp, Messenger or link; a small private crew timeline of what happened. No counts per person (rule 45). Replaces the share card (WP7).
+- Softkeys on the home: TODAY / FRIENDS. Brand slip fixed: the tagline sits under the name, never "Hello, name".
+
 ## 2026-10-27: Sandbox setup
 
 - Stored the global `MuseCodeSandbox` service secret in sbx for sandbox use. Secret values stay out of the repository.

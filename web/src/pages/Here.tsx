@@ -169,6 +169,7 @@ export function Here() {
   }
 
   const openMine = data.mine.filter((s) => s.state === "open" || s.state === "full");
+  const emptyHere = data.discover.length === 0 && data.mine.length === 0 && data.joined.length === 0;
 
   return (
     <Screen title="Here">
@@ -199,10 +200,12 @@ export function Here() {
               <p key={r.id}><strong>{r.name ?? "Someone"}</strong> is in. Meet at {s.spot.toLowerCase()}, {whenText(s.whenAt).toLowerCase()}.</p>
             ))}
             <Replies replies={s.replies} />
-            {accepted.length > 0 && <QuickReplies onSend={(kind) => act(`/api/here/signals/${s.id}/quick`, { kind })} />}
-            {accepted.length > 0 && <PlanBox signalId={s.id} spots={data.spots} point={s.meetingPoint ?? null} onSaved={load} />}
             {accepted.length > 0 && (
-              <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href={`/meet?signal=${s.id}`}>Meet: show my QR</a></li></ul>
+              <AcceptedSteps
+                signalId={s.id} spots={data.spots} point={s.meetingPoint ?? null} replies={s.replies}
+                meetHref={`/meet?signal=${s.id}`} meetLabel="Meet: show my QR"
+                onSend={(kind) => act(`/api/here/signals/${s.id}/quick`, { kind })} onSaved={load}
+              />
             )}
             <div class="tiny-actions">
               <button type="button" onClick={() => act(`/api/here/signals/${s.id}/cancel`, {}, "Signal taken down.")}>Cancel signal</button>
@@ -223,22 +226,26 @@ export function Here() {
             <>
               <p>Accepted. <strong>{j.ownerName ?? "Someone"}</strong> · {j.spot.toLowerCase()} · {whenText(j.whenAt).toLowerCase()}.</p>
               <Replies replies={j.replies} />
-              <PlanBox signalId={j.signalId} spots={data.spots} point={j.meetingPoint ?? null} onSaved={load} />
-              <QuickReplies onSend={(kind) => act(`/api/here/signals/${j.signalId}/quick`, { kind })} />
-              <ul class="key-list">
-                <li>
-                  {j.sample ? (
-                    <a class="lcd-key lcd-key--primary" href={`/meet?signal=${j.signalId}`}>Meet {j.ownerName ?? "them"}</a>
-                  ) : (
-                    <a class="lcd-key lcd-key--primary" href="/meet">Meet: scan or type their code</a>
-                  )}
-                </li>
-              </ul>
+              <AcceptedSteps
+                signalId={j.signalId} spots={data.spots} point={j.meetingPoint ?? null} replies={j.replies}
+                meetHref={j.sample ? `/meet?signal=${j.signalId}` : "/meet"}
+                meetLabel={j.sample ? `Meet ${j.ownerName ?? "them"}` : "Meet: scan or type their code"}
+                onSend={(kind) => act(`/api/here/signals/${j.signalId}/quick`, { kind })} onSaved={load}
+              />
             </>
           )}
         </section>
       ))}
 
+      {emptyHere ? (
+        <>
+          <p class="screen-title" role="status">Quiet in here. For now.</p>
+          {!posting && (
+            <ul class="key-list"><li><button class="lcd-key lcd-key--primary" type="button" onClick={() => { setPosting(true); setNote(""); }}>Post the first one</button></li></ul>
+          )}
+        </>
+      ) : (
+        <>
       <h1 class="screen-title">What's here?</h1>
       {data.discover.map((s) => (
         <section class="lcd-block" key={s.id} aria-label="A signal here">
@@ -264,6 +271,8 @@ export function Here() {
         </section>
       ))}
       <p class="lcd-small">That's everything here right now.{openMine.length < 2 && !posting ? " Post one?" : ""}</p>
+        </>
+      )}
 
       {posting ? (
         <form onSubmit={postSignal} noValidate>
@@ -341,6 +350,29 @@ export function Here() {
 function Translation({ text }: { text?: string | null }) {
   if (!text) return null;
   return <p class="lcd-small"><span class="lcd-kicker">AI / translation</span> {text}</p>;
+}
+
+/** An accepted card shows only the next step (plan, on the way, meet); the rest sits behind More. */
+function AcceptedSteps({ signalId, spots, point, replies, meetHref, meetLabel, onSend, onSaved }: {
+  signalId: string; spots: string[]; point: Point | null; replies: Reply[];
+  meetHref: string; meetLabel: string; onSend: (kind: string) => void; onSaved: () => void;
+}) {
+  const [more, setMore] = useState(false);
+  const step = !point ? 0 : replies.some((r) => r.from === "You" && r.text === "On my way.") ? 2 : 1;
+  const blocks = [
+    <PlanBox key="plan" signalId={signalId} spots={spots} point={point} onSaved={onSaved} />,
+    <QuickReplies key="quick" onSend={onSend} />,
+    <ul key="meet" class="key-list"><li><a class="lcd-key lcd-key--primary" href={meetHref}>{meetLabel}</a></li></ul>,
+  ];
+  return (
+    <>
+      {blocks[step]}
+      <div class="tiny-actions">
+        <button type="button" onClick={() => setMore(!more)} aria-expanded={more ? "true" : "false"}>{more ? "Less" : "More"}</button>
+      </div>
+      {more && blocks.filter((_, i) => i !== step)}
+    </>
+  );
 }
 
 function QuickReplies({ onSend }: { onSend: (kind: string) => void }) {

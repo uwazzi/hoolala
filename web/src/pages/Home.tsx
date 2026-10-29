@@ -23,8 +23,8 @@ export function Home() {
       back={false}
       softkeys={
         <>
-          <a class="lcd-softkey" href="/here">Here</a>
-          <a class="lcd-softkey" href="/live">Live</a>
+          <a class="lcd-softkey" href="/">Today</a>
+          <a class="lcd-softkey" href="/friends">Friends</a>
         </>
       }
     >
@@ -34,7 +34,7 @@ export function Home() {
       </div>
       <div class="brand">
         <p class="brand-name">Hoolala!</p>
-        <p class="brand-tagline">{me?.firstName ? `Hello, ${me.firstName}.` : "You never know until you go."}</p>
+        <p class="brand-tagline">You never know until you go.</p>
       </div>
       <ul class="key-list">
         {!me && <li><a class="lcd-key lcd-key--primary" href="/signin">Sign in</a></li>}

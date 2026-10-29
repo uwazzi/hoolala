@@ -10,6 +10,8 @@ This system is the visual **and interaction** source of truth for every Hoolala!
 
 > The tagline "You never know until you go." always sits directly under the HOOLALA! name. It is the only brand line. The positioning line "Your data. Your choice. Your attention." is used for Go App-Free, the pitch and the README, never under the logo. "Less screen. More life." is retired and must not be used.
 >
+> Version 6 (29 Oct 2026): the first screen says GET OUTSIDE. MEET PEOPLE. and offers today's **tiny try**; small talk (rule 14) is in the build, adapted by TRY IT within code-set bounds; the private plant; Friends (dare and crew timeline). Signals here stays, as the second path. New rules 42 to 45.
+>
 > Version 5 (27 Oct 2026): a venue is now **any place**, no host needed. FIND ME (onboarding from the public footprint, with consent) brings the Personal Compass back; check-in is share location, pick or ADD THIS PLACE; PLACE IT fetches place details people confirm for **place points** (private). New: FootprintCheck, PlaceCard; VenueCheckIn becomes PlaceCheckIn.
 >
 > Version 4 (27 Oct 2026): **Signals here** is the hackathon hero (check-in ladder, place signals, anonymous until both accept, quick replies, meeting points, the real-world connection rate). Muse Spark: SUGGEST IT, SCREEN IT, PLAN IT, CHECK IT, SNAP IT as a stretch. Go App-Free and its components move to ROADMAP.
@@ -22,7 +24,7 @@ This system is the visual **and interaction** source of truth for every Hoolala!
 2. Take every colour, size and duration from `tokens.json`. Never type a hex value that is not a token.
 3. Build only the flows and components described here. If a request needs a feed, a counter, a public profile, invented content or screen-time judgement, stop and say which rule it breaks.
 4. Use sample data, clearly labelled, until a real API exists. Never fake an API result.
-5. Components marked **ROADMAP** in their guidelines (Go App-Free and the Personal Compass, briefings, voice notes, small talk, Sounds familiar? and its sharing, Find a plan, Unplug, Outside picks) are designed but not in the hackathon build. Don't build them unless asked.
+5. Components marked **ROADMAP** in their guidelines (Go App-Free and the Personal Compass, briefings, voice notes, Sounds familiar? and its sharing, Find a plan, Unplug, Outside picks) are designed but not in the hackathon build. Don't build them unless asked.
 
 ## The product in one sentence
 
@@ -136,20 +138,13 @@ Brief and stepped: a 120ms inversion flash on press, entrances of 180ms or less.
 
 The interaction contract. Every screen, agent reply and API must keep these.
 
-## The home (v5, at a place)
+## The home (v6, today)
 
-Checked in at a place: the place name and HERE UNTIL 15:40, then one line ("3 signals here right now."), two keys and a short menu:
+**Home (TODAY):** HOOLALA! and the tagline. GET OUTSIDE. MEET PEOPLE. (display, 40 px). One line: "One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always." The plant card (pixel plant, N TINY TRIES, links to My moments). GIVE ME TODAY'S TRY > (primary). DARE A FRIEND TOO > (secondary). Softkeys TODAY / FRIENDS. After GIVE ME TODAY'S TRY, the one-screen flow of rule 14 with the goal bar, the plant and step meter, the three-step path (current solid, done shaded, next dashed) and the typed HOOLALA! SAYS block. Signals here is a dashed link at the bottom of the flow.
 
-- Keys: `WHAT'S HERE?` (discover) · `POST ONE` (post a signal)
-- Menu: `THIS PLACE` (the place card) · `MY SIGNAL` (when you have one) · `CURIOUS REQUESTS` (when someone is curious) · `MEET` · `I'M LEAVING`
-- Not checked in: one observation ("We've sat at the same table for six months." / Never spoken.), then `WHERE ARE YOU?` (share location, add or search a place) and `MY COMPASS`.
-- First time only: GET STARTED (FIND ME) before anything else.
+## Hackathon build and roadmap (29 Oct 2026, v6)
 
-Softkeys: `HERE` (left) and `MY MOMENTS` (right; private moments and place points). Every other screen has a BACK softkey; Escape returns home.
-
-## Hackathon build and roadmap (27 Oct 2026, v5)
-
-In the build: sign-in (Telegram Mini App login, email on the web), FIND ME and the Personal Compass (rule 22 and rules 38 to 39), places and check-in, PLACE IT and place points (rules 40 to 41), Signals here, I'M CURIOUS and mutual accept, quick replies, PLAN IT meeting points, SUGGEST IT, SCREEN IT, CHECK IT, mutual QR, the Live page with the connection rate, STAY IN TOUCH, the share card and Go live. If time: the share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations. **ROADMAP** (after 4 Nov): the rest of Go App-Free (rule 21; the compass itself is in the build), briefings (rule 23), SAY IT (rule 24, voice part), Telegram briefings (rule 27), Sounds familiar? (12, 13, 18), small talk (14), Outside picks (19), Find a plan, Unplug, NFC.
+In the build: sign-in (email magic link on the web), FIND ME and the Personal Compass (rule 22 and rules 38 to 39), places and check-in, PLACE IT and place points (rules 40 to 41), tiny tries (rule 14), TRY IT (rule 44), Friends dare and crew (rule 45), Signals here, I'M CURIOUS and mutual accept, quick replies, PLAN IT meeting points, SUGGEST IT, SCREEN IT, CHECK IT, mutual QR, the Live page with the connection rate, STAY IN TOUCH, the dare card (replaces the share card) and Go live. If time: the share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations. **ROADMAP** (after 4 Nov): the rest of Go App-Free (rule 21; the compass itself is in the build), briefings (rule 23), SAY IT (rule 24, voice part), Telegram briefings (rule 27), Telegram Mini App and login (WP21), Sounds familiar? (12, 13, 18), Outside picks (19), Find a plan, Unplug, NFC.
 
 ## Non-negotiables
 
@@ -166,7 +161,7 @@ In the build: sign-in (Telegram Mini App login, email on the web), FIND ME and t
 11. **GO LIVE switches Hoolala! off.** The joke flips "going live": the pixel screen SWITCHES TO FULL RESOLUTION... while a resolution readout steps 84 x 48 > 640 x 480 > 1920 x 1080 > 7680 x 4320 > REAL LIFE, then the backlight steps down to `shell-bg` (about 3s in total, instant with reduced motion). The dark screen shows a blinking LIVE light, HOOLALA! IS OFF. YOU'RE ON., the line "Now showing everywhere except here. Your phone can take a break too." and one SWITCH ON key. Keep it a wink: never lecture about screen time. No app can power off a phone, so never claim it did; a native build may later offer to start the OS Focus or Do Not Disturb mode, with permission.
 12. **ROADMAP. Sounds familiar? is finite and private by default.** Observations are two short lines (80 characters each), saved privately unless the author picks circle or anonymous public. Public ones pass an identifying-details check and human moderation first. Discovery shows three per session, then ends. No likes, counts, authors, rankings or feed. The point is to recognise a moment, smile, and maybe make something happen, not to make more content.
 13. **AI suggests, people decide.** AI help on observations stays in a labelled suggestion, preserves the author's idea, and is never published automatically.
-14. **ROADMAP. Small talk is step by step and private.** Tiny missions with people you don't know yet, on a 5-step ladder (1 Smile and nod, 2 Say hello, 3 Small question, 4 Short chat, 5 Suggest a coffee). Loop: pick one of 3 missions > guess how it'll go (1 to 10, skippable) > try-saying line, when and where > off you go > debrief (I did it / I tried / Not this time, actual 1 to 10, one thing noticed) > plot twist (actual minus guess). Courage counts tries, not wins. Offer a step up after 3 runs with 2 done; offer a step down after a rough one; never force either. No streaks, no reminders, nothing public. Public everyday places only; no flirting or pick-up missions; "no thanks" is always a fine answer.
+14. **Small talk is step by step and private.** One tiny try at a time with people you don't know yet, on a 5-step ladder (1 Smile and nod, 2 Say hello, 3 Small question, 4 Short chat, 5 Suggest a coffee). One screen, three steps: GET A TRY (I'M IN / ANOTHER ONE / NOT TODAY, plus WHERE? anywhere, café, work) > GO (the try-saying line, I'M BACK) > TELL ME (WENT WELL / NO REPLY / AWKWARD BUT DONE / DIDN'T HAPPEN). Then NEXT TIME: GENTLER / SAME STEP / BRAVER. Hoolala! suggests one (braver after it went well, same after no reply or awkward, gentler after it didn't happen); the person decides. Nobody is moved up or down without a tap. Courage counts tries, not wins: a leaf for every try made, whatever happened. No streaks, no reminders, nothing public. Public everyday places only; no flirting or pick-up tries; "no thanks" is always a fine answer. Kind lines: "No worries, sometimes it happens. It says nothing about you." / "Awkward just means new. It wears off." / "The plant doesn't mind."
 15. **Little signals, not an online status.** A signal is a voluntary, temporary hint ("Coffee wouldn't hurt.", "Social battery: 12%.", or 40 characters of your own) shared with the circle, chosen friends, or kept private. Default expiry 4 hours (1 hour, tonight or tomorrow morning also offered); edit or cancel any time. Recipients only meet a signal when they catch up or ask ANYONE AROUND?. Expired, cancelled or private signals never reach anyone, enforced on the server. No presence dots, no "seen", no pressure to reply, no notifications unless authorised.
 16. **Anyone around? uses only what friends shared.** It lists availability signals friends explicitly shared with this person, may add what the person's own moments say ("You and Sophie last met in April."), then offers SUGGEST A PLAN / LEAVE A NOTE / MAYBE LATER. Mood signals (one of those days, do not disturb-ish, low battery) are never used for suggestions or automated outreach. No inference from location or behaviour, no matching with strangers, nothing sent without approval.
 17. **Catch-ups come in threes.** ANYTHING NEW? shows notes and signals three at a time. After three: THAT'S THREE. ASK FOR MORE only if the person asks. At the end: THAT'S EVERYTHING. WE COULD SHOW YOU MORE, BUT WE'D HAVE TO MAKE IT UP.
@@ -196,6 +191,10 @@ In the build: sign-in (Telegram Mini App login, email on the web), FIND ME and t
 39. **The compass stays private.** Interests in the person's words, each with "from: [source]" or "you said". It shapes only their own topic ideas and puts signals that fit them first (FITS YOU, shown only to them). Never shown to others, never used to match, rank or recommend people. No personality types, scores, health, politics, religion or sexuality.
 40. **Place facts say where they came from.** The place card shows CONFIRMED HERE facts (people at the place) first, then AI / FOUND facts with a source line (> google maps, > the place's website). Google Maps content is shown live with attribution and not kept. A fetched fact becomes a Hoolala! fact only when a person confirms or fixes it. Edits are screened. Places are public places only.
 41. **Place points are for caring for places, and private.** Add a new place 10 (once someone else checks in), add or fix a detail 5 (once confirmed or undisputed for a day), confirm a detail 2. Only while checked in there, never for your own, at most 30 a day. Shown only to you in MY MOMENTS ("You've helped 4 places."); the Live page shows collective counts only. **Never points for posting, replying or meeting people.** No leaderboards, levels, badges for rank, streaks or public totals.
+42. **Colour is earned.** The interface stays LCD monochrome. Colour appears only in the plant, and only for tries the person made: greens for leaves, pink, yellow and blue for flowers. The plant is private, never wilts, never shrinks and is never compared.
+43. **Hoolala! types.** Hoolala!'s prompts appear letter by letter (about 25 ms a character) with a block cursor; the keys rise in only when the text is complete. With `prefers-reduced-motion`, text and keys appear at once. Never type the person's own words.
+44. **Code owns the step and the score; TRY IT writes the words.** Each step has hard bounds (talking, minutes, what is asked of the other person). TRY IT drafts a try as structured output; `src/rules/tries.ts` rejects anything outside the step it was asked for or against the always-on limits, SCREEN IT gives a second verdict, and the hand-written library is the fallback. Every try is stored with the step code assigned, never a step the model claims. Leaves are flat (one per try). Step changes need the person's tap. The "why this one" line is SHOW THE WORKINGS.
+45. **Friends share stories, not scores.** A crew is small and private (invite link, one crew, expires in 7 days, anyone can be removed). The timeline shows what happened, with its honest tag, and NICE ONE. No counts per person, no "not yet" lists, no leaves for posting (rule 41). No names, faces or photos of strangers; posts pass screening. Invites go out by WhatsApp, Messenger or a copied link; never auto-sent, never to contacts we read.
 
 ## The primary flows
 
@@ -210,6 +209,7 @@ In the build: sign-in (Telegram Mini App login, email on the web), FIND ME and t
 | Meeting point | PLAN IT: "Terrace at 15:10?" > CONFIRM or CHANGE | ON MY WAY, then MEET |
 | Meet and stay in touch | MEET > QR > both agree > YOU MET AN ACTUAL HUMAN. > STAY IN TOUCH? | +1 private moment; a friendship only if both chose it |
 | Leave | I'M LEAVING > signals hidden | THANKS FOR DROPPING BY. GO LIVE? |
+| Tiny try | GIVE ME TODAY'S TRY > GET A TRY > GO > TELL ME > NEXT TIME | A leaf on the plant for every try made |
 | Catch up | ANYTHING NEW? > notes and signals, 3 at a time > THAT'S THREE (ASK FOR MORE) > end | THAT'S EVERYTHING. WE COULD SHOW YOU MORE, BUT WE'D HAVE TO MAKE IT UP. |
 | Little signals | Pick a signal or write one > dry reply > how long > circle / choose friends / private | SIGNAL UP. Shows on home until it expires |
 | Anyone around? | Friends' shared availability signals > SO... THURSDAY? | Suggest a plan, leave a note, or maybe later |
@@ -225,7 +225,7 @@ In the build: sign-in (Telegram Mini App login, email on the web), FIND ME and t
 | Show the workings | SHOW THE WORKINGS > capability, tools, sources, grounded lines | BACK to the answer |
 | Meet IRL | Both start > scan > both agree | +1 PRIVATE MOMENT, the Live number ticks up |
 | Chat | One question > one short answer and one action | Routes into a flow, or a goodbye |
-| ROADMAP | Find a plan, Unplug, Small talk, Sounds familiar?, Discovery (designed, see their components) | |
+| ROADMAP | Find a plan, Unplug, Sounds familiar?, Discovery, the small-talk guess and plot twist (designed, see their components) | |
 
 ## Required states
 
@@ -841,7 +841,7 @@ One invitation from the village noticeboard, shown alone, with no popularity sig
 
 The step-by-step small talk loop: a tiny real-world mission, a private guess, the try, and the plot twist between expectation and reality.
 
-> **ROADMAP.** Designed, not in the hackathon build (26 Oct 2026).
+> **In the build since 29 Oct 2026 (v6), simplified:** the one-screen GET A TRY > GO > TELL ME flow in rule 14. The guess, plot twist and courage insight below stay ROADMAP.
 
 ### Screens
 1. **Start (first time):** HOW DO CHATS WITH STRANGERS FEEL? Three answers set the first step (1, 2 or 3).

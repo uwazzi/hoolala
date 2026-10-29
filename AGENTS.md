@@ -1,10 +1,10 @@
 # Hoolala!: rules for every coding agent
 
-Read this file first, every session. It is the single source of truth for Muse Code, Claude Code or any other agent working in this repo. `CLAUDE.md` points here. Updated 27 Oct 2026 for **Signals here** v5 (any place, FIND ME, PLACE IT, place points) (`docs/SIGNALS-HERE.md`).
+Read this file first, every session. It is the single source of truth for Muse Code, Claude Code or any other agent working in this repo. `CLAUDE.md` points here. Updated 29 Oct 2026 for v6: tiny tries lead; Signals here is the second path (`docs/HANDOFF-v6.md`).
 
 ## What we are building
 
-A finite, place-based social product with a Nokia LCD look. People get a head start from their public footprint (with their OK) as a private Personal Compass, check in at any public place (café, bar, coworking) by sharing location or adding the place, post and answer small invitations to talk (Signals here), stay anonymous until both accept, agree a meeting point, and confirm the meet-up with a mutual QR. People keep place details right and earn private place points. A public Live page shows collective numbers, including the real-world connection rate. Muse Spark powers six functions, each behind a code guardrail: FIND ME (web search about the person, compass draft), PLACE IT (tool-using agent that fetches place details), SUGGEST IT (topic ideas with citations), SCREEN IT (verdicts and FR/EN translation), PLAN IT (drafts the meeting point) and CHECK IT (workings, evaluation set); SNAP IT (menu boards) is a stretch. Check-in, meeting and staying in touch never depend on a model. Architecture at a glance: `docs/ARCHITECTURE.md`. Product: `docs/SIGNALS-HERE.md` and `docs/MUSE-SPARK-BY-FUNCTION.md` (wins on model use). Brand and product rules: `docs/DESIGN.md`. Context: `claude/hoolala-context.md`. Tasks: `docs/BUILD-PLAN.md`. Hackathon rules: `docs/HACKATHON-RULES.md`.
+A finite, real-world nudge with a Nokia LCD look. The first screen says GET OUTSIDE. MEET PEOPLE. and offers one tiny try a day on a private 5-step ladder; a private pixel plant gains a coloured leaf for every try. When people share a place, Signals here lets them post small invitations to talk, stay anonymous until both accept, agree a meeting point, and confirm the meet-up with a mutual QR. People get a head start from their public footprint (with their OK) as a private Personal Compass, check in at any public place (café, bar, coworking) by sharing location or adding the place, and keep place details right and earn private place points. A public Live page shows collective numbers, including the real-world connection rate. Muse Spark powers seven functions, each behind a code guardrail: FIND ME (web search about the person, compass draft), PLACE IT (tool-using agent that fetches place details), TRY IT (the next tiny try inside code-set bounds), SUGGEST IT (topic ideas with citations), SCREEN IT (verdicts and FR/EN translation), PLAN IT (drafts the meeting point) and CHECK IT (workings, evaluation set); SNAP IT (menu boards) is a stretch. Check-in, meeting and staying in touch never depend on a model. Architecture at a glance: `docs/ARCHITECTURE.md`. Product: `docs/SIGNALS-HERE.md` and `docs/MUSE-SPARK-BY-FUNCTION.md` (wins on model use). Brand and product rules: `docs/DESIGN.md`. Context: `claude/hoolala-context.md`. Tasks: `docs/BUILD-PLAN.md`. Hackathon rules: `docs/HACKATHON-RULES.md`.
 
 ## Hackathon rules agents must respect
 
@@ -20,10 +20,11 @@ A finite, place-based social product with a Nokia LCD look. People get a head st
 | Folder | Owns | Never does |
 |---|---|---|
 | `src/worker.ts` | Routing, static assets, security headers (CSP allows Telegram's Mini App script) | Business rules |
-| `src/api/` | One file per resource: auth, telegram-auth, compass, places (nearby, add, card, facts, points), checkin, here (signals, responses, quick replies, meeting points), block, report, meet, stay-in-touch, live, share, workings | SQL strings (use `src/db/`) or model calls (use `src/llm/`) |
-| `src/rules/` | Pure functions: `checkin.ts` (radius, search within the city, optional poster key and code, expiry), `compass.ts` (consent, provenance, banned labels), `places.ts` (fact states, points, caps), `here.ts` (visibility, anonymity, capacity, limits), `screening.ts` (code rules), `grounding.ts` (citations), confirmation tokens, counter and connection-rate rules, crisis words (`safety.ts`) | I/O of any kind |
+| `src/api/` | One file per resource: auth, telegram-auth, compass, places (nearby, add, card, facts, points), checkin, here (signals, responses, quick replies, meeting points), block, report, meet, stay-in-touch, tries, plant, crew, live, share, workings | SQL strings (use `src/db/`) or model calls (use `src/llm/`) |
+| `src/rules/` | Pure functions: `checkin.ts` (radius, search within the city, optional poster key and code, expiry), `compass.ts` (consent, provenance, banned labels), `places.ts` (fact states, points, caps), `here.ts` (visibility, anonymity, capacity, limits), `screening.ts` (code rules), `grounding.ts` (citations), `tries.ts` (step bounds, validation, leaves, next-step suggestion), confirmation tokens, counter and connection-rate rules, crisis words (`safety.ts`) | I/O of any kind |
 | `src/db/` | D1 schema, migrations, small repositories | Leaks SQL elsewhere |
-| `src/llm/` | Meta Model API client; `findme.ts` (FIND ME), `place.ts` (PLACE IT, with the Google Places tool in `src/places/google.ts`), `suggest.ts` (SUGGEST IT), `screen.ts` (SCREEN IT), `agent.ts` (PLAN IT), `snap.ts` (SNAP IT, stretch); schemas, validators, fallbacks, reasoning effort per function | Decides permissions, posts, accepts, sends or publishes anything, stores images |
+| `src/content/` | The 15-try library (`tries.ts`), data not code | Rules or model calls |
+| `src/llm/` | Meta Model API client; `findme.ts` (FIND ME), `place.ts` (PLACE IT, with the Google Places tool in `src/places/google.ts`), `suggest.ts` (SUGGEST IT), `screen.ts` (SCREEN IT), `agent.ts` (PLAN IT), `tryit.ts` (TRY IT), `snap.ts` (SNAP IT, stretch); schemas, validators, fallbacks, reasoning effort per function | Decides permissions, posts, accepts, sends or publishes anything, stores images |
 | `src/channels/telegram.ts` | Mini App launch parameters, bot webhook, the three opt-in notifications | Holds business rules or messages anyone who didn't switch notifications on |
 | `src/channels/email.ts` | The sign-in link email (Resend) | Sends anything else |
 | `src/live/` (stretch) | One Durable Object per place pushing live updates | Holds the source of truth (D1 does) or chat memory |
@@ -78,7 +79,11 @@ npm run deploy
 - **Place points are private and can't be farmed.** Only while checked in at that place, never for your own additions, counted on another person's confirmation or 24 h without dispute, max 30 a day. Never for posting, replying or meeting. No leaderboards, public totals, streaks or levels.
 - **Visibility through `src/rules/here.ts` only.** A viewer sees a place signal only if both are checked in at that place now, it's open and unexpired, neither blocked the other, and it isn't theirs. Every read path uses it (peek, discover, notifications, PLAN IT tools). Peek shows topics only.
 - **Anonymous until both accept.** Before acceptance: "Someone here". After: first names only, between the owner and accepted responders. Never photos, profiles, last names or contact details.
-- **No free chat.** Quick replies only (on my way, five minutes late, can't make it, at the spot).
+- **Code owns the step and the leaves.** TRY IT drafts words only; `src/rules/tries.ts` validates against the requested step's bounds and the always-on limits; rejected drafts fall back to the library; tries are stored with the code-assigned step. Steps change only through the person's NEXT TIME tap. Leaves are flat, one per try made.
+- **The plant and the step are private.** Never shown to others, never on the Live page, never compared. Colour only in the plant.
+- **Crew posts are stories, not chat.** Small private crew by invite link (one crew, link expires in 7 days); posts are screened like topics; NICE ONE only; no replies thread, no counts per person, no leaves for posting. No names, faces or photos of strangers.
+- **Invites are never auto-sent.** WhatsApp, Messenger or copied link, opened by the person's tap; we never read contacts.
+- **No free chat.** Quick replies only (on my way, five minutes late, can't make it, at the spot). (Crew posts follow the crew rule above.)
 - **Screening on every topic, reply line and suggestion:** `src/rules/screening.ts` first, then SCREEN IT. The model approves or rejects with a reason; it never rewrites text silently. Rejected text is never shown to anyone else.
 - **Suggestions are suggestions.** SUGGEST IT ideas are labelled AI / SUGGESTION, pass grounding (events need a citation returned in that call) and screening, and are never posted without a tap.
 - **The agent only drafts.** PLAN IT reads through its tools and drafts a meeting point; confirming needs a confirmation token from a tap; it never returns "sent" or "confirmed".
@@ -89,7 +94,7 @@ npm run deploy
 - Block works both ways, across places, immediately. Report hides the item at once.
 - Images for SNAP IT live in memory only and are never stored; vision prompts never describe people.
 - 18+ at sign-in; delete account removes the user's data. Crisis words return the fixed help message from `src/rules/safety.ts`, never model text.
-- Never: years lost, time wasted, screen-time talk, streaks, comparisons, fear or scarcity copy, forced permissions.
+- Never: years lost, time wasted, screen-time talk, streaks, comparisons, fear or scarcity copy, forced permissions. The 5-step ladder and the plant are allowed because they are private and the person chooses every step; they must never become public levels, scores or rankings.
 
 ## Definition of done (every package)
 

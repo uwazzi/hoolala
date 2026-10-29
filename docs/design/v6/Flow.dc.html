@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! today: one try, one path</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}
+@keyframes hl-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes hl-pop{0%{transform:scale(0)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
+@keyframes hl-rise{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+.hl-cursor{display:inline-block;width:10px;height:1em;background:#182513;vertical-align:-2px;margin-left:2px;animation:hl-blink 0.9s steps(1) infinite}
+.hl-keys{animation:hl-rise 0.25s ease-out both}
+.hl-key{cursor:pointer;user-select:none}
+.hl-key:hover{outline:2px solid #182513;outline-offset:2px}
+.hl-key:active{transform:translateY(2px)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; overflow: hidden">
+  <div style="padding: 16px 24px 0 24px; display: flex; flex-direction: column; gap: 2px">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 28px; line-height: 1.1; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 13px; line-height: 1.4; color: #304327">You never know until you go.</div>
+  </div>
+
+  <sc-if value="{{ isIntro }}" hint-placeholder-val="{{ true }}">
+    <div style="flex-grow: 1; padding: 32px 24px 20px 24px; display: flex; flex-direction: column; gap: 20px">
+      <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 40px; line-height: 1.05">GET OUTSIDE.<br>MEET PEOPLE.</div>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5">One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always.</p>
+      <a href="Moments.dc.html" style="display: flex; align-items: flex-end; gap: 16px; text-decoration: none; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 12px 16px">
+        <div style="display: grid; grid-template-columns: repeat(14, 8px); grid-auto-rows: 8px; flex-shrink: 0">
+          <sc-for list="{{ cells }}" as="c" hint-placeholder-count="252"><div style="{{ c.style }}"></div></sc-for>
+        </div>
+        <span style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 2px">
+          <span style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px">{{ tries }} TINY TRIES</span>
+          <span style="font-size: 13px; line-height: 1.4">Your plant grows with every one. It never wilts.</span>
+        </span>
+      </a>
+      <div style="flex-grow: 1"></div>
+      <div class="hl-key" onClick="{{ start }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 60px; padding: 0 18px; background: #182513; color: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 18px">
+        <span>GIVE ME TODAY’S TRY</span><span>&gt;</span>
+      </div>
+      <a href="Friends.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 18px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 14px; text-decoration: none">
+        <span>DARE A FRIEND TOO</span><span>&gt;</span>
+      </a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ inFlow }}" hint-placeholder-val="{{ false }}">
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0">
+  <div style="margin: 10px 24px 0 24px; display: flex; flex-direction: column; gap: 4px">
+    <div style="background: #182513; color: #DDE7C6; border-radius: 2px; padding: 8px 12px; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; line-height: 1.2; letter-spacing: 0.5px">GET OUTSIDE. MEET PEOPLE.</div>
+  </div>
+
+  <div style="margin: 12px 24px 0 24px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 10px 16px; display: flex; align-items: flex-end; gap: 16px">
+    <div style="display: grid; grid-template-columns: repeat(14, 10px); grid-auto-rows: 10px; flex-shrink: 0">
+      <sc-for list="{{ cells }}" as="c" hint-placeholder-count="252"><div style="{{ c.style }}"></div></sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 2px">
+      <div style="font-family: 'Silkscreen', monospace; font-size: 12px; color: #304327">YOUR PLANT</div>
+      <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 34px; line-height: 1">{{ tries }}</div>
+      <div style="font-size: 13px; line-height: 1.4">{{ plantLine }}</div>
+      <div style="display: flex; gap: 4px; align-items: center">
+        <sc-for list="{{ ladder }}" as="p" hint-placeholder-count="5"><div style="{{ p.style }}"></div></sc-for>
+        <span style="font-family: 'Silkscreen', monospace; font-size: 11px; margin-left: 4px">STEP {{ level }} OF 5</span>
+      </div>
+      <div style="font-size: 11px; line-height: 1.4; color: #304327">Every try adds colour. It never wilts.</div>
+    </div>
+  </div>
+
+  <div style="margin: 12px 24px 0 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+    <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3"><div style="{{ s.style }}">{{ s.label }}</div></sc-for>
+  </div>
+
+  <div style="margin: 10px 24px 0 24px; flex-grow: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-family: 'Silkscreen', monospace; font-size: 12px; color: #304327">HOOLALA! SAYS</div>
+      <div style="border-left: 4px solid #182513; padding: 2px 0 2px 12px; display: flex; flex-direction: column; gap: 6px; min-height: 84px">
+        <div style="font-size: 14px; line-height: 1.5">{{ leadShown }}<sc-if value="{{ cursorOnLead }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></div>
+        <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 22px; line-height: 1.15">{{ titleShown }}<sc-if value="{{ cursorOnTitle }}" hint-placeholder-val="{{ true }}"><span class="hl-cursor"></span></sc-if></div>
+        <sc-if value="{{ showMeta }}" hint-placeholder-val="{{ false }}">
+          <div class="hl-keys" style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">{{ meta }}</div>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+      <div class="hl-keys" style="display: flex; flex-direction: column; gap: 8px">
+        <sc-if value="{{ hasChips }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 6px">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327; width: 64px; flex-shrink: 0">{{ chipsLabel }}</span>
+            <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="3">
+              <div class="hl-key" onClick="{{ ch.go }}" style="{{ ch.style }}"><span>{{ ch.label }}</span><sc-if value="{{ ch.suggested }}" hint-placeholder-val="{{ false }}"><span style="font-family: 'Space Mono', monospace; font-size: 9px">suggested</span></sc-if></div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div class="hl-key" onClick="{{ primary.go }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px; background: #182513; color: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 16px">
+          <span>{{ primary.label }}</span><span style="font-family: 'Space Mono', monospace; font-size: 12px">{{ primary.note }} &gt;</span>
+        </div>
+        <div style="{{ secondaryLayout }}">
+          <sc-for list="{{ secondary }}" as="k" hint-placeholder-count="2">
+            <div class="hl-key" onClick="{{ k.go }}" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 12px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 13px">
+              <span>{{ k.label }}</span><span style="font-family: 'Space Mono', monospace; font-size: 11px; color: #304327">{{ k.note }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ showShare }}" hint-placeholder-val="{{ false }}">
+          <a href="Friends.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 0 12px; border: 2px dashed #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px; text-decoration: none"><span>TELL MY FRIENDS WHAT HAPPENED</span><span>&gt;</span></a>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <div style="flex-grow: 1"></div>
+    <a href="Here.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 12px; border: 2px dashed #304327; border-radius: 2px; text-decoration: none; font-size: 12px; margin-bottom: 10px">
+      <span>At a café or coworking? See who here would like to talk</span><span style="font-family: 'Silkscreen', monospace">&gt;</span>
+    </a>
+  </div>
+
+  </div>
+  </sc-if>
+
+  <nav aria-label="Softkeys" style="display: flex; border-top: 2px solid #182513; flex-shrink: 0">
+    <div class="hl-key" onClick="{{ restart }}" style="flex: 1; display: flex; align-items: center; padding: 0 24px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 14px; background: #182513; color: #DDE7C6">TODAY</div>
+    <a href="Friends.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 24px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 14px; text-decoration: none">FRIENDS</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844},"startTries":{"editor":"range","default":3,"min":0,"max":9,"step":1,"section":"Plant"},"startStep":{"editor":"range","default":1,"min":1,"max":5,"step":1,"section":"Plant"},"typingSpeed":{"editor":"range","default":26,"min":10,"max":80,"step":2,"unit":"ms","section":"Typing"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.lib = {
+      1: [
+        { place: 'anywhere', title: 'SMILE AT THREE PEOPLE.', hint: 'A SMILE IS ENOUGH. A NOD COUNTS TOO.', meta: '2 MIN · NO TALKING NEEDED' },
+        { place: 'cafe', title: 'NOD AT SOMEONE AT THE NEXT TABLE.', hint: 'CATCH AN EYE, NOD, BACK TO YOUR COFFEE.', meta: '1 MIN · NO TALKING NEEDED' },
+        { place: 'work', title: 'SMILE AT A COLLEAGUE YOU DON’T KNOW.', hint: 'IN THE CORRIDOR OR BY THE COFFEE MACHINE.', meta: '1 MIN · NO TALKING NEEDED' }
+      ],
+      2: [
+        { place: 'anywhere', title: 'SAY GOOD MORNING TO SOMEONE NEW.', hint: 'JUST “MORNING”. THAT’S THE WHOLE SCRIPT.', meta: '1 MIN · TWO WORDS' },
+        { place: 'cafe', title: 'SAY HELLO TO THE BARISTA, EYES UP.', hint: 'LOOK UP FROM THE PHONE. “HI, HOW’S IT GOING?”', meta: '1 MIN · ONE LINE' },
+        { place: 'work', title: 'SAY HELLO TO SOMEONE IN THE LIFT.', hint: '“MORNING.” THEN ENJOY THE RIDE.', meta: '1 MIN · ONE WORD' }
+      ],
+      3: [
+        { place: 'anywhere', title: 'ASK SOMEONE FOR A LOCAL TIP.', hint: '“IS THERE A GOOD BAKERY ROUND HERE?”', meta: '3 MIN · ONE QUESTION' },
+        { place: 'cafe', title: 'ASK THE BARISTA HOW THEIR DAY IS GOING.', hint: 'LISTEN TO THE ANSWER. NO FOLLOW-UP NEEDED.', meta: '2 MIN · ONE QUESTION' },
+        { place: 'work', title: 'ASK A COLLEAGUE WHAT THEY’RE WORKING ON.', hint: '“WHAT’S KEEPING YOU BUSY THIS WEEK?”', meta: '3 MIN · ONE QUESTION' }
+      ],
+      4: [
+        { place: 'anywhere', title: 'CHAT FOR TWO MINUTES WITH A SHOPKEEPER.', hint: 'ASK WHAT SELLS BEST. LET THEM TALK.', meta: '5 MIN · SHORT CHAT' },
+        { place: 'cafe', title: 'ASK THE PERSON BESIDE YOU WHAT THEY’RE READING.', hint: '“IS IT GOOD? I’M LOOKING FOR MY NEXT ONE.”', meta: '5 MIN · SHORT CHAT' },
+        { place: 'work', title: 'JOIN A CHAT AT THE COFFEE MACHINE.', hint: 'STAND NEARBY, SMILE, ADD ONE THING.', meta: '5 MIN · SHORT CHAT' }
+      ],
+      5: [
+        { place: 'anywhere', title: 'SUGGEST A COFFEE TO SOMEONE YOU’VE CHATTED WITH.', hint: '“FANCY A COFFEE SOMETIME?” A NO IS FINE.', meta: '10 MIN · AN INVITATION' },
+        { place: 'cafe', title: 'INVITE SOMEONE TO SHARE YOUR TABLE.', hint: '“THIS SEAT’S FREE IF YOU NEED IT.”', meta: '10 MIN · AN INVITATION' },
+        { place: 'work', title: 'INVITE A COLLEAGUE FOR A COFFEE BREAK.', hint: '“I’M GRABBING ONE. COMING?”', meta: '10 MIN · AN INVITATION' }
+      ]
+    };
+    this.outcomes = {
+      well: { label: 'WENT WELL', note: '+1 leaf', leaf: true, suggest: 1, lead: 'A new leaf just grew.', title: 'LOVELY. THAT WAS YOU.', past: 'Last one went well.' },
+      ghost: { label: 'NO REPLY / GHOSTED', note: '+1 leaf', leaf: true, suggest: 0, lead: 'No worries, sometimes it happens. It says nothing about you.', title: 'STILL A LEAF. YOU WENT.', past: 'Last one got no reply. Happens.' },
+      awkward: { label: 'AWKWARD BUT DONE', note: '+1 leaf', leaf: true, suggest: 0, lead: 'Awkward just means new. It wears off.', title: 'A LEAF FOR GOING ANYWAY.', past: 'Last one felt awkward.' },
+      skip: { label: 'DIDN’T HAPPEN', note: 'no problem', leaf: false, suggest: -1, lead: 'That’s fine. Some days are like that.', title: 'THE PLANT DOESN’T MIND.', past: 'Last one didn’t happen. Fine.' }
+    };
+    this.state = { screen: 'intro', typed: 0, pick: 0, place: 'anywhere', level: null, tries: null, grew: -1, outcome: null, next: 0, moved: null };
+  }
+  componentDidMount() { this.startTyping(); }
+  componentWillUnmount() { clearInterval(this.timer); }
+  startTyping() {
+    clearInterval(this.timer);
+    const speed = this.props.typingSpeed ?? 26;
+    this.timer = setInterval(() => {
+      const t = this.texts();
+      if (this.state.typed >= t.lead.length + t.title.length) { clearInterval(this.timer); return; }
+      this.setState({ typed: this.state.typed + 1 });
+    }, speed);
+  }
+  go(screen, extra) { this.setState(Object.assign({ screen: screen, typed: 0 }, extra || {}), () => this.startTyping()); }
+  count() { return this.state.tries ?? (this.props.startTries ?? 3); }
+  lvl() { return this.state.level ?? (this.props.startStep ?? 1); }
+  options() {
+    const all = this.lib[this.lvl()];
+    const p = this.state.place;
+    return p === 'anywhere' ? all : all.filter((x) => x.place === p || x.place === 'anywhere').sort((a) => (a.place === p ? -1 : 1));
+  }
+  current() { const o = this.options(); return o[this.state.pick % o.length]; }
+  texts() {
+    const s = this.state.screen, t = this.current(), oc = this.outcomes[this.state.outcome];
+    if (s === 'intro') return { lead: '', title: '' };
+    if (s === 'offer') {
+      if (!oc) return { lead: 'Today’s tiny try. Optional, always.', title: t.title };
+      const m = this.state.moved;
+      const why = m > 0 ? 'One step braver, as you chose.' : m < 0 ? 'A gentler one, as you chose.' : 'Same step, a fresh try.';
+      return { lead: oc.past + ' ' + why, title: t.title };
+    }
+    if (s === 'later') return { lead: 'No problem. Your plant waits.', title: 'SEE YOU WHENEVER.' };
+    if (s === 'out') return { lead: 'Off you go. Phone in pocket.', title: t.hint };
+    if (s === 'ask') return { lead: 'Welcome back.', title: 'HOW DID IT GO?' };
+    return { lead: oc.lead, title: oc.title };
+  }
+  report(kind) {
+    const oc = this.outcomes[kind], l = this.lvl();
+    let sug = oc.suggest;
+    if (l + sug > 5 || l + sug < 1) sug = 0;
+    const extra = { outcome: kind, next: sug, suggested: sug };
+    if (oc.leaf) { const n = this.count() + 1; extra.tries = n; extra.grew = Math.min(n, 9) - 1; } else extra.grew = -1;
+    this.go('debrief', extra);
+  }
+  nextTry() {
+    const l = this.lvl(), nl = Math.min(5, Math.max(1, l + this.state.next));
+    this.go('offer', { level: nl, moved: nl - l, pick: nl === l ? this.state.pick + 1 : 0, grew: -1 });
+  }
+  plantCells(n, grew) {
+    const W = 14, H = 18, cells = [];
+    for (let i = 0; i < W * H; i++) cells.push(null);
+    const ink = '#182513', soil = '#304327';
+    const greens = ['#2E8B3E', '#47A847', '#1F7A4D'];
+    const blooms = ['#E8618C', '#F2B630', '#5B8DEF'];
+    const set = (r, c, col, pop) => { if (r >= 0 && r < H && c >= 0 && c < W) cells[r * W + c] = { col: col, pop: !!pop }; };
+    const leaves = Math.min(n, 6), stemH = 2 + 2 * leaves;
+    for (let r = 14 - stemH; r < 14; r++) { set(r, 6, n > 0 ? '#2B6B2F' : ink); set(r, 7, n > 0 ? '#2B6B2F' : ink); }
+    for (let i = 0; i < leaves; i++) {
+      const r = 12 - 2 * i, g = greens[i % 3], pop = i === grew;
+      if (i % 2 === 0) { set(r, 5, g, pop); set(r, 4, g, pop); set(r - 1, 4, g, pop); set(r - 1, 3, g, pop); }
+      else { set(r, 8, g, pop); set(r, 9, g, pop); set(r - 1, 9, g, pop); set(r - 1, 10, g, pop); }
+      if ((i + 1) % 3 === 0 || n - 6 > i) {
+        const b = blooms[i % 3], bp = pop || (grew >= 6 && i === n - 7);
+        if (i % 2 === 0) { set(r - 2, 3, b, bp); set(r - 1, 2, b, bp); set(r - 1, 3, '#F2E28C', bp); }
+        else { set(r - 2, 10, b, bp); set(r - 1, 11, b, bp); set(r - 1, 10, '#F2E28C', bp); }
+      }
+    }
+    if (n >= 3) { const top = 14 - stemH; set(top - 1, 6, '#E8618C'); set(top - 1, 7, '#E8618C'); set(top - 2, 6, '#F2B630'); set(top - 2, 7, '#F2B630'); }
+    for (let c = 3; c <= 10; c++) set(14, c, ink);
+    for (let r = 15; r < 18; r++) for (let c = 4; c <= 9; c++) set(r, c, r === 15 ? soil : ink);
+    return cells.map((x) => ({ style: x ? 'background:' + x.col + (x.pop ? ';animation:hl-pop 0.6s ease-out both' : '') : 'background:transparent' }));
+  }
+  chipStyle(on, off) {
+    return 'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:36px;padding:2px 4px;border:2px solid #182513;border-radius:2px;font-family:Silkscreen,monospace;font-size:11px;text-align:center;' +
+      (off ? 'opacity:0.35;pointer-events:none;border-style:dashed' : on ? 'background:#182513;color:#DDE7C6' : 'background:#DDE7C6;color:#182513');
+  }
+  renderVals() {
+    const s = this.state.screen, { lead, title } = this.texts(), typed = this.state.typed;
+    const done = typed >= lead.length + title.length;
+    const n = this.count(), l = this.lvl(), t = this.current();
+    const stepNow = (s === 'offer' || s === 'later') ? 0 : s === 'out' ? 1 : 2;
+    const steps = ['1 GET A TRY', '2 GO', '3 TELL ME'].map((label, i) => ({ label: label,
+      style: 'font-family:Silkscreen,monospace;font-size:11px;text-align:center;padding:6px 2px;border:2px solid #182513;border-radius:2px;' +
+        (i === stepNow ? 'background:#182513;color:#DDE7C6' : i < stepNow ? 'background:#AEC58A;color:#182513' : 'background:transparent;color:#304327;border-style:dashed') }));
+    const key = (label, fn, note) => ({ label: label, go: fn, note: note || '' });
+    let primary, secondary = [], chips = [], chipsLabel = '', column = false;
+    if (s === 'offer') {
+      primary = key('I’M IN. OFF I GO', () => this.go('out'));
+      secondary = [key('ANOTHER ONE', () => this.go('offer', { pick: this.state.pick + 1 })), key('NOT TODAY', () => this.go('later'))];
+      chipsLabel = 'WHERE?';
+      chips = [['anywhere', 'ANYWHERE'], ['cafe', 'CAFÉ'], ['work', 'WORK']].map(([id, lab]) => ({ label: lab, suggested: false,
+        style: this.chipStyle(this.state.place === id, false), go: () => this.go('offer', { place: id, pick: 0 }) }));
+    } else if (s === 'intro') {
+      primary = key('', () => {});
+    } else if (s === 'later') {
+      primary = key('CHANGED MY MIND', () => this.go('offer'));
+    } else if (s === 'out') {
+      primary = key('I’M BACK', () => this.go('ask'));
+    } else if (s === 'ask') {
+      const o = this.outcomes;
+      primary = key(o.well.label, () => this.report('well'), o.well.note);
+      secondary = ['ghost', 'awkward', 'skip'].map((k) => key(o[k].label, () => this.report(k), o[k].note));
+      column = true;
+    } else {
+      chipsLabel = 'NEXT TIME';
+      chips = [[-1, 'GENTLER'], [0, 'SAME STEP'], [1, 'BRAVER']].map(([d, lab]) => ({ label: lab,
+        suggested: d === this.state.suggested && d !== this.state.next ? true : d === this.state.suggested,
+        style: this.chipStyle(this.state.next === d, l + d < 1 || l + d > 5),
+        go: () => this.setState({ next: d }) }));
+      primary = key('ANOTHER TINY TRY', () => this.nextTry());
+      secondary = [key('ENOUGH FOR TODAY', () => this.go('later', { grew: -1 }))];
+    }
+    const ladder = [1, 2, 3, 4, 5].map((i) => ({ style: 'width:10px;height:10px;border:2px solid #182513;' + (i <= l ? 'background:#182513' : 'background:transparent') }));
+    return {
+      cells: this.plantCells(Math.min(n, 9), this.state.grew),
+      tries: n, level: l, ladder: ladder,
+      plantLine: n === 0 ? 'Bare for now. One try and it starts.' : n === 1 ? 'tiny try so far' : 'tiny tries so far',
+      steps: steps,
+      leadShown: lead.slice(0, typed),
+      titleShown: typed > lead.length ? title.slice(0, typed - lead.length) : '',
+      cursorOnLead: !done && typed <= lead.length,
+      cursorOnTitle: !done && typed > lead.length,
+      showMeta: done && s === 'offer',
+      meta: 'STEP ' + l + ' OF 5 · ' + t.meta,
+      done: done, primary: primary, secondary: secondary,
+      chips: chips, chipsLabel: chipsLabel, hasChips: chips.length > 0,
+      secondaryLayout: column || secondary.length < 2 ? 'display:flex;flex-direction:column;gap:8px' : 'display:grid;gap:8px;grid-template-columns:repeat(2, minmax(0, 1fr))',
+      isIntro: s === 'intro',
+      inFlow: s !== 'intro',
+      showShare: s === 'debrief' && this.outcomes[this.state.outcome] && this.outcomes[this.state.outcome].leaf,
+      start: () => this.go('offer'),
+      restart: () => this.go('intro', { grew: -1 })
+    };
+  }
+}
+</script>
+</body>
+</html>
