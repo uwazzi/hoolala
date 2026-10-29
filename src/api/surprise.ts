@@ -1,15 +1,14 @@
-// WP26 Surprise Me: a short spoken conversation that drafts the compass.
-// POST /api/me/surprise/hear (audio/wav body) · POST /api/me/surprise/next {turns} ·
-// POST /api/me/surprise/draft {turns}
+// WP34 Surprise Me voice: five fixed questions, each filling a compass
+// direction. POST /api/me/surprise/hear (audio/wav body) ·
+// POST /api/me/surprise/next {turns}
 // Stateless: the client holds the conversation and sends it back. Audio is
-// transcribed and dropped; answers are never stored. Lines are saved only
-// through LOOKS RIGHT (POST /api/me/compass/confirm), as "you said".
+// transcribed and dropped; answers are never stored. Lines are saved one at
+// a time through KEEP (POST /api/me/compass/keep), as "you said".
 
-import { llmEnabled } from "../llm/client";
-import { nextQuestion, surpriseDraft } from "../llm/surprise";
 import { transcribe } from "../llm/voice";
+import { llmEnabled } from "../llm/client";
 import { SCREEN_MESSAGES } from "../rules/screening";
-import { isSpeechWav, MAX_AUDIO_BYTES, needsHelp, readTurns } from "../rules/surprise";
+import { isSpeechWav, MAX_AUDIO_BYTES, needsHelp, questionAt, readTurns } from "../rules/surprise";
 import type { Env } from "../types";
 import { json } from "./health";
 import { overLimit, readJson } from "./request";
@@ -39,16 +38,6 @@ export async function handleNext(request: Request, env: Env, now = new Date()): 
   if (!turns) return json({ error: "bad_turns" }, 400);
   if (needsHelp(turns)) return json({ help: SCREEN_MESSAGES.crisis });
   if (await overLimit(env, `rl:talk:${user.id}`, TALK_LIMIT)) return json({ error: "too_many" }, 429);
-  return json(await nextQuestion(env, turns));
-}
-
-export async function handleSurpriseDraft(request: Request, env: Env, now = new Date()): Promise<Response> {
-  const user = await getSessionUser(request, env, now);
-  if (!user) return json({ error: "signed_out" }, 401);
-  const turns = readTurns((await readJson(request)).turns);
-  if (!turns || !turns.some((t) => t.a)) return json({ error: "bad_turns" }, 400);
-  if (needsHelp(turns)) return json({ help: SCREEN_MESSAGES.crisis });
-  if (await overLimit(env, `rl:talk:${user.id}`, TALK_LIMIT)) return json({ error: "too_many" }, 429);
-  const draft = await surpriseDraft(env, turns);
-  return json({ ...draft, lines: draft.lines.map((l) => ({ ...l, source: "you said" })) });
+  const next = questionAt(turns);
+  return json(next ? { question: next.q, part: next.part } : { question: null, part: null });
 }

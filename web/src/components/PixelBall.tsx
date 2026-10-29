@@ -48,8 +48,9 @@ export function PixelBall({ mode, level }: Props) {
           const r = base + ripple;
           if (d > r) continue;
           if (m === "thinking" && !still) {
-            // A gap that goes round.
-            const gap = ((a - t / 250) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+            // A gap that goes round in 8 pixel steps.
+            const step = (Math.floor(t / 100) % 8) / 8;
+            const gap = ((a - step * Math.PI * 2) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
             if (gap < 0.9 && d > r - 4) continue;
           }
           // Listening: a hollow ring with a dot that grows with the voice.

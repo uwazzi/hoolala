@@ -1,37 +1,38 @@
-// WP26 Surprise Me: a short spoken conversation instead of a web search. Pure.
-// Hoolala! asks, the person answers by voice or typing, at most 5 turns.
-// Audio is heard, then forgotten: only the words the person sends are used,
-// and only the compass lines they confirm are saved, as "you said".
+// WP34 Surprise Me voice: five fixed questions, each filling a compass
+// direction; the fifth lands wherever the words point. Pure. Audio is
+// heard, then forgotten: only the words the person sends are used, and
+// only the compass lines they keep are saved, as "you said".
 
-import { type CompassLine, cleanCompass, hasBannedLabel } from "./compass";
+import type { CompassLine } from "./compass";
 import { screenText } from "./screening";
 
-export const MIN_TURNS = 3;
 export const MAX_TURNS = 5;
 export const MAX_QUESTION = 140;
 export const MAX_ANSWER = 300;
-export const MAX_IDEAS = 2;
 // Muse Voice Transcribe takes mono 16-bit WAV at 16 or 24 kHz. 60 s at 16 kHz is ~1.9 MB.
 export const MAX_AUDIO_BYTES = 2_000_000;
-
-export const OPENING = "Hi, I'm Hoolala! What could you talk about for an hour?";
-
-// The no-AI conversation: same opening, then these, in order. Every
-// direction is covered; the model still asks about making things too.
-export const SCRIPTED = [
-  OPENING,
-  "When do you like to be out, and alone or with others?",
-  "Who or what has inspired you lately?",
-  "What would you like more of in your week?",
-  "Anything you'd rather not talk about?",
-];
 
 export interface Turn {
   q: string;
   a: string;
 }
 
-/** The conversation so far, as the client sends it back. Null when malformed. */
+export interface SurpriseQuestion {
+  q: string;
+  part: CompassLine["part"] | null;
+}
+
+// The five questions, in order. The last one is open: its direction is
+// guessed from the person's own words when they answer.
+export const QUESTIONS: SurpriseQuestion[] = [
+  { q: "What could you talk about for an hour?", part: "interest" },
+  { q: "What would you like a little more of?", part: "intention" },
+  { q: "What drains you, or what should I leave alone?", part: "filter" },
+  { q: "When do you like to be out, alone or with others?", part: "delivery" },
+  { q: "Anything else I should know about you?", part: null },
+];
+
+/** The conversation so far, as the client sends it back. Null when malformed. Skipped questions come back with an empty answer. */
 export function readTurns(raw: unknown): Turn[] | null {
   if (!Array.isArray(raw) || raw.length > MAX_TURNS) return null;
   const turns: Turn[] = [];
@@ -48,80 +49,9 @@ export function isFinished(turns: Turn[]): boolean {
   return turns.length >= MAX_TURNS;
 }
 
-export function scriptedQuestion(turns: Turn[]): string | null {
-  return isFinished(turns) ? null : SCRIPTED[turns.length];
-}
-
-/** A question the model asked: one short line, a real question, nothing about who the person is. */
-export function cleanQuestion(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  const q = undash(raw).trim().replace(/\s+/g, " ");
-  if (q.length < 8 || q.length > MAX_QUESTION || !q.endsWith("?")) return null;
-  if (hasBannedLabel(q)) return null;
-  return q;
-}
-
-// House style: no em or en dashes in anything we show.
-const undash = (s: string) => s.replace(/\s*[—–]\s*/g, ", ");
-
-const fold = (s: string) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const words = (s: string) => fold(s).split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
-
-/** A line is "you said" only if it shares a real word with what the person said. */
-export function heardIn(line: string, turns: Turn[]): boolean {
-  const said = new Set(turns.flatMap((t) => words(t.a)));
-  const mine = words(line);
-  return mine.length === 0 ? false : mine.some((w) => said.has(w) || [...said].some((s) => s.length >= 5 && (s.startsWith(w) || w.startsWith(s))));
-}
-
-/** Model lines kept only when they echo the person's own words; then the usual compass rules. */
-export function cleanSurpriseCompass(lines: { part: unknown; text: unknown }[], turns: Turn[]): CompassLine[] {
-  const heard = lines.filter((l) => typeof l.text === "string" && heardIn(l.text, turns));
-  return cleanCompass(heard.map((l) => ({ ...l, source_url: null })), [], true);
-}
-
-/** The playful one-liner: about what they said, never about who they are. */
-export function cleanObservation(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  const text = undash(raw).trim().replace(/\s+/g, " ");
-  if (text.length < 8 || text.length > 160 || hasBannedLabel(text)) return null;
-  return screenText(text, 160).ok ? text : null;
-}
-
-/** Topic ideas pass the same screening as any topic. */
-export function cleanIdeas(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  const out: string[] = [];
-  for (const r of raw) {
-    if (typeof r !== "string") continue;
-    const text = undash(r).trim().replace(/\s+/g, " ");
-    if (hasBannedLabel(text) || !screenText(text, 60).ok || out.includes(text)) continue;
-    out.push(text);
-    if (out.length === MAX_IDEAS) break;
-  }
-  return out;
-}
-
-// Passions, going out, inspiration, more of, rather not: TALK ABOUT,
-// HOW I GO, MORE OF twice, LESS OF. Every direction is covered.
-const SCRIPTED_PART = ["interest", "delivery", "intention", "intention", "filter"] as const;
-
-function partFor(q: string): CompassLine["part"] {
-  const i = SCRIPTED.indexOf(q);
-  if (i >= 0) return SCRIPTED_PART[i];
-  if (/rather not|avoid|steer clear|not talk|less of|never/i.test(q)) return "filter";
-  if (/\bmore\b|\bwant\b|again/i.test(q)) return "intention";
-  if (/walk|near|morning|evening|weekend|alone|group|gentl|low-key|quiet|small|how often|how do you/i.test(q)) return "delivery";
-  return "interest";
-}
-
-/** Without the model: each answer, split on commas, under its question's part. */
-export function compassFromTurns(turns: Turn[]): CompassLine[] {
-  const lines = turns.flatMap((t) => {
-    const part = partFor(t.q);
-    return t.a.split(/[,;\n]+|\band\b/).map((x) => x.trim().replace(/[.!]+$/, "")).filter(Boolean).map((text) => ({ part, text }));
-  });
-  return cleanCompass(lines, [], true);
+/** The next question with the direction it fills, or null when all five are answered or skipped. */
+export function questionAt(turns: Turn[]): SurpriseQuestion | null {
+  return isFinished(turns) ? null : QUESTIONS[turns.length];
 }
 
 /** Crisis words in an answer stop the conversation with the fixed help message. */
