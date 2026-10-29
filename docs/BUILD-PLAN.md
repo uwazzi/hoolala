@@ -169,7 +169,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
-> Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. Work kept on branch `wp21/telegram`. Kept here for history.
+> Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. The `wp21/telegram` work branch was deleted the same day; only this section remains.
 - [ ] Location inside the Mini App: Telegram's location API where available, browser geolocation otherwise.
 - [ ] A partner poster QR opens `t.me/<bot>/here?startapp=<slug>_<key>` on phones with Telegram, and the web URL otherwise (the web page shows both options).
 - [ ] Mini App loads the same front end; `POST /api/auth/telegram` verifies `initData` with HMAC-SHA256 using the bot token, checks `auth_date` freshness, creates or finds the user by Telegram id, asks once for the 18+ confirmation, uses the Telegram first name only.
