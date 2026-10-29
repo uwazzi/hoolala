@@ -31,7 +31,15 @@ export function toMapPlace(el: OverpassElement): MapPlace | null {
   const lat = el.lat ?? el.center?.lat;
   const lng = el.lon ?? el.center?.lon;
   if (!kind || !tags.name || lat === undefined || lng === undefined) return null;
-  return { provider: "osm", id: `${el.type}/${el.id}`, name: tags.name.slice(0, 60), kind, point: { lat, lng } };
+  const website = tags.website ?? tags["contact:website"] ?? null;
+  return {
+    provider: "osm",
+    id: `${el.type}/${el.id}`,
+    name: tags.name.slice(0, 60),
+    kind,
+    point: { lat, lng },
+    website: website ? website.slice(0, 200) : null,
+  };
 }
 
 async function overpass(query: string): Promise<OverpassElement[]> {

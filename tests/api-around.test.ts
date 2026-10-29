@@ -16,16 +16,23 @@ type Person = { id: string; cookie: string };
 
 let answers: unknown[];
 let pageHtml: string;
+let overpass: unknown[] | "down";
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(NOW));
   answers = [];
   pageHtml = "";
+  overpass = [];
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
-      if (!String(url).includes("api.meta.test")) {
+      const u = String(url);
+      if (u.includes("overpass")) {
+        if (overpass === "down") throw new Error("overpass down");
+        return Response.json({ elements: overpass });
+      }
+      if (!u.includes("api.meta.test")) {
         return new Response(pageHtml, { headers: { "content-type": "text/html" } });
       }
       const content = JSON.stringify(answers.shift());
@@ -128,6 +135,65 @@ describe("around me", () => {
     expect(body.places.map((p: { id: string }) => p.id)).toEqual(["far-fit", "near"]);
     expect(body.places[0].fit).toBe("GOOD");
     expect(body.places[1].fit).toBe("LOW");
+  });
+
+  it("merges live map places the database doesn't know", async () => {
+    const env = testEnv();
+    const ana = await person(env, "Ana");
+    overpass = [
+      { type: "node", id: 1, lat: 46.5199, lon: 6.6325, tags: { amenity: "cafe", name: "Real Café" } },
+      { type: "node", id: 2, lat: 46.5199, lon: 6.6325, tags: { amenity: "bar" } },
+      { type: "node", id: 3, lat: 46.5199, lon: 6.6325, tags: { amenity: "casino", name: "Lucky" } },
+      { type: "node", id: 4, lat: 46.6, lon: 6.7, tags: { amenity: "cafe", name: "Far Café" } },
+    ];
+    const body = await (await call(env, "POST", "/api/around/scan", ana, HERE)).json();
+    expect(body.places).toHaveLength(1);
+    expect(body.places[0]).toMatchObject({
+      id: "osm:node/1",
+      name: "Real Café",
+      kind: "cafe",
+      source: "osm",
+      external: { provider: "osm", id: "node/1" },
+      why_source: "template",
+      talking: null,
+      visits: 0,
+      here_now: 0,
+      read: null,
+    });
+    expect(body.places[0].tiny_try).toBeTruthy();
+  });
+
+  it("the database wins over the map for places it knows", async () => {
+    const env = testEnv();
+    const ana = await person(env, "Ana");
+    seedPlace(env);
+    env.DB.sqlite.prepare("UPDATE places SET osm_id = 'node/1' WHERE id = 'cafe'").run();
+    overpass = [{ type: "node", id: 1, lat: 46.5199, lon: 6.6325, tags: { amenity: "cafe", name: "Café Longue Table" } }];
+    const body = await (await call(env, "POST", "/api/around/scan", ana, HERE)).json();
+    expect(body.places).toHaveLength(1);
+    expect(body.places[0]).toMatchObject({ id: "cafe", source: "hoolala" });
+  });
+
+  it("a map website gets read too", async () => {
+    const env = testEnv({ ...AI });
+    const ana = await person(env, "Ana");
+    overpass = [
+      { type: "node", id: 1, lat: 46.5199, lon: 6.6325, tags: { amenity: "cafe", name: "Real Café", website: "https://real.example/menu" } },
+    ];
+    answers = [{ places: [] }, { items: ["Oat flat white"], hours: null, kind: "menu" }];
+    pageHtml = "<html><body><p>Oat flat white, baked daily.</p></body></html>";
+    const body = await (await call(env, "POST", "/api/around/scan", ana, HERE)).json();
+    expect(body.places[0].read).toMatchObject({ items: ["Oat flat white"], source: "real.example" });
+  });
+
+  it("the map being down leaves the database standing", async () => {
+    const env = testEnv();
+    const ana = await person(env, "Ana");
+    seedPlace(env);
+    overpass = "down";
+    const body = await (await call(env, "POST", "/api/around/scan", ana, HERE)).json();
+    expect(body.places).toHaveLength(1);
+    expect(body.places[0]).toMatchObject({ id: "cafe", source: "hoolala" });
   });
 
   it("widening reaches further, taps only", async () => {

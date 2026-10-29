@@ -11,7 +11,8 @@ import { Screen } from "../components/Screen";
 interface Read { items: string[]; hours: string | null; kind: string; source: string }
 interface Talking { level: 1 | 2 | 3 | 4 | 5; word: string }
 interface Place {
-  id: string; name: string; kind: string; distance_m: number; bearing: number; lat: number; lng: number;
+  id: string; name: string; kind: string; source: "hoolala" | "osm" | "google"; external?: { provider: "osm" | "google"; id: string };
+  distance_m: number; bearing: number; lat: number; lng: number;
   fit: "GOOD" | "OK" | "LOW"; talking: Talking | null;
   why: string; tiny_try: string; workings: string; facts: string[]; visits: number; here_now: number; read: Read | null;
 }
@@ -134,7 +135,8 @@ export function Around() {
   async function checkin(place: Place) {
     if (!spot) return;
     setNote("Checking you in...");
-    const res = await api("POST", "/api/checkin", { placeId: place.id, ...spot });
+    const body = place.external ? { external: place.external, ...spot } : { placeId: place.id, ...spot };
+    const res = await api("POST", "/api/checkin", body);
     setSpot(null); // The borrowed point is dropped, whatever happens next.
     if (res.status === 200) return route("/here");
     setNote(res.status === 401 ? "Sign in first, then check in." : "Check-in didn't work. You may be too far from the door.");
@@ -219,7 +221,7 @@ export function Around() {
                       <span class="card-n" aria-hidden="true">{i + 1}</span>
                       <span class="card-main">
                         <span class="card-title-row"><span class="card-name">{p.name}</span><span class={`fit-badge fit-${p.fit.toLowerCase()}`}>{FIT_BADGE[p.fit]}</span></span>
-                        <span class="card-meta">{KIND[p.kind] ?? "PLACE"} · {metres(p.distance_m)} · {walk(p.distance_m)} MIN WALK</span>
+                        <span class="card-meta">{KIND[p.kind] ?? "PLACE"} · {metres(p.distance_m)} · {walk(p.distance_m)} MIN WALK{p.source !== "hoolala" ? ` > ${p.source === "osm" ? "openstreetmap" : "google maps"}` : ""}</span>
                         <span class="card-why"><b>Why go:</b> {p.why}</span>
                         <span class="meter-row">
                           <span class="meter-label">TALKING HERE</span>

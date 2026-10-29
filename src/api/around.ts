@@ -9,6 +9,7 @@ import { getActiveCheckin, getPlace, placesInBox } from "../db/places";
 import { openSignalCount, ratePlace, ratedThisWeek, readLinks, talkingRatings, visitCount } from "../db/around";
 import { factsForPlace } from "../db/facts";
 import { llmEnabled } from "../llm/client";
+import { mapNearby, type MapPlace } from "../places/provider";
 import { readIt } from "../llm/readit";
 import { templateWhy, whyGo, type WhyGoPlace } from "../llm/whygo";
 import {
@@ -38,6 +39,9 @@ interface ScanPlace {
   id: string;
   name: string;
   kind: PlaceKind;
+  source: "hoolala" | "osm" | "google";
+  /** Map places check in by refetching the provider, never by client id. */
+  external?: { provider: "osm" | "google"; id: string };
   distance_m: number;
   bearing: number;
   lat: number;
@@ -78,32 +82,69 @@ export async function handleScan(request: Request, env: Env, now = new Date()): 
   const cutoff = new Date(now.getTime() - 90 * 86_400_000).toISOString();
   const compass = await compassTexts(env.DB, user.id);
 
-  const found = (await placesInBox(env.DB, boxFor(lat, lng, radiusM)))
+  const ours = (await placesInBox(env.DB, boxFor(lat, lng, radiusM)))
     .filter((p) => p.lat !== null && p.lng !== null)
     .map((p) => ({ place: p, distance_m: Math.round(haversineM(lat, lng, p.lat as number, p.lng as number)) }))
     .filter((r) => r.distance_m <= radiusM)
     .sort((a, b) => a.distance_m - b.distance_m)
     .slice(0, MAX_PLACES);
 
-  const enriched = await Promise.all(
-    found.map(async (r) => {
+  // Live map places fill what the database doesn't know; ours win the ties.
+  const live = (await mapNearby(env, { lat, lng }, radiusM))
+    .map((map) => ({ map, distance_m: Math.round(haversineM(lat, lng, map.point.lat, map.point.lng)) }))
+    .filter((r) => r.distance_m <= radiusM)
+    .filter((r) => !ours.some((o) => (r.map.provider === "osm" ? o.place.osm_id : o.place.google_place_id) === r.map.id))
+    .sort((a, b) => a.distance_m - b.distance_m)
+    .slice(0, MAX_PLACES);
+
+  const enriched = await Promise.all([
+    ...ours.map(async (r) => {
       const facts = (await factsForPlace(env.DB, r.place.id, now)).slice(0, 6);
       const visits = await visitCount(env.DB, r.place.id, cutoff);
       const level = talkingLabel(await talkingRatings(env.DB, r.place.id), nowIso);
       const words = `${r.place.name} ${facts.map((f) => f.value).join(" ")}`;
       const matched = compassWords(compass, words);
       return {
-        ...r,
+        id: r.place.id,
+        name: r.place.name,
+        kind: r.place.kind,
+        source: "hoolala" as const,
+        external: undefined as ScanPlace["external"],
+        distance_m: r.distance_m,
         bearing: Math.round(bearingDeg(lat, lng, r.place.lat as number, r.place.lng as number)),
+        lat: r.place.lat as number,
+        lng: r.place.lng as number,
         fit: fitFor({ compass: matched.length > 0, features: facts.length > 0, visits }),
         talking: level ? { level, word: talkingWord(level) } : null,
         matched,
+        link: async () => (await readLinks(env.DB, r.place.id))[0] ?? null,
         facts: facts.map((f) => f.value),
         visits,
         hereNow: await openSignalCount(env.DB, r.place.id, nowIso),
       };
     }),
-  );
+    ...live.map(async (r) => {
+      const matched = compassWords(compass, r.map.name);
+      return {
+        id: `${r.map.provider}:${r.map.id}`,
+        name: r.map.name,
+        kind: r.map.kind,
+        source: r.map.provider,
+        external: { provider: r.map.provider, id: r.map.id } as ScanPlace["external"],
+        distance_m: r.distance_m,
+        bearing: Math.round(bearingDeg(lat, lng, r.map.point.lat, r.map.point.lng)),
+        lat: r.map.point.lat,
+        lng: r.map.point.lng,
+        fit: fitFor({ compass: matched.length > 0, features: false, visits: 0 }),
+        talking: null as ScanPlace["talking"],
+        matched,
+        link: async () => r.map.website ?? null,
+        facts: [] as string[],
+        visits: 0,
+        hereNow: 0,
+      };
+    }),
+  ]);
 
   const whys = llmEnabled(env)
     ? await whyGo(
@@ -111,9 +152,9 @@ export async function handleScan(request: Request, env: Env, now = new Date()): 
         user.id,
         enriched.map(
           (e): WhyGoPlace => ({
-            id: e.place.id,
-            name: e.place.name,
-            kind: e.place.kind,
+            id: e.id,
+            name: e.name,
+            kind: e.kind,
             distance_m: e.distance_m,
             facts: e.facts.map((text, i) => ({ id: `f${i}`, text })),
             compass,
@@ -126,58 +167,62 @@ export async function handleScan(request: Request, env: Env, now = new Date()): 
   const whyById = new Map((whys ?? []).map((w) => [w.place_id, w]));
 
   const dateLabel = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-  const places: ScanPlace[] = await Promise.all(
-    enriched.map(async (e, i) => {
-      const fallback: WhyGoPlace = {
-        id: e.place.id,
-        name: e.place.name,
-        kind: e.place.kind,
-        distance_m: e.distance_m,
-        facts: e.facts.map((text, j) => ({ id: `f${j}`, text })),
-        compass,
-        visits: e.visits,
+  const places: ScanPlace[] = enriched.map((e) => {
+    const fallback: WhyGoPlace = {
+      id: e.id,
+      name: e.name,
+      kind: e.kind,
+      distance_m: e.distance_m,
+      facts: e.facts.map((text, j) => ({ id: `f${j}`, text })),
+      compass,
+      visits: e.visits,
+      talking: e.talking?.word ?? null,
+    };
+    const why = whyById.get(e.id);
+    return {
+      id: e.id,
+      name: e.name,
+      kind: e.kind,
+      source: e.source,
+      ...(e.external ? { external: e.external } : {}),
+      distance_m: e.distance_m,
+      bearing: e.bearing,
+      lat: e.lat,
+      lng: e.lng,
+      fit: e.fit,
+      talking: e.talking,
+      why: why?.why ?? templateWhy(fallback),
+      why_source: (why ? "why_go" : "template") as ScanPlace["why_source"],
+      tiny_try: why?.tiny_try ?? templateTry(e.id),
+      workings: workingsLine({
+        compass: e.matched,
+        feature: e.facts[0] ?? null,
         talking: e.talking?.word ?? null,
-      };
-      const why = whyById.get(e.place.id);
-      let read: ScanPlace["read"] = null;
-      if (llmEnabled(env) && i < READ_PLACES) {
-        const links = await readLinks(env.DB, e.place.id);
-        if (links[0]) {
-          const menu = await readIt(env, user.id, links[0], e.place.name, dateLabel);
-          if (menu) read = { ...menu.menu, source: menu.source };
-        }
-      }
-      return {
-        id: e.place.id,
-        name: e.place.name,
-        kind: e.place.kind,
-        distance_m: e.distance_m,
-        bearing: e.bearing,
-        lat: e.place.lat as number,
-        lng: e.place.lng as number,
-        fit: e.fit,
-        talking: e.talking,
-        why: why?.why ?? templateWhy(fallback),
-        why_source: why ? "why_go" : "template",
-        tiny_try: why?.tiny_try ?? templateTry(e.place.id),
-        workings: workingsLine({
-          compass: e.matched,
-          feature: e.facts[0] ?? null,
-          talking: e.talking?.word ?? null,
-          visits: e.visits,
-          fit: e.fit,
-        }),
-        facts: e.facts,
         visits: e.visits,
-        here_now: e.hereNow,
-        read,
-      };
-    }),
-  );
+        fit: e.fit,
+      }),
+      facts: e.facts,
+      visits: e.visits,
+      here_now: e.hereNow,
+      read: null as ScanPlace["read"],
+    };
+  });
   places.sort(
     (a, b) => FIT_RANK[a.fit] - FIT_RANK[b.fit] || (b.talking?.level ?? -1) - (a.talking?.level ?? -1) || a.distance_m - b.distance_m,
   );
-  return json({ radius_m: radiusM, places });
+  const shown = places.slice(0, MAX_PLACES);
+  if (llmEnabled(env)) {
+    const byId = new Map(enriched.map((e) => [e.id, e]));
+    await Promise.all(
+      shown.slice(0, READ_PLACES).map(async (p) => {
+        const link = await byId.get(p.id)?.link();
+        if (!link) return;
+        const menu = await readIt(env, user.id, link, p.name, dateLabel);
+        if (menu) p.read = { ...menu.menu, source: menu.source };
+      }),
+    );
+  }
+  return json({ radius_m: radiusM, places: shown });
 }
 
 /** GOODBYE: how was the talking where you are right now, one value a week. */
