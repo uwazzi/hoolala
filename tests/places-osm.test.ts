@@ -14,6 +14,10 @@ describe("openstreetmap", () => {
     expect(osmKind({ shop: "supermarket" })).toBe("shop");
     expect(osmKind({ shop: "bakery" })).toBe("shop");
     expect(osmKind({ leisure: "park" })).toBe("outdoors");
+    expect(osmKind({ amenity: "cinema" })).toBe("culture");
+    expect(osmKind({ tourism: "museum" })).toBe("culture");
+    expect(osmKind({ amenity: "marketplace" })).toBe("shop");
+    expect(osmKind({ leisure: "swimming_pool" })).toBe("sport");
     expect(osmKind({ amenity: "casino" })).toBeNull();
     expect(osmKind({ amenity: "nightclub" })).toBeNull();
     expect(osmKind({ amenity: "brothel" })).toBeNull();
@@ -23,8 +27,17 @@ describe("openstreetmap", () => {
 
   it("keeps named places with a point and their website", () => {
     expect(
-      toMapPlace({ type: "node", id: 1, lat: 46.5, lon: 6.6, tags: { amenity: "cafe", name: "Real Café", website: "https://real.example" } }),
-    ).toEqual({ provider: "osm", id: "node/1", name: "Real Café", kind: "cafe", point: { lat: 46.5, lng: 6.6 }, website: "https://real.example" });
+      toMapPlace({ type: "node", id: 1, lat: 46.5, lon: 6.6, tags: { amenity: "cafe", name: "Real Café", website: "https://real.example", phone: "+41 21 1", opening_hours: "Mo-Fr 09:00-18:00" } }),
+    ).toEqual({
+      provider: "osm",
+      id: "node/1",
+      name: "Real Café",
+      kind: "cafe",
+      point: { lat: 46.5, lng: 6.6 },
+      website: "https://real.example",
+      phone: "+41 21 1",
+      hours: "Mo-Fr 09:00-18:00",
+    });
     expect(toMapPlace({ type: "way", id: 2, center: { lat: 46.5, lon: 6.6 }, tags: { amenity: "bar", name: "Way Bar" } })?.point).toEqual({
       lat: 46.5,
       lng: 6.6,
@@ -47,7 +60,7 @@ describe("openstreetmap", () => {
     } finally {
       vi.unstubAllGlobals();
     }
-    for (const kind of ["restaurant", "fast_food", "supermarket", "bakery", "park"]) {
+    for (const kind of ["restaurant", "fast_food", "supermarket", "bakery", "park", "cinema", "museum", "swimming_pool", "marketplace"]) {
       expect(query).toContain(kind);
     }
     expect(query).not.toContain("casino");

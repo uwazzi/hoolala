@@ -170,6 +170,24 @@ describe("around me", () => {
     expect((await here.json()).checkin.place.kind).toBe("food");
   });
 
+  it("keeps open, opening-soon and unknown-hours places, drops known-closed", async () => {
+    const env = testEnv();
+    const ana = await person(env, "Ana");
+    overpass = [
+      { type: "node", id: 1, lat: 46.5199, lon: 6.6325, tags: { amenity: "cafe", name: "Open Café", opening_hours: "Mo-Fr 09:00-18:00", phone: "+41 21 000 00 01", website: "https://opencafe.example" } },
+      { type: "node", id: 2, lat: 46.5198, lon: 6.6324, tags: { amenity: "restaurant", name: "Soon Restaurant", opening_hours: "Mo-Fr 09:00-12:00,13:30-18:00" } },
+      { type: "node", id: 3, lat: 46.5197, lon: 6.6323, tags: { amenity: "bar", name: "Shut Bar", opening_hours: "Mo-Fr 18:00-02:00" } },
+      { type: "node", id: 4, lat: 46.5196, lon: 6.6322, tags: { amenity: "cafe", name: "Mystery Café" } },
+    ];
+    const body = await (await call(env, "POST", "/api/around/scan", ana, { ...HERE, tz: "Europe/Zurich" })).json();
+    expect(body.places.map((p: { name: string }) => p.name).sort()).toEqual(["Mystery Café", "Open Café", "Soon Restaurant"]);
+    const open = body.places.find((p: { name: string }) => p.name === "Open Café");
+    expect(open.open).toEqual({ label: "Open now" });
+    expect(open.contact).toEqual({ hours: "09:00-18:00", phone: "+41 21 000 00 01", website: "https://opencafe.example/", website_label: "opencafe.example" });
+    expect(body.places.find((p: { name: string }) => p.name === "Soon Restaurant").open).toEqual({ label: "Opens at 13:30" });
+    expect(body.places.find((p: { name: string }) => p.name === "Mystery Café").open).toEqual({ label: null });
+  });
+
   it("the database wins over the map for places it knows", async () => {
     const env = testEnv();
     const ana = await person(env, "Ana");

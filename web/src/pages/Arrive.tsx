@@ -17,6 +17,8 @@ const KINDS: { id: PlaceKind; label: string }[] = [
   { id: "food", label: "Food" },
   { id: "shop", label: "Shops" },
   { id: "outdoors", label: "Outdoors" },
+  { id: "culture", label: "Culture" },
+  { id: "sport", label: "Sport" },
   { id: "other", label: "Other" },
 ];
 

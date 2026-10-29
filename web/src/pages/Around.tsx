@@ -14,7 +14,10 @@ interface Place {
   id: string; name: string; kind: string; source: "hoolala" | "osm" | "google"; external?: { provider: "osm" | "google"; id: string };
   distance_m: number; bearing: number; lat: number; lng: number;
   fit: "GOOD" | "OK" | "LOW"; talking: Talking | null;
-  why: string; tiny_try: string; workings: string; facts: string[]; visits: number; here_now: number; read: Read | null;
+  why: string; tiny_try: string; workings: string; facts: string[]; visits: number; here_now: number;
+  open: { label: string | null };
+  contact: { hours: string | null; phone: string | null; website: string | null; website_label: string | null };
+  read: Read | null;
 }
 interface Point { lat: number; lng: number }
 interface CompassLine { id: string; text: string }
@@ -23,7 +26,7 @@ type Phase = "ask" | "signed-out" | "refused" | "scanning" | "done";
 
 const RADII = [500, 1000, 2000];
 const FIT_BADGE: Record<Place["fit"], string> = { GOOD: "GOOD FIT", OK: "OK FIT", LOW: "LOW FIT" };
-const KIND: Record<string, string> = { cafe: "CAFÉ", bar: "BAR · 18+", coworking: "COWORKING", library: "LIBRARY", food: "FOOD", shop: "SHOPS", outdoors: "OUTDOORS", other: "PLACE" };
+const KIND: Record<string, string> = { cafe: "CAFÉ", bar: "BAR · 18+", coworking: "COWORKING", library: "LIBRARY", food: "FOOD", shop: "SHOPS", outdoors: "OUTDOORS", culture: "CULTURE", sport: "SPORT", other: "PLACE" };
 const READ_TITLE: Record<string, string> = { menu: "TODAY, FROM THEIR WEBSITE", event: "LATEST, FROM THEIR PAGE", hours: "OPENING HOURS" };
 
 const radiusLabel = (m: number) => (m >= 1000 ? `${m / 1000} KM` : `${m} M`);
@@ -125,7 +128,12 @@ export function Around() {
     }
     let res;
     try {
-      res = await api<{ places: Place[] }>("POST", "/api/around/scan", { ...p, consent: true, widen: atWiden });
+      res = await api<{ places: Place[] }>("POST", "/api/around/scan", {
+        ...p,
+        consent: true,
+        widen: atWiden,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
     } catch {
       setPhase("ask");
       return setNote("No connection. Try again when you're back online.");
@@ -237,7 +245,7 @@ export function Around() {
                       <span class="card-n" aria-hidden="true">{i + 1}</span>
                       <span class="card-main">
                         <span class="card-title-row"><span class="card-name">{p.name}</span><span class={`fit-badge fit-${p.fit.toLowerCase()}`}>{FIT_BADGE[p.fit]}</span></span>
-                        <span class="card-meta">{KIND[p.kind] ?? "PLACE"} · {metres(p.distance_m)} · {walk(p.distance_m)} MIN WALK{p.source !== "hoolala" ? ` > ${p.source === "osm" ? "openstreetmap" : "google maps"}` : ""}</span>
+                        <span class="card-meta">{KIND[p.kind] ?? "PLACE"} · {metres(p.distance_m)} · {walk(p.distance_m)} MIN WALK{p.open.label ? ` · ${p.open.label.toUpperCase()}` : ""}{p.source !== "hoolala" ? ` > ${p.source === "osm" ? "openstreetmap" : "google maps"}` : ""}</span>
                         <span class="card-why"><b>Why go:</b> {p.why}</span>
                         <span class="meter-row">
                           <span class="meter-label">TALKING HERE</span>
@@ -270,6 +278,14 @@ export function Around() {
                           <span class="card-info-title">TINY TRY THERE</span>
                           <span>{p.tiny_try}</span>
                         </div>
+                        {(p.contact.hours || p.contact.phone || p.contact.website) && (
+                          <div class="card-info">
+                            <span class="card-info-title">GOOD TO KNOW</span>
+                            {p.contact.hours && <span>{p.contact.hours}</span>}
+                            {p.contact.phone && <a href={`tel:${p.contact.phone.replace(/\s+/g, "")}`}>{p.contact.phone}</a>}
+                            {p.contact.website && <a href={p.contact.website} target="_blank" rel="noreferrer">{p.contact.website_label ?? p.contact.website}</a>}
+                          </div>
+                        )}
                         <p class="card-workings">{p.workings}</p>
                         <div class="card-keys">
                           <a class="lcd-key lcd-key--primary" href={`https://www.openstreetmap.org/directions?to=${p.lat},${p.lng}`} target="_blank" rel="noreferrer">TAKE ME THERE</a>

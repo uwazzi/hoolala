@@ -30,6 +30,19 @@ export function isReadableLink(url: string): boolean {
   return !isLoginWalled(url);
 }
 
+/** A listing link safe to show: http(s) with a real host. The label is the domain. */
+export function displayLink(url: string | null | undefined): { href: string; label: string } | null {
+  if (!url) return null;
+  let u: URL;
+  try {
+    u = new URL(url.trim());
+  } catch {
+    return null;
+  }
+  if ((u.protocol !== "http:" && u.protocol !== "https:") || !u.hostname.includes(".")) return null;
+  return { href: u.toString(), label: u.hostname.toLowerCase().replace(/^www\./, "") };
+}
+
 const ENTITIES: Record<string, string> = {
   amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", rsquo: "’", lsquo: "‘", hellip: "…",
   eacute: "é", egrave: "è", ecirc: "ê", agrave: "à", acirc: "â", ccedil: "ç", ocirc: "ô", icirc: "î", ugrave: "ù",

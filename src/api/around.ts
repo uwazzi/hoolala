@@ -12,6 +12,8 @@ import { llmEnabled } from "../llm/client";
 import { mapNearby, type MapPlace } from "../places/provider";
 import { readIt } from "../llm/readit";
 import { templateWhy, whyGo, type WhyGoPlace } from "../llm/whygo";
+import { openLabel, openState, resolveTimeZone, type OpenInfo } from "../rules/hours";
+import { displayLink } from "../rules/pages";
 import {
   bearingDeg,
   compassWords,
@@ -55,6 +57,10 @@ interface ScanPlace {
   facts: string[];
   visits: number;
   here_now: number;
+  /** Open now or opening within the hour, when the listing says so. */
+  open: { label: string | null };
+  /** Public listing details: shown on the card, never stored. */
+  contact: { hours: string | null; phone: string | null; website: string | null; website_label: string | null };
   read: { items: string[]; hours: string | null; kind: string; source: string } | null;
 }
 
@@ -73,6 +79,7 @@ export async function handleScan(request: Request, env: Env, now = new Date()): 
   if (typeof lat !== "number" || typeof lng !== "number" || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
     return json({ error: "bad_location" }, 400);
   }
+  const timeZone = resolveTimeZone((body as { tz?: unknown }).tz);
   const steps = widen === undefined ? 0 : widen;
   if (steps !== 0 && steps !== 1 && steps !== 2) return json({ error: "bad_widen" }, 400);
   if (await overLimit(env, `scan:${user.id}`, SCAN_LIMIT)) return json({ error: "rate_limited" }, 429);
@@ -97,54 +104,64 @@ export async function handleScan(request: Request, env: Env, now = new Date()): 
     .sort((a, b) => a.distance_m - b.distance_m)
     .slice(0, MAX_PLACES);
 
-  const enriched = await Promise.all([
-    ...ours.map(async (r) => {
-      const facts = (await factsForPlace(env.DB, r.place.id, now)).slice(0, 6);
-      const visits = await visitCount(env.DB, r.place.id, cutoff);
-      const level = talkingLabel(await talkingRatings(env.DB, r.place.id), nowIso);
-      const words = `${r.place.name} ${facts.map((f) => f.value).join(" ")}`;
-      const matched = compassWords(compass, words);
-      return {
-        id: r.place.id,
-        name: r.place.name,
-        kind: r.place.kind,
-        source: "hoolala" as const,
-        external: undefined as ScanPlace["external"],
-        distance_m: r.distance_m,
-        bearing: Math.round(bearingDeg(lat, lng, r.place.lat as number, r.place.lng as number)),
-        lat: r.place.lat as number,
-        lng: r.place.lng as number,
-        fit: fitFor({ compass: matched.length > 0, features: facts.length > 0, visits }),
-        talking: level ? { level, word: talkingWord(level) } : null,
-        matched,
-        link: async () => (await readLinks(env.DB, r.place.id))[0] ?? null,
-        facts: facts.map((f) => f.value),
-        visits,
-        hereNow: await openSignalCount(env.DB, r.place.id, nowIso),
-      };
-    }),
-    ...live.map(async (r) => {
-      const matched = compassWords(compass, r.map.name);
-      return {
-        id: `${r.map.provider}:${r.map.id}`,
-        name: r.map.name,
-        kind: r.map.kind,
-        source: r.map.provider,
-        external: { provider: r.map.provider, id: r.map.id } as ScanPlace["external"],
-        distance_m: r.distance_m,
-        bearing: Math.round(bearingDeg(lat, lng, r.map.point.lat, r.map.point.lng)),
-        lat: r.map.point.lat,
-        lng: r.map.point.lng,
-        fit: fitFor({ compass: matched.length > 0, features: false, visits: 0 }),
-        talking: null as ScanPlace["talking"],
-        matched,
-        link: async () => r.map.website ?? null,
-        facts: [] as string[],
-        visits: 0,
-        hereNow: 0,
-      };
-    }),
-  ]);
+  const enriched = (
+    await Promise.all([
+      ...ours.map(async (r) => {
+        const rows = await factsForPlace(env.DB, r.place.id, now);
+        const facts = rows.slice(0, 6);
+        const visits = await visitCount(env.DB, r.place.id, cutoff);
+        const level = talkingLabel(await talkingRatings(env.DB, r.place.id), nowIso);
+        const words = `${r.place.name} ${facts.map((f) => f.value).join(" ")}`;
+        const matched = compassWords(compass, words);
+        return {
+          id: r.place.id,
+          name: r.place.name,
+          kind: r.place.kind,
+          source: "hoolala" as const,
+          external: undefined as ScanPlace["external"],
+          distance_m: r.distance_m,
+          bearing: Math.round(bearingDeg(lat, lng, r.place.lat as number, r.place.lng as number)),
+          lat: r.place.lat as number,
+          lng: r.place.lng as number,
+          fit: fitFor({ compass: matched.length > 0, features: facts.length > 0, visits }),
+          talking: level ? { level, word: talkingWord(level) } : null,
+          matched,
+          link: async () => (await readLinks(env.DB, r.place.id))[0] ?? null,
+          facts: facts.map((f) => f.value),
+          // People's free-text hours are shown, never parsed: only map tags filter.
+          contact: { hours: rows.find((f) => f.field === "hours")?.value ?? null, phone: null, site: null },
+          openInfo: { state: "unknown", opensAt: null, today: null } as OpenInfo,
+          visits,
+          hereNow: await openSignalCount(env.DB, r.place.id, nowIso),
+        };
+      }),
+      ...live.map(async (r) => {
+        const matched = compassWords(compass, r.map.name);
+        const info = openState(r.map.hours, now, timeZone);
+        return {
+          id: `${r.map.provider}:${r.map.id}`,
+          name: r.map.name,
+          kind: r.map.kind,
+          source: r.map.provider,
+          external: { provider: r.map.provider, id: r.map.id } as ScanPlace["external"],
+          distance_m: r.distance_m,
+          bearing: Math.round(bearingDeg(lat, lng, r.map.point.lat, r.map.point.lng)),
+          lat: r.map.point.lat,
+          lng: r.map.point.lng,
+          fit: fitFor({ compass: matched.length > 0, features: false, visits: 0 }),
+          talking: null as ScanPlace["talking"],
+          matched,
+          link: async () => r.map.website ?? null,
+          facts: [] as string[],
+          contact: { hours: info.today, phone: r.map.phone ?? null, site: displayLink(r.map.website) },
+          openInfo: info,
+          visits: 0,
+          hereNow: 0,
+        };
+      }),
+    ])
+    // Open now, opening soon, or hours unknown. Known-closed stays out.
+  ).filter((e) => e.openInfo.state !== "closed" || openLabel(e.openInfo, now, timeZone) !== null);
 
   const whys = llmEnabled(env)
     ? await whyGo(
@@ -204,6 +221,13 @@ export async function handleScan(request: Request, env: Env, now = new Date()): 
       facts: e.facts,
       visits: e.visits,
       here_now: e.hereNow,
+      open: { label: openLabel(e.openInfo, now, timeZone) },
+      contact: {
+        hours: e.contact.hours,
+        phone: e.contact.phone,
+        website: e.contact.site?.href ?? null,
+        website_label: e.contact.site?.label ?? null,
+      },
       read: null as ScanPlace["read"],
     };
   });

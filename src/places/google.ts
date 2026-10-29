@@ -25,6 +25,8 @@ export function googleKind(type: string | undefined): PlaceKind | null {
   if (["restaurant", "fast_food_restaurant", "ice_cream_shop", "food_court"].includes(type)) return "food";
   if (["supermarket", "convenience_store", "book_store", "gift_shop"].includes(type)) return "shop";
   if (type === "park") return "outdoors";
+  if (["movie_theater", "museum", "art_gallery", "performing_arts_theater", "community_center"].includes(type)) return "culture";
+  if (["gym", "stadium", "swimming_pool", "bowling_alley", "fitness_center"].includes(type)) return "sport";
   return null;
 }
 
@@ -50,7 +52,7 @@ export async function googleNearby(env: Env, point: Point, radiusM: number): Pro
     method: "POST",
     headers: headers(env, FIELDS.split(",").map((f) => `places.${f}`).join(",")),
     body: JSON.stringify({
-      includedTypes: ["cafe", "coffee_shop", "bar", "pub", "library", "coworking_space", "restaurant", "supermarket", "park"],
+      includedTypes: ["cafe", "coffee_shop", "bar", "pub", "library", "coworking_space", "restaurant", "supermarket", "park", "movie_theater", "museum", "gym", "stadium"],
       maxResultCount: 10,
       locationRestriction: { circle: { center: { latitude: point.lat, longitude: point.lng }, radius: radiusM } },
     }),

@@ -20,6 +20,9 @@ interface OverpassElement {
 const FOOD = ["restaurant", "fast_food", "food_court", "ice_cream"];
 const SHOPS = ["supermarket", "convenience", "bakery", "books", "gift", "coffee"];
 const OUTDOORS = ["park", "garden"];
+const CULTURE = ["theatre", "cinema", "arts_centre", "community_centre", "events_venue", "conference_centre"];
+const CULTURE_TOURISM = ["museum", "gallery"];
+const SPORT = ["sports_centre", "fitness_centre", "swimming_pool", "bowling_alley", "amusement_arcade", "escape_game", "stadium"];
 
 export function osmKind(tags: Record<string, string>): PlaceKind | null {
   if (tags.amenity === "cafe") return "cafe";
@@ -27,8 +30,12 @@ export function osmKind(tags: Record<string, string>): PlaceKind | null {
   if (tags.amenity === "library") return "library";
   if (tags.amenity === "coworking_space" || tags.office === "coworking") return "coworking";
   if (tags.amenity && FOOD.includes(tags.amenity)) return "food";
+  if (tags.amenity === "marketplace") return "shop";
   if (tags.shop && SHOPS.includes(tags.shop)) return "shop";
   if (tags.leisure && OUTDOORS.includes(tags.leisure)) return "outdoors";
+  if (tags.leisure && SPORT.includes(tags.leisure)) return "sport";
+  if (tags.amenity && CULTURE.includes(tags.amenity)) return "culture";
+  if (tags.tourism && CULTURE_TOURISM.includes(tags.tourism)) return "culture";
   return null;
 }
 
@@ -39,6 +46,7 @@ export function toMapPlace(el: OverpassElement): MapPlace | null {
   const lng = el.lon ?? el.center?.lon;
   if (!kind || !tags.name || lat === undefined || lng === undefined) return null;
   const website = tags.website ?? tags["contact:website"] ?? null;
+  const phone = tags.phone ?? tags["contact:phone"] ?? null;
   return {
     provider: "osm",
     id: `${el.type}/${el.id}`,
@@ -46,6 +54,8 @@ export function toMapPlace(el: OverpassElement): MapPlace | null {
     kind,
     point: { lat, lng },
     website: website ? website.slice(0, 200) : null,
+    phone: phone ? phone.slice(0, 40) : null,
+    hours: tags.opening_hours ? tags.opening_hours.slice(0, 300) : null,
   };
 }
 
@@ -64,10 +74,11 @@ async function overpass(query: string): Promise<OverpassElement[]> {
 export async function osmNearby(point: Point, radiusM: number): Promise<MapPlace[]> {
   const around = `around:${Math.round(radiusM)},${point.lat.toFixed(6)},${point.lng.toFixed(6)}`;
   const query = `[out:json][timeout:5];(
-    nwr(${around})[amenity~"^(${["cafe", "bar", "pub", "library", "coworking_space", ...FOOD].join("|")})$"][name];
+    nwr(${around})[amenity~"^(${["cafe", "bar", "pub", "library", "coworking_space", "marketplace", ...FOOD, ...CULTURE].join("|")})$"][name];
     nwr(${around})[office=coworking][name];
     nwr(${around})[shop~"^(${SHOPS.join("|")})$"][name];
-    nwr(${around})[leisure~"^(${OUTDOORS.join("|")})$"][name];
+    nwr(${around})[leisure~"^(${[...OUTDOORS, ...SPORT].join("|")})$"][name];
+    nwr(${around})[tourism~"^(${CULTURE_TOURISM.join("|")})$"][name];
   );out center 20;`;
   return (await overpass(query)).map(toMapPlace).filter((p): p is MapPlace => p !== null);
 }

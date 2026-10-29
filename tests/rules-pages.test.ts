@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLoginWalled, isReadableLink, pageText } from "../src/rules/pages";
+import { displayLink, isLoginWalled, isReadableLink, pageText } from "../src/rules/pages";
 
 describe("which links FIND ME may read", () => {
   it("reads people's own public pages", () => {
@@ -16,6 +16,19 @@ describe("which links FIND ME may read", () => {
   it("refuses anything that isn't a public https page", () => {
     for (const u of ["http://ana.example", "https://localhost/x", "https://127.0.0.1/", "https://10.0.0.1/", "https://intranet/x", "https://printer.local/", "https://user:pw@ana.example", "not a url"]) {
       expect(isReadableLink(u)).toBe(false);
+    }
+  });
+});
+
+describe("listing links on the card", () => {
+  it("shows http and https pages under their domain", () => {
+    expect(displayLink("https://real.example/menu")).toEqual({ href: "https://real.example/menu", label: "real.example" });
+    expect(displayLink("http://www.cafe.example/"))?.toMatchObject({ label: "cafe.example" });
+  });
+
+  it("shows nothing for javascript, bare hosts and garbage", () => {
+    for (const u of ["javascript:alert(1)", "www.cafe.example", "not a url", "", null, undefined]) {
+      expect(displayLink(u)).toBeNull();
     }
   });
 });
