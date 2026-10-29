@@ -1,4 +1,4 @@
-<!-- Hoolala! Mono LCD design system, portable copy (v5, 27 Oct 2026, with the v6.1 version note and components below, 29 Oct). Source of truth: the Hoolala! design system in Claude. Product: SIGNALS-HERE.md and MUSE-SPARK-BY-FUNCTION.md. Drop into a repo as docs/DESIGN.md. -->
+<!-- Hoolala! Mono LCD design system, portable copy (v5, 27 Oct 2026, with the v6.1 and v6.2 version notes and components below, 29 Oct). Source of truth: the Hoolala! design system in Claude. Product: SIGNALS-HERE.md and MUSE-SPARK-BY-FUNCTION.md. Drop into a repo as docs/DESIGN.md. -->
 
 > v6.1 (29 Oct 2026): Around me starts with the radar idle and scans in place; the compass is four directions with a needle; Surprise me is answered on a thumb-zone mic. New components: Radar (WP32, built), CompassRose (WP33), MicKey and ThumbRow (WP34). Full specs in `docs/handover/HOOLALA_V6.1/specs/`, references in `docs/handover/HOOLALA_V6.1/design/screens/`.
 >
@@ -6,6 +6,12 @@
 > - **CompassRose:** four directions (MORE OF north, TALK ABOUT east, LESS OF south, HOW I GO west) with counts; the needle swings to the tapped point (0.6 s, slight overshoot); every line shows its source and a REMOVE key.
 > - **ThumbRow:** above the softkeys with a dashed top border; the main action centred (ONE LOOK AROUND, the mic key), text links or small keys either side.
 > - **MicKey:** 76 by 76 px pixel mic in the thumb zone; hold to talk (a press under 400 ms is a tap, not an answer); `aria-pressed` while held; hidden with typing opened when the browser has no mic.
+>
+> v6.2 (29 Oct 2026): first open plays a six-beat onboarding story, then Let's get personal (three spoken questions on the reused voice UI), a compass check with PEOPLE IN YOUR DAYS, a personal game of nine tries, and a simplified Today. FIND ME is removed. New components: Story, GameBoard, TryCard with NEW ONE; ThumbRow and MicKey reused. Full specs in `docs/handover/HOOLALA_V6.2/specs/`, references in `docs/handover/HOOLALA_V6.2/design/screens/`.
+>
+> - **Story:** kicker, typed headline, pixel picture box, body and source lines that rise in; tap advances; SKIP/BACK · dots · NEXT/REPLAY control row; no auto-advance under reduced motion.
+> - **GameBoard:** SOFT / BRAVE / BOLD tabs (START HERE on the pace tab), three try cards per level, NEW ONE per card, NEW GAME FROM SCRATCH, safety footnote.
+> - **TryCard with NEW ONE:** the try with its info line (kind · step · minutes · compass role); NEW ONE key on a dashed divider; dashed writing state while TRY IT drafts.
 
 # Hoolala! Mono LCD
 

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! around me</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}
+@keyframes hl-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes hl-sweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes hl-pop{0%{transform:translate(-50%,-50%) scale(0)}70%{transform:translate(-50%,-50%) scale(1.3)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes hl-rise{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes hl-ping{0%{transform:translate(-50%,-50%) scale(1);opacity:0.8}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+.hl-cursor{display:inline-block;width:8px;height:1em;background:#182513;vertical-align:-2px;margin-left:2px;animation:hl-blink 0.9s steps(1) infinite}
+.hl-rise{animation:hl-rise 0.3s ease-out both}
+.hl-key{cursor:pointer;user-select:none}
+.hl-key:hover{outline:2px solid #182513;outline-offset:2px}
+.hl-key:active{transform:translateY(2px)}
+.hl-scroll::-webkit-scrollbar{width:6px}.hl-scroll::-webkit-scrollbar-thumb{background:#304327}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; overflow: hidden">
+  <header style="flex-shrink: 0; margin: 0 24px; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px dashed #304327">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 11px; line-height: 1.3; color: #304327; text-align: right">You never know until you go.</div>
+  </header>
+
+  <div style="flex-shrink: 0">
+      <div style="margin: 12px 24px 0 24px; position: relative; height: 176px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; overflow: hidden">
+        <div style="position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; transform: translate(-50%, -50%); border: 2px dashed #304327; border-radius: 50%"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; transform: translate(-50%, -50%); border: 2px dashed #AEC58A; border-radius: 50%"></div>
+        <sc-if value="{{ scanning }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 50%; background: conic-gradient(from 0deg, rgba(24,37,19,0.35), rgba(24,37,19,0) 25%); animation: hl-sweep 1.2s linear infinite"></div>
+        </sc-if>
+        <div style="position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); background: #182513; animation: hl-ping 1.6s ease-out infinite"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); background: #182513"></div>
+        <sc-for list="{{ pins }}" as="p" hint-placeholder-count="3">
+          <div class="hl-key" onClick="{{ p.open }}" style="{{ p.style }}">{{ p.n }}</div>
+        </sc-for>
+        <div style="position: absolute; left: 8px; bottom: 6px; font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">{{ ringLabel }}</div>
+        <div style="position: absolute; right: 8px; top: 6px; font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">YOU ■</div>
+      </div>
+  </div>
+
+  <sc-if value="{{ asking }}" hint-placeholder-val="{{ false }}">
+    <div class="hl-rise" style="flex-grow: 1; min-height: 0; padding: 14px 24px 0 24px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 24px; line-height: 1.15">AROUND YOU</div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5">Places within a short walk that fit you, and how easy it is to talk to people there.</p>
+      <a href="{{ compassHref }}" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 10px 12px; text-decoration: none">
+        <span style="display: flex; flex-direction: column; gap: 3px">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">{{ compassLabel }}</span>
+          <span style="font-size: 13px; line-height: 1.4">{{ compassText }}</span>
+        </span>
+        <span style="font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline; white-space: nowrap">{{ compassAction }}</span>
+      </a>
+      <div style="font-size: 12px; line-height: 1.5; color: #304327">Borrow your location for one look around. Used once, never stored, never on any map.</div>
+      <div style="flex-grow: 1"></div>
+    </div>
+    <div style="flex-shrink: 0; padding: 10px 24px 12px 24px; display: flex; flex-direction: column; gap: 8px; border-top: 2px dashed #304327">
+      <div class="hl-key" onClick="{{ allow }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 60px; padding: 0 18px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 17px"><span>ONE LOOK AROUND</span><span>&gt;</span></div>
+      <a href="Here.dc.html" style="text-align: center; font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline; padding: 4px">SKIP, CHECK IN BY NAME</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ refused }}" hint-placeholder-val="{{ false }}">
+    <div class="hl-rise" style="flex-grow: 1; padding: 14px 24px 0 24px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 24px; line-height: 1.15">NO LOCATION, NO PROBLEM.</div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5">Tell me where you are instead, or try again if you tapped no by accident.</p>
+      <div style="flex-grow: 1"></div>
+    </div>
+    <div style="flex-shrink: 0; padding: 10px 24px 12px 24px; display: flex; flex-direction: column; gap: 8px; border-top: 2px dashed #304327">
+      <a href="Here.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 60px; padding: 0 18px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 16px; text-decoration: none"><span>CHECK IN BY NAME</span><span>&gt;</span></a>
+      <div class="hl-key" onClick="{{ retry }}" style="text-align: center; font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline; padding: 4px">TRY AGAIN</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ scanned }}" hint-placeholder-val="{{ true }}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0">
+      <div style="margin: 10px 24px 0 24px; display: flex; gap: 6px">
+        <sc-for list="{{ radii }}" as="r" hint-placeholder-count="3"><div class="hl-key" onClick="{{ r.go }}" style="{{ r.style }}">{{ r.label }}</div></sc-for>
+      </div>
+
+      <div style="margin: 10px 24px 0 24px; border-left: 4px solid #182513; padding: 2px 0 2px 10px; min-height: 40px; font-size: 14px; line-height: 1.45">{{ statusShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></div>
+
+      <div style="margin: 8px 24px 0 24px; display: flex; gap: 6px; overflow-x: auto">
+        <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5"><div class="hl-key" onClick="{{ f.go }}" style="{{ f.style }}">{{ f.label }}</div></sc-for>
+      </div>
+
+      <div class="hl-scroll" style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 10px 24px 14px 24px; display: flex; flex-direction: column; gap: 10px">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
+          <div class="hl-rise" style="{{ c.boxStyle }}">
+            <div class="hl-key" onClick="{{ c.toggle }}" style="display: flex; gap: 10px; align-items: flex-start">
+              <div style="width: 26px; height: 26px; flex-shrink: 0; background: #182513; color: #DDE7C6; display: flex; align-items: center; justify-content: center; font-family: 'Silkscreen', monospace; font-size: 13px">{{ c.n }}</div>
+              <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; flex-grow: 1">
+                <div style="display: flex; justify-content: space-between; gap: 8px">
+                  <span style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 14px; line-height: 1.2">{{ c.name }}</span>
+                  <span style="{{ c.fitStyle }}">{{ c.fit }}</span>
+                </div>
+                <div style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">{{ c.meta }}</div>
+                <div style="font-size: 13px; line-height: 1.45"><b>Why go:</b> {{ c.why }}</div>
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 10px">TALKING HERE</span>
+                  <span style="display: flex; gap: 2px"><sc-for list="{{ c.bars }}" as="b" hint-placeholder-count="5"><span style="{{ b.style }}"></span></sc-for></span>
+                  <span style="font-size: 11px">{{ c.connLabel }}</span>
+                </div>
+                <div style="font-size: 11px; color: #304327">{{ c.verified }}</div>
+              </div>
+            </div>
+            <sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+              <div class="hl-rise" style="margin-top: 10px; padding-top: 10px; border-top: 2px dashed #AEC58A; display: flex; flex-direction: column; gap: 10px">
+                <sc-if value="{{ c.hasNow }}" hint-placeholder-val="{{ false }}">
+                  <a href="Here.dc.html" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #182513; color: #DDE7C6; border-radius: 2px; text-decoration: none; font-family: 'Silkscreen', monospace; font-size: 11px"><span>{{ c.now }}</span><span>&gt;</span></a>
+                </sc-if>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">{{ c.infoTitle }}</span>
+                  <span style="font-size: 13px; line-height: 1.45">{{ c.info }}</span>
+                  <span style="font-size: 10px; color: #304327">{{ c.source }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">TINY TRY THERE</span>
+                  <span style="font-size: 13px; line-height: 1.45">{{ c.tinyTry }}</span>
+                </div>
+                <div style="font-size: 11px; color: #304327">{{ c.workings }}</div>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+                  <div class="hl-key" style="display: flex; align-items: center; justify-content: center; min-height: 44px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">TAKE ME THERE</div>
+                  <a href="Here.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px; text-decoration: none">I’M HERE</a>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ canExtend }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 4px">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">NOTHING GRABS YOU?</span>
+            <div class="hl-key" onClick="{{ extend }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 14px; border: 2px dashed #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 13px"><span>{{ extendLabel }}</span><span>&gt;</span></div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <nav aria-label="Softkeys" style="display: flex; border-top: 2px solid #182513; flex-shrink: 0">
+    <a href="Flow.dc.html" style="flex: 1; display: flex; align-items: center; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; text-decoration: none">TODAY</a>
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; background: #182513; color: #DDE7C6">AROUND</div>
+    <a href="Friends.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; text-decoration: none">FRIENDS</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844},"skipConsent":{"editor":"boolean","default":false,"section":"Demo"},"emptyAt500":{"editor":"boolean","default":false,"section":"Demo"},"emptyCompass":{"editor":"boolean","default":false,"section":"Demo"},"locationRefused":{"editor":"boolean","default":false,"section":"Demo"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.compass = ['coffee', 'board games', 'cooking', 'slow mornings'];
+    this.places = [
+      { id: 1, name: 'CAFÉ LA TABLE LONGUE', type: 'cafe', label: 'CAFÉ', m: 120, ang: 40, fit: 3, conn: 4, checks: 7,
+        why: 'You picked coffee and slow mornings. One long shared table, so sitting next to someone is normal here.',
+        now: '2 PEOPLE HERE WOULD LIKE TO TALK', infoTitle: 'TODAY, FROM THEIR WEBSITE', info: 'Oat flat white, cardamom bun, soup of the day. Open until 18:00.', source: 'Source: their website, read today. Prices may change.',
+        tinyTry: 'Ask the person beside you if the bun is worth it.', workings: 'Why this one: compass (coffee, slow mornings) + shared table + rated chatty by 7 Hoolala! visits.' },
+      { id: 2, name: 'TRATTORIA DA NINO', type: 'food', label: 'RESTAURANT', m: 340, ang: 160, fit: 3, conn: 3, checks: 4,
+        why: 'You like cooking. Counter seats face the open kitchen and the chef talks while he works.',
+        now: '', infoTitle: 'LUNCH MENU, FROM THEIR WEBSITE', info: 'Menu of the day CHF 19: risotto ai funghi, green salad, espresso. Served 11:30 to 14:00.', source: 'Source: their website, read today. Check allergens with the staff.',
+        tinyTry: 'Sit at the counter and ask the chef what’s best today.', workings: 'Why this one: compass (cooking) + counter seating + 4 Hoolala! visits.' },
+      { id: 3, name: 'MARCHÉ DU COIN', type: 'shop', label: 'SUPERMARKET', m: 410, ang: 275, fit: 1, conn: 1, checks: 1,
+        why: 'Quick and practical. Not a place for chats, but fine for a smile-and-nod try on the way.',
+        now: '', infoTitle: 'OPEN NOW', info: 'Open until 20:00. Busy at lunchtime.', source: 'Source: map listing.',
+        tinyTry: 'Smile at the cashier and say thank you, eyes up.', workings: 'Why this one: close by. Not on your compass, so it ranks low.' },
+      { id: 4, name: 'LE PETIT ZINC', type: 'bar', label: 'BAR · 18+', m: 720, ang: 330, fit: 3, conn: 5, checks: 11,
+        why: 'Board-game night every Thursday from 19:00, and board games are on your compass. Tables mix strangers on purpose.',
+        now: '', infoTitle: 'THIS WEEK, FROM THEIR INSTAGRAM', info: 'Thursday: board-game night, free entry, games provided. Alcohol-free drinks on the menu.', source: 'Source: their public page, read today.',
+        tinyTry: 'Ask a table if they need one more player.', workings: 'Why this one: compass (board games) + mixed tables + rated very chatty by 11 Hoolala! visits.' },
+      { id: 5, name: 'PARC DES TILLEULS', type: 'outdoors', label: 'PARK', m: 880, ang: 210, fit: 2, conn: 4, checks: 5,
+        why: 'Two outdoor ping-pong tables. People wait their turn and swap partners, so joining in is easy.',
+        now: '', infoTitle: 'GOOD TO KNOW', info: 'Bring a bat or borrow one at the kiosk. Best between 12:00 and 14:00.', source: 'Source: Hoolala! visitors.',
+        tinyTry: 'Ask “Who’s next?” and join the queue.', workings: 'Why this one: outdoor, easy to join + 5 Hoolala! visits. Not on your compass yet.' },
+      { id: 6, name: 'LUDOTHÈQUE DU CENTRE', type: 'cafe', label: 'GAMES LIBRARY', m: 1600, ang: 100, fit: 3, conn: 4, checks: 3,
+        why: 'Borrow or play board games on site. Wednesday afternoons are open tables for adults.',
+        now: '', infoTitle: 'OPENING HOURS, FROM THEIR WEBSITE', info: 'Wed 14:00 to 18:00, Sat 10:00 to 12:00.', source: 'Source: their website, read today.',
+        tinyTry: 'Ask the staff which game is best for meeting new people.', workings: 'Why this one: compass (board games) + open tables + 3 Hoolala! visits.' }
+    ];
+    this.state = { phase: null, radius: 500, filter: 'foryou', open: 1, typed: 0, scanning: false };
+  }
+  componentDidMount() { if (this.props.skipConsent) this.scan(500); }
+  componentWillUnmount() { clearInterval(this.timer); clearTimeout(this.t2); }
+  phase() { return this.state.phase ?? (this.props.skipConsent ? 'done' : 'ask'); }
+  inRange(r) { return this.places.filter((p) => p.m <= r && !(this.props.emptyAt500 && r === 500)); }
+  status() {
+    const r = this.state.radius, label = r >= 1000 ? (r / 1000) + ' km' : r + ' m';
+    if (this.state.scanning) return 'Scanning ' + label + ' around you…';
+    const list = this.inRange(r), good = list.filter((p) => p.fit === 3).length;
+    if (!list.length) return 'Quiet within ' + label + '. Want me to look a bit further?';
+    return list.length + (list.length === 1 ? ' place' : ' places') + ' within ' + label + '. ' + (good ? good + ' fit you well. Tap one to see why.' : 'Nothing fits you well yet. Look a bit further?');
+  }
+  scan(r) {
+    clearInterval(this.timer); clearTimeout(this.t2);
+    this.setState({ phase: 'done', radius: r, scanning: true, typed: 0, open: null }, () => {
+      this.type();
+      this.t2 = setTimeout(() => {
+        const list = this.sorted(this.inRange(r));
+        this.setState({ scanning: false, typed: 0, open: list.length ? list[0].id : null }, () => this.type());
+      }, 1400);
+    });
+  }
+  type() {
+    clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      if (this.state.typed >= this.status().length) { clearInterval(this.timer); return; }
+      this.setState({ typed: this.state.typed + 1 });
+    }, 22);
+  }
+  sorted(list) {
+    const f = this.state.filter;
+    const l = f === 'foryou' ? list.slice() : list.filter((p) => p.type === f);
+    return l.sort((a, b) => (b.fit - a.fit) || (b.conn - a.conn) || (a.m - b.m));
+  }
+  renderVals() {
+    const ph = this.phase(), r = this.state.radius, scanning = this.state.scanning;
+    const list = scanning ? [] : this.sorted(this.inRange(r));
+    const shown = this.inRange(r);
+    const order = this.sorted(this.inRange(r).filter(() => true));
+    const numberOf = (id) => this.sorted(this.inRange(r)).concat(this.inRange(r)).findIndex((p) => p.id === id) + 1;
+    const scale = 84 / r;
+    const pins = scanning || ph === 'ask' ? [] : shown.filter((p) => this.state.filter === 'foryou' || p.type === this.state.filter).map((p) => {
+      const rad = p.ang * Math.PI / 180, d = Math.max(p.m * scale, 18);
+      const on = this.state.open === p.id;
+      return { n: numberOf(p.id), open: () => this.setState({ open: p.id }),
+        style: 'position:absolute;left:calc(50% + ' + Math.round(Math.cos(rad) * d) + 'px);top:calc(50% + ' + Math.round(Math.sin(rad) * d * 0.95) + 'px);width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:Silkscreen,monospace;font-size:11px;border:2px solid #182513;border-radius:2px;animation:hl-pop 0.4s ease-out both;transform:translate(-50%,-50%);' +
+          (on ? 'background:#182513;color:#DDE7C6' : p.fit === 3 ? 'background:#DDE7C6;color:#182513' : 'background:#BED39C;color:#304327;border-style:dashed') };
+    });
+    const chip = (on) => 'flex-shrink:0;padding:6px 10px;border:2px solid #182513;border-radius:2px;font-family:Silkscreen,monospace;font-size:11px;white-space:nowrap;' + (on ? 'background:#182513;color:#DDE7C6' : 'background:#DDE7C6');
+    const radii = [500, 1000, 2000].map((x) => ({ label: x >= 1000 ? (x / 1000) + ' KM' : x + ' M', style: chip(r === x) + ';flex:1;text-align:center', go: () => this.scan(x) }));
+    const filters = [['foryou', 'FOR YOU'], ['cafe', 'CAFÉ'], ['food', 'FOOD'], ['bar', 'BAR'], ['shop', 'SHOPS'], ['outdoors', 'OUTDOORS']]
+      .map(([id, l]) => ({ label: l, style: chip(this.state.filter === id), go: () => this.setState({ filter: id }) }));
+    const fitLabel = ['', 'LOW FIT', 'OK FIT', 'GOOD FIT'];
+    const connLabel = ['', 'mostly quiet', 'a little', 'sometimes chatty', 'often chatty', 'very chatty'];
+    const cards = list.map((p) => {
+      const open = this.state.open === p.id, rated = p.checks >= 3;
+      const walk = Math.max(1, Math.round(p.m / 80));
+      return {
+        n: numberOf(p.id), name: p.name, fit: fitLabel[p.fit], why: p.why,
+        meta: p.label + ' · ' + (p.m >= 1000 ? (p.m / 1000).toFixed(1) + ' KM' : p.m + ' M') + ' · ' + walk + ' MIN WALK',
+        fitStyle: 'flex-shrink:0;font-family:Silkscreen,monospace;font-size:9px;padding:2px 5px;border:2px solid #182513;border-radius:2px;' + (p.fit === 3 ? 'background:#182513;color:#DDE7C6' : p.fit === 2 ? 'background:#DDE7C6' : 'border-style:dashed;color:#304327'),
+        boxStyle: 'background:#DDE7C6;border:2px solid #182513;border-radius:2px;padding:12px;' + (p.fit === 1 && !open ? 'opacity:0.75' : ''),
+        bars: [1, 2, 3, 4, 5].map((i) => ({ style: 'display:inline-block;width:10px;height:10px;border:2px solid #182513;' + (rated && i <= p.conn ? 'background:#182513' : 'background:transparent') })),
+        connLabel: rated ? connLabel[p.conn] : 'not enough ratings yet',
+        verified: rated ? '✓ Checked by ' + p.checks + ' Hoolala! visits. Ratings are about the place, never people.' : 'Only ' + p.checks + ' Hoolala! visit so far. Rate it when you go.',
+        open: open, toggle: () => this.setState({ open: open ? null : p.id }),
+        hasNow: !!p.now, now: p.now, infoTitle: p.infoTitle, info: p.info, source: p.source, tinyTry: p.tinyTry, workings: p.workings
+      };
+    });
+    const st = this.status();
+    const next = r === 500 ? 1000 : r === 1000 ? 2000 : null;
+    return {
+      asking: ph === 'ask', scanned: ph === 'done',
+      compassText: this.props.emptyCompass ? 'Results are general for now. Set it up in a minute.' : this.compass.join(' · '),
+      compassLabel: this.props.emptyCompass ? 'YOUR COMPASS IS EMPTY' : 'MATCHED TO YOUR COMPASS',
+      compassAction: this.props.emptyCompass ? 'SET IT UP' : 'EDIT',
+      compassHref: this.props.emptyCompass ? 'Onboard.dc.html' : 'Compass.dc.html',
+      allow: () => (this.props.locationRefused && !this.state.retried ? this.setState({ phase: 'refused' }) : this.scan(500)),
+      refused: ph === 'refused',
+      retry: () => this.setState({ retried: true }, () => this.scan(500)),
+      scanning: scanning,
+      pins: pins, radii: radii, filters: filters, cards: cards,
+      ringLabel: r >= 1000 ? (r / 1000) + ' KM' : r + ' M',
+      statusShown: st.slice(0, this.state.typed), typing: this.state.typed < st.length,
+      canExtend: !scanning && !!next,
+      extendLabel: next ? 'LOOK UP TO ' + (next / 1000) + ' KM' : '',
+      extend: () => next && this.scan(next)
+    };
+  }
+}
+</script>
+</body>
+</html>
