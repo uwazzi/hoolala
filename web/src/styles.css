@@ -460,3 +460,6 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .widen-key { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 14px; border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); background: none; font: 13px/1 var(--font-display); color: var(--lcd-ink); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .radar-sweep, .radar-ping { animation: none; } .radar-pin { animation: none; } }
 .rate-key { display: flex; align-items: center; gap: 10px; }
+.more-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.more-list a, .link-button { font: 11px/1.4 var(--font-display); }
+.link-button { background: none; border: none; padding: 0; color: var(--lcd-ink); text-decoration: underline; cursor: pointer; text-align: left; }

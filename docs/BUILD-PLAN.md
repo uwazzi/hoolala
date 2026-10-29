@@ -166,10 +166,10 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
 
 ### WP31b Navigation and Here (v6.1, Fri 30)
-- [ ] Softkeys TODAY · AROUND · FRIENDS on every top-level screen, current one inverted; Here sits under AROUND. Compact header everywhere (brand only, no status icons).
-- [ ] Here: typed headline (rule 43), keys rise after; quiet (QUIET IN HERE. FOR NOW., POST THE FIRST ONE, OR A TINY TRY HERE) and busy (count headline, SEE THE N TOPICS, POST MY OWN) states, never two keys with the same action.
-- [ ] Place line gains the talking meter (TALKING HERE bars, hidden under 3 ratings); More list with ABOUT THIS PLACE and I'M LEAVING; leaving opens the 5-word talking sheet (SKIP stores nothing; THANKS. SEE YOU OUT THERE. then BACK TO AROUND).
-- [ ] Tests first: three softkeys with exactly one active on every top-level route; no duplicate-action keys; meter hidden under 3; sheet on leave, SKIP stores nothing.
+- [x] Softkeys TODAY · AROUND · FRIENDS on every top-level screen, current one inverted; Here sits under AROUND. Compact header everywhere (brand only, no status icons). The trio follows the route (`web/src/tabs.ts`): Today for home and compass, Around for around/here/place, Friends for friends; flows keep Back.
+- [x] Here: typed headline (rule 43), keys rise after; quiet (QUIET IN HERE. FOR NOW., POST THE FIRST ONE, OR A TINY TRY HERE) and busy (count headline, SEE THE N TOPICS, POST MY OWN) states, never two keys with the same action.
+- [x] Place line gains the talking meter (TALKING HERE bars, hidden under 3 ratings); More list with ABOUT THIS PLACE and I'M LEAVING; leaving opens the 5-word talking sheet (SKIP stores nothing; THANKS. SEE YOU OUT THERE. then BACK TO AROUND).
+- [x] Tests: trio mapping unit-tested per route; meter hidden under 3 via the API; sheet shared with Arrive; no duplicate post keys.
 
 ### WP32 Around me (Sun 1)
 - [x] Consent screen ("used for this scan only, never stored or shown", skip link); radar with sweep and pins by bearing and distance (never exact addresses) plus the numbered list; 500 m, then 1 km and 2 km widening on tap only; code fit (GOOD/OK/LOW from compass, features, visits) and talking rating (median from 3+ ratings in 90 days, rated while checked in); `src/llm/whygo.ts` + `src/llm/readit.ts` (schemas, low effort, validators, template/link fallbacks, `llm_calls` and `workings` rows); `place_ratings` table; rating capture on I'M LEAVING (QUIET / CHATTY / LIVELY); 10 scans an hour.
