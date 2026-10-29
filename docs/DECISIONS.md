@@ -77,6 +77,8 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (v6b): Package round 2 integrated (HANDOFF-v6-around-me for WP32, Here/Around prototypes, compact header). Conflicts resolved: INVITE wording stands over the package's dare (owner call 29 Oct); the package's A/B fork is moot (WP30 shipped full, timeline included); hero gains GROW INSIDE (owner-confirmed 29 Oct); WP32 ships full per owner call.
 - 2026-10-29 (v6b): WHY GO and READ IT join Muse Spark (nine functions), both low effort with validators and template/link fallbacks; scan coordinates never stored.
 
+- 2026-10-29 (WP31 add-on): Compact brand bar in `Screen` (all screens), trio softkeys TODAY · AROUND · FRIENDS on Today/Here/Friends with the active one filled. AROUND points at /here until WP32 builds /around. Per-page brand blocks removed.
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.

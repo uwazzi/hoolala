@@ -48,10 +48,6 @@ export function Join() {
 
   return (
     <Screen title="Join a crew">
-      <div class="brand">
-        <p class="brand-name">Hoolala!</p>
-        <p class="brand-tagline">You never know until you go.</p>
-      </div>
       {invalid ? (
         <>
           <h1 class="screen-title">No invite here</h1>

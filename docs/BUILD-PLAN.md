@@ -170,8 +170,8 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Evals: 10 WHY GO + 5 READ IT cases. Seed: pilot place + 5 to 8 around it with SAMPLE-marked ratings; OSM stays the provider. Acceptance: HANDOFF-v6-around-me phone tests (consent, sweep, tap pin, widen, leave-rating) pass on staging.
 
 ### WP31 add-on: compact header and Around softkeys
-- [ ] Compact brand bar on every screen (44 px, HOOLALA! left, tagline right, dashed bottom border); softkeys TODAY · AROUND · FRIENDS on top-level screens; Here sits under AROUND.
-- [ ] Here live fix: one POST THE FIRST ONE key in the empty state, no duplicate.
+- [x] Compact brand bar on every screen (44 px, HOOLALA! left, tagline right, dashed bottom border); softkeys TODAY · AROUND · FRIENDS on top-level screens; Here sits under AROUND.
+- [x] Here live fix: one POST THE FIRST ONE key in the empty state, no duplicate.
 
 ### WP31 Staging fixes (Fri 30)
 - [x] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
