@@ -15,7 +15,7 @@ import {
   handleReport,
   handleSuggest,
 } from "./api/here";
-import { handleMe } from "./api/me";
+import { handleIntroSeen, handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
@@ -87,6 +87,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/me") {
     return handleMe(request, env);
+  }
+  if (url.pathname === "/api/me/intro-seen" && method === "POST") {
+    return handleIntroSeen(request, env);
   }
   if (url.pathname === "/api/me/find" && method === "POST") {
     return handleFind(request, env);

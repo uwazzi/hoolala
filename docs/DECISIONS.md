@@ -103,6 +103,7 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP34): KEEP saves one line through the new `POST /api/me/compass/keep` (same validator as propose, origin `questions`, source "you said"). Kept lines skip the UNDO log (removed on the compass screen instead); propose saves nothing, SAY AGAIN discards, SKIP sends an empty answer. A mismatched direction is re-proposed without the part (the code's guess) and the shown part is always the validated one; long answers retry trimmed to 60 characters.
 - 2026-10-29 (WP34, design deltas): the confirm block says FOR YOUR COMPASS with a "you said" source, not the mock's "AI ·" kicker, because drafting is WP33 code, never the model (DESIGN.md: only model text wears AI /). The intro drops "No account needed": every endpoint needs sign-in, as before. Ellipses stay ASCII "..." like the rest of the app.
 - 2026-10-29 (WP34, types): `tests/web-*.test.ts` typecheck under the web project (DOM lib) instead of the root one (WebWorker lib), so web tests can cover the microphone and speech helpers; `npm test` still runs them from `tests/`.
+- 2026-10-29 (WP35, types): `UserRow` gains `intro_seen_at` (migration 0014, nullable); `MeResponse` gains `introSeen`. `POST /api/me/intro-seen` marks the story watched or skipped (idempotent, keeps the first timestamp).
 
 ## Open (confirm at kickoff)
 

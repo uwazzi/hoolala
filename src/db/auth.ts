@@ -64,11 +64,17 @@ export async function createEmailUser(
     created_at: nowIso,
     deleted_at: null,
     current_step: 1,
+    intro_seen_at: null,
   };
 }
 
 export async function setFirstName(db: D1Database, userId: string, firstName: string): Promise<void> {
   await db.prepare("UPDATE users SET first_name = ? WHERE id = ?").bind(firstName, userId).run();
+}
+
+/** The onboarding story was watched or skipped. Idempotent. */
+export async function markIntroSeen(db: D1Database, userId: string, nowIso: string): Promise<void> {
+  await db.prepare("UPDATE users SET intro_seen_at = COALESCE(intro_seen_at, ?) WHERE id = ?").bind(nowIso, userId).run();
 }
 
 export async function insertSession(db: D1Database, session: SessionRow): Promise<void> {

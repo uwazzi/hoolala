@@ -9,6 +9,8 @@ interface Props {
   /** Left softkey; BACK goes home. Omit on the home screen. */
   back?: boolean;
   softkeys?: ComponentChildren;
+  /** No softkey bar at all (the onboarding story brings its own controls). */
+  bare?: boolean;
   children: ComponentChildren;
 }
 
@@ -19,7 +21,7 @@ const TABS: { id: TopTab; label: string; href: string }[] = [
 ];
 
 /** One LCD screen: brand bar, content, then the softkey bar. The trio follows the route. */
-export function Screen({ title, back = true, softkeys, children }: Props) {
+export function Screen({ title, back = true, softkeys, bare = false, children }: Props) {
   const { path } = useLocation();
   const tab = tabForPath(path);
   useEffect(() => {
@@ -33,6 +35,7 @@ export function Screen({ title, back = true, softkeys, children }: Props) {
         <span class="brand-bar-tag">You never know until you go.</span>
       </header>
       <main>{children}</main>
+      {!bare && (
       <nav class="lcd-softkeys" aria-label="Shortcuts">
         {tab ? (
           TABS.map((t) => (
@@ -49,6 +52,7 @@ export function Screen({ title, back = true, softkeys, children }: Props) {
           )
         )}
       </nav>
+      )}
     </>
   );
 }

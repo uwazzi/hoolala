@@ -181,13 +181,25 @@ describe("/api/me", () => {
     expect((await handleMe(forged, env)).status).toBe(401);
   });
 
-  it("returns only id, first name and 18+", async () => {
+  it("returns only id, first name, 18+ and the story flag", async () => {
     const env = testEnv();
     const { cookie } = await signIn(env);
     const res = await handleMe(new Request(`${BASE}/api/me`, { headers: { cookie } }), env);
     const body = await res.json();
-    expect(Object.keys(body).sort()).toEqual(["firstName", "id", "isAdult"]);
-    expect(body).toMatchObject({ firstName: null, isAdult: true });
+    expect(Object.keys(body).sort()).toEqual(["firstName", "id", "introSeen", "isAdult"]);
+    expect(body).toMatchObject({ firstName: null, isAdult: true, introSeen: false });
+  });
+
+  it("marks the onboarding story seen, and only when signed in", async () => {
+    const env = testEnv();
+    const seen = (cookie?: string) =>
+      worker.fetch(new Request(`${BASE}/api/me/intro-seen`, { method: "POST", headers: cookie ? { cookie } : {} }), env, ctx);
+    expect((await seen()).status).toBe(401);
+    const { cookie } = await signIn(env);
+    expect(await (await seen(cookie)).json()).toMatchObject({ introSeen: true });
+    const again = await handleMe(new Request(`${BASE}/api/me`, { headers: { cookie } }), env);
+    expect(await again.json()).toMatchObject({ introSeen: true });
+    expect((await seen(cookie)).status).toBe(200);
   });
 
   it("sets a first name and refuses a bad one", async () => {
