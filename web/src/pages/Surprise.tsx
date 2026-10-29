@@ -14,7 +14,7 @@ interface Turn { q: string; a: string }
 interface Line { part: string; text: string; sourceUrl: null; source: string }
 interface Draft { lines: Line[]; observation: string | null; ideas: string[]; source: "ai" | "rules" }
 
-const PART_LABEL: Record<string, string> = { interest: "Passions", talk_about: "Projects", more_of: "Inspiration", filter: "Rather not" };
+const PART_LABEL: Record<string, string> = { interest: "Talk about", intention: "More of", filter: "Less of", delivery: "How I go", action: "Next time" };
 const MAX_TURNS = 5;
 
 const ERRORS: Record<string, string> = {
@@ -290,7 +290,7 @@ export function Surprise() {
           <p class="lcd-block">That's your compass. Change it any time in My compass.</p>
           <ul class="key-list">
             <li><a class="lcd-key lcd-key--primary" href="/arrive">Where are you?</a></li>
-            <li><a class="lcd-key" href="/compass">My compass</a></li>
+            <li><a class="lcd-key" href="/compass?fresh=1">See my compass</a></li>
           </ul>
         </>
       )}

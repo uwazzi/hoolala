@@ -82,8 +82,8 @@ export async function findMe(
 }
 
 const DRAFT_SYSTEM = `You turn what a person ticked as really them (findings with their source URL) and their own answers into a short Personal Compass: what they like talking about.
-Parts: "interest" (things they're into), "talk_about" (things they'd happily chat about), "more_of" (what they'd like more of), "filter" (what they'd rather not talk about).
-Up to 8 lines, each at most 80 characters, in their own plain words. Every line comes from a finding (give its exact source_url) or from their answers (source_url null).
+Parts: "interest" (TALK ABOUT: things they're into, would happily chat about), "intention" (MORE OF: what they'd like more of), "filter" (LESS OF: what they'd rather not talk about), "delivery" (HOW I GO: when and how they like going out), "action" (NEXT TIME: one try they'd like next).
+Up to 8 lines, each at most 60 characters, in their own plain words. Every line comes from a finding (give its exact source_url) or from their answers (source_url null).
 Never a personality type, score, judgement, or a health, political, religious or sexuality label. Don't invent anything that isn't in the findings or answers.`;
 
 const DRAFT_SCHEMA = {
@@ -96,7 +96,7 @@ const DRAFT_SCHEMA = {
         type: "object",
         additionalProperties: false,
         properties: {
-          part: { type: "string", enum: ["interest", "talk_about", "more_of", "filter"] },
+          part: { type: "string", enum: ["interest", "intention", "filter", "delivery", "action"] },
           text: { type: "string" },
           source_url: { type: ["string", "null"] },
         },
@@ -133,7 +133,7 @@ export async function draftCompass(env: Env, kept: Finding[], answers: Answers):
     }
   }
   const fromFindings = cleanCompass(
-    kept.map((k) => ({ part: "interest", text: k.text.length > 80 ? `${k.text.slice(0, 77)}...` : k.text, source_url: k.url })),
+    kept.map((k) => ({ part: "interest", text: k.text.length > 60 ? `${k.text.slice(0, 57)}...` : k.text, source_url: k.url })),
     ticked,
     false,
   );

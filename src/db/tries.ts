@@ -38,6 +38,25 @@ export async function lastOutcomes(db: D1Database, userId: string, limit: number
   return res.results.map((r) => r.outcome);
 }
 
+export interface TryRow {
+  id: string;
+  user_id: string;
+  step: number;
+  source: string;
+  library_id: string | null;
+  place_kind: string;
+  outcome: string;
+  title: string | null;
+  hint: string | null;
+  why: string | null;
+  created_at: string;
+}
+
+/** One recorded try, owner only. Powers the COMPASS? fix-up from a debrief. */
+export async function getTry(db: D1Database, userId: string, id: string): Promise<TryRow | null> {
+  return await db.prepare("SELECT * FROM tries WHERE id = ? AND user_id = ?").bind(id, userId).first<TryRow>();
+}
+
 export async function tryCounts(db: D1Database, userId: string): Promise<{ tries: number; leaves: number }> {
   const row = await db
     .prepare("SELECT COUNT(*) AS tries, SUM(CASE WHEN outcome != 'didnt_happen' THEN 1 ELSE 0 END) AS leaves FROM tries WHERE user_id = ?")

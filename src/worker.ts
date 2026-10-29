@@ -1,6 +1,6 @@
 import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
-import { handleCompass, handleConfirm, handleDeleteCompass, handleDraft, handleFind, handleRemoveLine } from "./api/compass";
+import { handleChanges, handleCompass, handleConfirm, handleConfirmLine, handleDeleteCompass, handleDraft, handleFind, handlePropose, handleRemoveLine, handleUndo } from "./api/compass";
 import { handleHealth, json } from "./api/health";
 import { ensureSample } from "./db/sample";
 import {
@@ -21,7 +21,7 @@ import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/pl
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
 import { handleMeetingPoint, handlePlan } from "./api/plan";
 import { handleHear, handleNext, handleSurpriseDraft } from "./api/surprise";
-import { handlePlant, handleRecordTry, handleStep, handleTodayTry } from "./api/tries";
+import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
 import { handleRate, handleScan } from "./api/around";
 import {
   handleCreateCrew,
@@ -106,6 +106,18 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/me/compass/confirm" && method === "POST") {
     return handleConfirm(request, env);
   }
+  if (url.pathname === "/api/me/compass/propose" && method === "POST") {
+    return handlePropose(request, env);
+  }
+  if (url.pathname === "/api/me/compass/confirm_line" && method === "POST") {
+    return handleConfirmLine(request, env);
+  }
+  if (url.pathname === "/api/me/compass/undo" && method === "POST") {
+    return handleUndo(request, env);
+  }
+  if (url.pathname === "/api/me/compass/changes" && method === "GET") {
+    return handleChanges(request, env);
+  }
   if (url.pathname === "/api/me/compass") {
     if (method === "GET") return handleCompass(request, env);
     if (method === "DELETE") return handleDeleteCompass(request, env);
@@ -140,6 +152,10 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/tries/today" && method === "GET") {
     return handleTodayTry(request, env);
+  }
+  const tryOne = /^\/api\/tries\/([0-9a-f-]{36})$/.exec(url.pathname);
+  if (tryOne && method === "GET") {
+    return handleTry(tryOne[1], request, env);
   }
   if (url.pathname === "/api/tries" && method === "POST") {
     return handleRecordTry(request, env);

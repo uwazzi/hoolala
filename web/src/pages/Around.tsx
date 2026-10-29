@@ -163,7 +163,7 @@ export function Around() {
                   <span class="compass-box-go">SET IT UP</span>
                 </a>
               ) : (
-                <a class="compass-box" href="/compass">
+                <a class="compass-box" href="/compass?review=delivery">
                   <span class="compass-box-text"><span class="compass-box-label">MATCHED TO YOUR COMPASS</span><span>{compassTop}</span></span>
                   <span class="compass-box-go">EDIT</span>
                 </a>

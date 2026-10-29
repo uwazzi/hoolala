@@ -384,6 +384,12 @@ export function Here() {
               <li class="idea"><Workings id={ideas.workingsId} /></li>
             </ul>
           )}
+          {ideas && (
+            <a class="dashed-link" href="/compass?review=suggest">
+              <span>Ideas feel off? Review your compass</span>
+              <span aria-hidden="true">&gt;</span>
+            </a>
+          )}
           <fieldset class="chips">
             <legend class="lcd-label">When?</legend>
             {([["now", "Now"], ["in30", "In 30 min"], ["at", "At a time"]] as const).map(([id, label]) => (

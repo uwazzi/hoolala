@@ -22,7 +22,7 @@ beforeEach(() => {
   draftReply = {
     compass: [
       { part: "interest", text: "Chess" },
-      { part: "talk_about", text: "A café app" },
+      { part: "interest", text: "A café app" },
       { part: "interest", text: "Jazz piano" },
     ],
     observation: "Chess and cafés: a slow game and a good cup.",
@@ -131,7 +131,7 @@ describe("Surprise Me", () => {
       source: "ai",
       lines: [
         { part: "interest", text: "Chess", sourceUrl: null, source: "you said" },
-        { part: "talk_about", text: "A café app", sourceUrl: null, source: "you said" },
+        { part: "interest", text: "A café app", sourceUrl: null, source: "you said" },
       ],
       observation: "Chess and cafés: a slow game and a good cup.",
       ideas: ["Best café for a chess game?"],
