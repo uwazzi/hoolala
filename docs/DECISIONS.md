@@ -86,6 +86,7 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP32, types): `WorkingsFunction` gains `why_go` and `read_it`.
 
 - 2026-10-29 (WP32, limit): scans go from 10 to 12 an hour (owner call 29 Oct, testing kept hitting the guard).
+- 2026-10-29 (WP32, types): `PlaceKind` gains `food`, `shop` and `outdoors` (migration 0011 rebuilds the kind CHECK); the map query asks for restaurants, fast food, everyday shops and parks, with an explicit shop allowlist so adult shops can never come through.
 - 2026-10-29 (v6.1): HOOLALA_V6.1 handover filed at `docs/handover/HOOLALA_V6.1/` with the checks report (no STOPs). WP32 Around rework builds first (owner call 29 Oct); WP31b, WP33 and WP34 follow in plan order. v6.1 branches are cut from `staging`, not `main`, because the WP32 base is there awaiting promotion. TAKE ME THERE links to OpenStreetMap directions (owner call 29 Oct). Server transcription stays for WP34 (no switch to browser SpeechRecognition). Filter chips beyond FOR YOU stay out for 4 Nov (per the spec).
 
 ## Open (confirm at kickoff)

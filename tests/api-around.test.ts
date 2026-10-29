@@ -142,12 +142,13 @@ describe("around me", () => {
     const ana = await person(env, "Ana");
     overpass = [
       { type: "node", id: 1, lat: 46.5199, lon: 6.6325, tags: { amenity: "cafe", name: "Real Café" } },
+      { type: "node", id: 5, lat: 46.5201, lon: 6.6327, tags: { amenity: "restaurant", name: "Real Restaurant" } },
       { type: "node", id: 2, lat: 46.5199, lon: 6.6325, tags: { amenity: "bar" } },
       { type: "node", id: 3, lat: 46.5199, lon: 6.6325, tags: { amenity: "casino", name: "Lucky" } },
       { type: "node", id: 4, lat: 46.6, lon: 6.7, tags: { amenity: "cafe", name: "Far Café" } },
     ];
     const body = await (await call(env, "POST", "/api/around/scan", ana, HERE)).json();
-    expect(body.places).toHaveLength(1);
+    expect(body.places).toHaveLength(2);
     expect(body.places[0]).toMatchObject({
       id: "osm:node/1",
       name: "Real Café",
@@ -161,6 +162,12 @@ describe("around me", () => {
       read: null,
     });
     expect(body.places[0].tiny_try).toBeTruthy();
+    expect(body.places[1]).toMatchObject({ id: "osm:node/5", kind: "food" });
+    // I'M HERE on the restaurant adopts it, new kind and all.
+    overpass = [{ type: "node", id: 5, lat: 46.5201, lon: 6.6327, tags: { amenity: "restaurant", name: "Real Restaurant" } }];
+    const here = await call(env, "POST", "/api/checkin", ana, { external: { provider: "osm", id: "node/5" }, lat: HERE.lat, lng: HERE.lng });
+    expect(here.status).toBe(200);
+    expect((await here.json()).checkin.place.kind).toBe("food");
   });
 
   it("the database wins over the map for places it knows", async () => {

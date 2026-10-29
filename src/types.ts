@@ -162,7 +162,7 @@ export interface CompassChangeRow {
   undone_at: IsoDateTime | null;
 }
 
-export type PlaceKind = "cafe" | "bar" | "coworking" | "library" | "other";
+export type PlaceKind = "cafe" | "bar" | "coworking" | "library" | "food" | "shop" | "outdoors" | "other";
 export type PlaceStatus = "new" | "active" | "hidden";
 
 export interface PlaceRow {

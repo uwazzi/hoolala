@@ -14,6 +14,9 @@ const KINDS: { id: PlaceKind; label: string }[] = [
   { id: "bar", label: "Bar" },
   { id: "coworking", label: "Coworking" },
   { id: "library", label: "Library" },
+  { id: "food", label: "Food" },
+  { id: "shop", label: "Shops" },
+  { id: "outdoors", label: "Outdoors" },
   { id: "other", label: "Other" },
 ];
 
