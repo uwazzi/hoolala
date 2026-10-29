@@ -73,6 +73,18 @@ export interface UserRow {
   created_at: IsoDateTime;
   deleted_at: IsoDateTime | null;
   is_sample?: number; // migration 0005
+  current_step: number; // migration 0006: tiny-try ladder, 1 to 5
+}
+
+export interface TryRow {
+  id: string;
+  user_id: string;
+  step: number;
+  source: string;
+  library_id: string | null;
+  place_kind: string;
+  outcome: string;
+  created_at: IsoDateTime;
 }
 
 export interface SessionRow {

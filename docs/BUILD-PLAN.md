@@ -146,8 +146,15 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Edits pass `screening.ts` and SCREEN IT. MY MOMENTS shows your points privately; the Live page shows only collective counts.
 - [x] Tests: no self-confirm, cap, not checked in refused, Google rows never stored, points never public.
 
+### WP26 SURPRISE ME, a spoken head start (Wed 28, evening)
+- [x] `src/rules/surprise.ts` (pure, tests first): at most 5 turns, fixed opening and scripted fallback, question and observation checks, lines must echo the person's words, screened topic ideas, crisis stop, WAV format check.
+- [x] `src/llm/voice.ts` (HEAR IT, Muse Voice Transcribe) and `src/llm/surprise.ts` (follow-up questions and the surprise draft, Muse Spark), each with a no-model fallback.
+- [x] `POST /api/me/surprise/hear|next|draft`, signed-in only, rate-limited, stateless; nothing stored before LOOKS RIGHT; audio never kept.
+- [x] `/surprise`: pixel ball that ripples with Hoolala!'s voice (phone speech, VOICE ON/OFF) and the person's (hold to talk), typing fallback, the reveal (Passions, Projects, Inspiration, Rather not; AI / Surprise; two AI / Suggestion ideas). Third door on Get started.
+- [ ] Try it on a real phone on staging (iOS Safari and Android Chrome): microphone prompt, speech voice, hold to talk.
+
 ### WP28 Home v6 and tiny tries (Fri 30)
-- [ ] Home per DESIGN v6 (rule 14, 42, 43, home spec); one-screen flow GET A TRY > GO > TELL ME > NEXT TIME; library of 15 tries (`src/content/tries.ts`, from `docs/design/v6/Flow.dc.html`); `tries` table and API (`POST /tries`, `GET /me/plant`); plant renderer (14 x 18 pixel grid, leaves and flowers by count); reduced motion.
+- [x] Home per DESIGN v6 (rule 14, 42, 43, home spec); one-screen flow GET A TRY > GO > TELL ME > NEXT TIME; library of 15 tries (`src/content/tries.ts`, from `docs/design/v6/Flow.dc.html`); `tries` table and API (`POST /tries`, `GET /me/plant`); plant renderer (14 x 18 pixel grid, leaves and flowers by count); reduced motion.
 - [ ] Acceptance: on a real phone, a new person understands the goal without help and completes one try in under a minute of screen time; works with LLM_ENABLED=false.
 
 ### WP29 TRY IT, adaptive tries with guardrails (Sat 31, morning)
@@ -159,7 +166,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
 
 ### WP31 Staging fixes (Fri 30)
-- [ ] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
+- [x] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 > Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. Work kept on branch `wp21/telegram`. Kept here for history.
