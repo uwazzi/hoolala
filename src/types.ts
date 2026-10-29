@@ -87,6 +87,44 @@ export interface TryRow {
   created_at: IsoDateTime;
 }
 
+export interface CrewRow {
+  id: string;
+  name: string;
+  shared_library_id: string;
+  created_by: string;
+  created_at: IsoDateTime;
+}
+
+export interface CrewMemberRow {
+  crew_id: string;
+  user_id: string;
+  joined_at: IsoDateTime;
+}
+
+export interface CrewInviteRow {
+  token_hash: string;
+  crew_id: string;
+  created_by: string;
+  created_at: IsoDateTime;
+  expires_at: IsoDateTime;
+}
+
+export interface CrewPostRow {
+  id: string;
+  crew_id: string;
+  user_id: string;
+  outcome: string;
+  text: string;
+  screening_verdict: string;
+  created_at: IsoDateTime;
+}
+
+export interface CrewNiceRow {
+  post_id: string;
+  user_id: string;
+  created_at: IsoDateTime;
+}
+
 export interface SessionRow {
   id: string;
   user_id: string;

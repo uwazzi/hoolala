@@ -162,7 +162,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Acceptance: 15/15 evals; a step never changes without a tap.
 
 ### WP30 Friends, slim (Sun 1)
-- [ ] DARE A FRIEND: share sheet with the dare text and a crew invite link (WhatsApp `wa.me` and Messenger share URLs, copy link); one private crew per person; timeline posts (outcome tag + text, screened), NICE ONE. Seed a demo crew for the video. Replaces WP7.
+- [x] DARE A FRIEND: share sheet with the dare text and a crew invite link (WhatsApp `wa.me` and Messenger share URLs, copy link); one private crew per person; timeline posts (outcome tag + text, screened), NICE ONE. Seed file at `scripts/demo-crew.sql` (owner runs once on staging). Replaces WP7.
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
 
 ### WP31 Staging fixes (Fri 30)
