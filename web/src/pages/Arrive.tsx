@@ -4,6 +4,7 @@ import { useEffect, useState } from "preact/hooks";
 import { CITIES } from "../../../src/rules/checkin";
 import type { CheckinView, NearbyPlace, PlaceKind, PlaceSummary } from "../../../src/types";
 import { api } from "../api";
+import { GoodbyeSheet } from "../components/GoodbyeSheet";
 import { Screen } from "../components/Screen";
 
 type Step = "loading" | "signed-out" | "ask" | "locating" | "pick" | "add" | "search" | "checking" | "here" | "goodbye" | "thanks";
@@ -330,26 +331,7 @@ export function Arrive() {
         </>
       )}
 
-      {step === "goodbye" && here && (
-        <>
-          <p class="lcd-kicker">LEAVING {here.place.name}</p>
-          <h1 class="screen-title">HOW WAS IT FOR TALKING HERE?</h1>
-          <ul class="key-list">
-            {(["mostly quiet", "a little", "sometimes chatty", "often chatty", "very chatty"] as const).map((label, i) => (
-              <li key={label}>
-                <button class="lcd-key rate-key" type="button" onClick={() => rate((i + 1) as 1 | 2 | 3 | 4 | 5)}>
-                  <span class="meter-bars" aria-hidden="true">{[1, 2, 3, 4, 5].map((b) => <span key={b} class={`meter-bar${b <= i + 1 ? " on" : ""}`} />)}</span>
-                  <span>{label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p class="lcd-small">About the place, never people. Shown only once 3 visits have rated it.</p>
-          <ul class="key-list">
-            <li><button class="lcd-key" type="button" onClick={() => rate(null)}>Skip</button></li>
-          </ul>
-        </>
-      )}
+      {step === "goodbye" && here && <GoodbyeSheet placeName={here.place.name} onRate={rate} />}
 
       {step === "thanks" && (
         <>

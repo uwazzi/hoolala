@@ -337,6 +337,19 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 @keyframes cursor-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 @keyframes keys-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .keys-rise { animation: keys-rise 0.25s ease-out both; }
+.compass-needle { font-size: 28px; line-height: 1; text-align: center; margin: 6px 0 2px; animation: needle-spin 0.45s linear 2; }
+.compass-needle.is-settled { animation: none; }
+@keyframes needle-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.compass-needle--swing { animation: none; transition: transform 0.6s cubic-bezier(0.2, 1.5, 0.4, 1); }
+.dir-head { display: flex; align-items: baseline; gap: 8px; width: 100%; background: none; border: none; padding: 0; margin: 10px 0 2px; cursor: pointer; color: inherit; text-align: left; }
+.dir-head .lcd-kicker { margin: 0; }
+.dir-count { font: 11px/1 var(--font-display); color: var(--lcd-ink-secondary); }
+.lcd-block.is-masked { color: var(--lcd-ink-secondary); }
+@media (prefers-reduced-motion: reduce) {
+  .compass-needle { animation: none; transition: none; }
+  .keys-rise { animation: none; }
+  .lcd-cursor { animation: none; }
+}
 .try-keys { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .key-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .key-note { margin-left: auto; font-family: var(--font-body); font-size: 11px; font-weight: 400; flex-shrink: 0; }
@@ -460,3 +473,6 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .widen-key { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 14px; border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); background: none; font: 13px/1 var(--font-display); color: var(--lcd-ink); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .radar-sweep, .radar-ping { animation: none; } .radar-pin { animation: none; } }
 .rate-key { display: flex; align-items: center; gap: 10px; }
+.more-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.more-list a, .link-button { font: 11px/1.4 var(--font-display); }
+.link-button { background: none; border: none; padding: 0; color: var(--lcd-ink); text-decoration: underline; cursor: pointer; text-align: left; }

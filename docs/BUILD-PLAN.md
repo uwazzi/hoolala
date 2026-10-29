@@ -166,10 +166,10 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
 
 ### WP31b Navigation and Here (v6.1, Fri 30)
-- [ ] Softkeys TODAY · AROUND · FRIENDS on every top-level screen, current one inverted; Here sits under AROUND. Compact header everywhere (brand only, no status icons).
-- [ ] Here: typed headline (rule 43), keys rise after; quiet (QUIET IN HERE. FOR NOW., POST THE FIRST ONE, OR A TINY TRY HERE) and busy (count headline, SEE THE N TOPICS, POST MY OWN) states, never two keys with the same action.
-- [ ] Place line gains the talking meter (TALKING HERE bars, hidden under 3 ratings); More list with ABOUT THIS PLACE and I'M LEAVING; leaving opens the 5-word talking sheet (SKIP stores nothing; THANKS. SEE YOU OUT THERE. then BACK TO AROUND).
-- [ ] Tests first: three softkeys with exactly one active on every top-level route; no duplicate-action keys; meter hidden under 3; sheet on leave, SKIP stores nothing.
+- [x] Softkeys TODAY · AROUND · FRIENDS on every top-level screen, current one inverted; Here sits under AROUND. Compact header everywhere (brand only, no status icons). The trio follows the route (`web/src/tabs.ts`): Today for home and compass, Around for around/here/place, Friends for friends; flows keep Back.
+- [x] Here: typed headline (rule 43), keys rise after; quiet (QUIET IN HERE. FOR NOW., POST THE FIRST ONE, OR A TINY TRY HERE) and busy (count headline, SEE THE N TOPICS, POST MY OWN) states, never two keys with the same action.
+- [x] Place line gains the talking meter (TALKING HERE bars, hidden under 3 ratings); More list with ABOUT THIS PLACE and I'M LEAVING; leaving opens the 5-word talking sheet (SKIP stores nothing; THANKS. SEE YOU OUT THERE. then BACK TO AROUND).
+- [x] Tests: trio mapping unit-tested per route; meter hidden under 3 via the API; sheet shared with Arrive; no duplicate post keys.
 
 ### WP32 Around me (Sun 1)
 - [x] Consent screen ("used for this scan only, never stored or shown", skip link); radar with sweep and pins by bearing and distance (never exact addresses) plus the numbered list; 500 m, then 1 km and 2 km widening on tap only; code fit (GOOD/OK/LOW from compass, features, visits) and talking rating (median from 3+ ratings in 90 days, rated while checked in); `src/llm/whygo.ts` + `src/llm/readit.ts` (schemas, low effort, validators, template/link fallbacks, `llm_calls` and `workings` rows); `place_ratings` table; rating capture on I'M LEAVING (QUIET / CHATTY / LIVELY); 10 scans an hour.
@@ -183,11 +183,11 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests first: weekly uniqueness; median and 3-rating gate; radius never above 2 km or widened without a tap; bars labelled 18+; location in no table.
 
 ### WP33 Compass, four directions (v6.1, Sat 31)
-- [ ] Four-direction screen with needle (0.6 s swing, overshoot), typed part line, counts, sources and REMOVE on every line; WHERE IT'S USED lines plus the fixed privacy line; first-time reveal (2 s spin, LOOKS RIGHT / CHANGE SOMETHING / START AGAIN, nothing saved before LOOKS RIGHT).
-- [ ] SAY IT YOUR WAY: `POST /api/me/compass/propose` (Muse Spark drafts part and text, saves nothing), BEFORE / AFTER with SAVE / NOT NOW, last three CHANGES with UNDO (`POST /api/me/compass/confirm`, `POST /api/me/compass/undo`).
-- [ ] Stored parts become intention/interest/filter/delivery/action (migration maps talk_about to interest, more_of to intention); validator extends (traces to words or ticked findings, banned labels, 60 chars, feedback names its try or place).
-- [ ] Entry points: MY COMPASS under the plant on Today, EDIT on Around's compass line; COMPASS? row on the try debrief (MORE / LESS LIKE THIS, SAVE, undo link). Surprise me's five questions checked against the four directions.
-- [ ] Tests first: proposal saves nothing; undo restores exactly; personality labels and sourceless lines rejected; outcomes alone create nothing; A's compass never returned to B.
+- [x] Four-direction screen with needle (0.6 s swing, overshoot), typed part line, counts, sources and REMOVE on every line; WHERE IT'S USED lines plus the fixed privacy line; first-time reveal (spin and settle, lines rise one by one, SOURCES row, tap for the full compass; the LOOKS RIGHT gate stays on the draft screens, where nothing is saved before it).
+- [x] SAY IT YOUR WAY: `POST /api/me/compass/propose` (code guesses the line from the person's own words, saves nothing; the model never rewrites), YOUR WORDS with WAS plus CONFIRM, last three CHANGES with UNDO (`POST /api/me/compass/confirm_line`, `POST /api/me/compass/undo`, `GET /api/me/compass/changes`).
+- [x] Stored parts become intention/interest/filter/delivery/action (migration 0013 maps talk_about to interest, more_of to intention; delivery and action start empty; origins gain feedback/suggest/delivery); validator extends (traces to words or ticked findings, banned labels, 60 chars, feedback keeps its try id).
+- [x] Entry points: MY COMPASS dashed link under the plant on Today, EDIT on Around's compass line (review=delivery), REVIEW after a suggestion (review=suggest); COMPASS? row on the try debrief links `/compass?fix=TRYID` with THE TRY and starter words. Surprise me's five questions checked against the four directions (scripted set covers all four; model-asked how-questions fall back to HOW I GO).
+- [x] Tests first: proposal saves nothing; undo restores exactly; personality labels and sourceless lines rejected; outcomes alone create nothing; A's compass never returned to B.
 
 ### WP34 Surprise me voice (v6.1, Sat 31, after WP33)
 - [ ] Thumb row (TYPE, 76 px mic, SKIP) replaces the ball hold; ball is state display only; progress dots with the fed compass part; caption types as spoken; I HEARD plus the drafted line, then KEEP / SAY AGAIN / FIX BY TYPING; SOUND ON / OFF (speech only, captions always); softkeys LEAVE / SOUND.

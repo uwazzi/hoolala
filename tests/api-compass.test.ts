@@ -29,9 +29,9 @@ beforeEach(() => {
   ];
   draft = [
     { part: "interest", text: "Lausanne cafés and food writing", source_url: "https://ana-lopes.example/blog" },
-    { part: "talk_about", text: "Chess, especially endgames", source_url: "https://www.chess-lausanne.ch/members/ana" },
+    { part: "interest", text: "Chess, especially endgames", source_url: "https://www.chess-lausanne.ch/members/ana" },
     { part: "interest", text: "Marathon running", source_url: "https://namesake-runner.example/ana" },
-    { part: "more_of", text: "Board game evenings", source_url: null },
+    { part: "intention", text: "Board game evenings", source_url: null },
   ];
   vi.stubGlobal(
     "fetch",
@@ -154,7 +154,7 @@ describe("the compass", () => {
     expect(fromFindings.source).toBe("rules");
     expect(fromFindings.lines).toHaveLength(2);
     const fromAnswers = await (await call(env, "POST", "/api/me/compass/draft", ana, { answers: { talk: "chess, cycling", avoid: "work talk" } })).json();
-    expect(fromAnswers.lines.map((l: { part: string; text: string }) => `${l.part}:${l.text}`)).toEqual(["talk_about:chess", "talk_about:cycling", "filter:work talk"]);
+    expect(fromAnswers.lines.map((l: { part: string; text: string }) => `${l.part}:${l.text}`)).toEqual(["interest:chess", "interest:cycling", "filter:work talk"]);
   });
 
   it("saves only on LOOKS RIGHT, and only for the person", async () => {
@@ -162,8 +162,8 @@ describe("the compass", () => {
     const ana = await person(env, "Ana");
     const ben = await person(env, "Ben");
     const lines = [
-      { part: "talk_about", text: "Chess, especially endgames", sourceUrl: "https://www.chess-lausanne.ch/members/ana" },
-      { part: "more_of", text: "Board game evenings", sourceUrl: null },
+      { part: "interest", text: "Chess, especially endgames", sourceUrl: "https://www.chess-lausanne.ch/members/ana" },
+      { part: "intention", text: "Board game evenings", sourceUrl: null },
       { part: "interest", text: "Introvert at heart", sourceUrl: null },
     ];
     const saved = await (await call(env, "POST", "/api/me/compass/confirm", ana, { lines })).json();
@@ -178,7 +178,7 @@ describe("the compass", () => {
     const ana = await person(env, "Ana");
     const ben = await person(env, "Ben");
     const cleo = await person(env, "Cleo");
-    await call(env, "POST", "/api/me/compass/confirm", ana, { lines: [{ part: "talk_about", text: "Chess, especially endgames", sourceUrl: null }] });
+    await call(env, "POST", "/api/me/compass/confirm", ana, { lines: [{ part: "interest", text: "Chess, especially endgames", sourceUrl: null }] });
     for (const p of [ana, ben, cleo]) await call(env, "POST", "/api/checkin", p, { placeId: "cafe", lat: 46.5222, lng: 6.63442 });
     draft = "fail";
     await call(env, "POST", "/api/here/signals", ben, { topic: "Coffee break now?", when: "now", spot: "The big table", capacity: 1 });
@@ -202,8 +202,8 @@ describe("the compass", () => {
     const saved = await (
       await call(env, "POST", "/api/me/compass/confirm", ana, {
         lines: [
-          { part: "talk_about", text: "Chess", sourceUrl: null },
-          { part: "more_of", text: "Board games", sourceUrl: null },
+          { part: "interest", text: "Chess", sourceUrl: null },
+          { part: "intention", text: "Board games", sourceUrl: null },
         ],
       })
     ).json();
@@ -211,5 +211,134 @@ describe("the compass", () => {
     expect(after.compass.map((l: { text: string }) => l.text)).toEqual(["Board games"]);
     await call(env, "DELETE", "/api/me", ana);
     expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
+  });
+});
+
+describe("SAY IT YOUR WAY", () => {
+  async function savedCompass(env: Env, ana: Person) {
+    return (
+      await (
+        await call(env, "POST", "/api/me/compass/confirm", ana, {
+          lines: [
+            { part: "interest", text: "Chess", sourceUrl: null },
+            { part: "delivery", text: "Busy evenings", sourceUrl: null },
+          ],
+        })
+      ).json()
+    ).compass as { id: string; part: string; text: string }[];
+  }
+
+  it("proposes a line from the person's words and never saves the dry run", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const compass = await savedCompass(env, ana);
+    const res = await (
+      await call(env, "POST", "/api/me/compass/propose", ana, { lineId: compass[1].id, words: "quiet mornings, small groups" })
+    ).json();
+    expect(res.proposed).toEqual({
+      part: "delivery",
+      words: "quiet mornings, small groups",
+      change: { before: "Busy evenings", after: "quiet mornings, small groups" },
+    });
+    expect(res.saw).toEqual([]);
+    // The dry run changed nothing.
+    expect(rows(env, "SELECT text FROM compass_items ORDER BY text")).toEqual([{ text: "Busy evenings" }, { text: "Chess" }]);
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_changes")[0].n).toBe(0);
+  });
+
+  it("echoes reviewed lines and marks where they were checked", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const compass = await savedCompass(env, ana);
+    const res = await (
+      await call(env, "POST", "/api/me/compass/propose", ana, {
+        words: "quiet mornings",
+        reviewed: [compass[1].id, "00000000-0000-0000-0000-000000000000"],
+        source: "delivery",
+      })
+    ).json();
+    expect(res.saw).toEqual([{ part: "delivery", words: "Busy evenings" }]);
+    expect(rows(env, `SELECT origin FROM compass_items WHERE id = '${compass[1].id}'`)).toEqual([{ origin: "delivery" }]);
+    expect(rows(env, `SELECT origin FROM compass_items WHERE id = '${compass[0].id}'`)).toEqual([{ origin: "find_me" }]);
+  });
+
+  it("turns feedback names into starter words", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    await savedCompass(env, ana);
+    const res = await (await call(env, "POST", "/api/me/compass/propose", ana, { feedback: "awkward" })).json();
+    expect(res.proposed.part).toBe("delivery");
+    expect(res.proposed.words).toBe("gentler next time");
+    expect((await call(env, "POST", "/api/me/compass/propose", ana, { feedback: "nailed_it" })).status).toBe(400);
+  });
+
+  it("confirms exactly the person's words, and rejects a dating label with a reason", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const compass = await savedCompass(env, ana);
+    const bad = await call(env, "POST", "/api/me/compass/confirm_line", ana, { lineId: compass[0].id, part: "interest", words: "Single and looking to flirt" });
+    expect(bad.status).toBe(422);
+    expect((await bad.json()).why).toMatch(/talking, not dating/);
+    const ok = await (
+      await call(env, "POST", "/api/me/compass/confirm_line", ana, {
+        lineId: compass[1].id,
+        part: "delivery",
+        words: "quiet mornings",
+        source: "feedback",
+        tryId: "11111111-1111-1111-1111-111111111111",
+      })
+    ).json();
+    expect(ok.compass.find((l: { id: string }) => l.id === compass[1].id)).toMatchObject({ part: "delivery", text: "quiet mornings" });
+    expect(rows(env, "SELECT kind, words, feedback_ref AS ref FROM compass_changes")).toEqual([
+      { kind: "line", words: "quiet mornings", ref: "11111111-1111-1111-1111-111111111111" },
+    ]);
+    expect(rows(env, `SELECT origin FROM compass_items WHERE id = '${compass[1].id}'`)).toEqual([{ origin: "feedback" }]);
+  });
+
+  it("UNDO once restores exactly the last edit, and refuses when there is none", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    expect((await call(env, "POST", "/api/me/compass/undo", ana)).status).toBe(404);
+    const compass = await savedCompass(env, ana);
+    await call(env, "POST", "/api/me/compass/confirm_line", ana, { lineId: compass[1].id, part: "delivery", words: "quiet mornings" });
+    await call(env, "DELETE", `/api/me/compass/${compass[0].id}`, ana);
+    const undone = await (await call(env, "POST", "/api/me/compass/undo", ana)).json();
+    expect(undone.restored).toEqual({ part: "interest", words: "Chess" });
+    expect(undone.compass.map((l: { text: string }) => l.text).sort()).toEqual(["Chess", "quiet mornings"]);
+    const undoneAgain = await (await call(env, "POST", "/api/me/compass/undo", ana)).json();
+    expect(undoneAgain.restored).toEqual({ part: "delivery", words: "Busy evenings" });
+    expect((await call(env, "POST", "/api/me/compass/undo", ana)).status).toBe(404);
+  });
+
+  it("lists the last three changes with before and after, owner only", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const ben = await person(env, "Ben");
+    expect((await call(env, "GET", "/api/me/compass/changes")).status).toBe(401);
+    expect(((await (await call(env, "GET", "/api/me/compass/changes", ben)).json()) as { changes: unknown[] }).changes).toEqual([]);
+    const compass = await savedCompass(env, ana);
+    await call(env, "POST", "/api/me/compass/confirm_line", ana, { lineId: compass[1].id, part: "delivery", words: "quiet mornings" });
+    await call(env, "DELETE", `/api/me/compass/${compass[0].id}`, ana);
+    const seen = await (await call(env, "GET", "/api/me/compass/changes", ana)).json();
+    expect(seen.changes).toEqual([
+      { id: seen.changes[0].id, kind: "remove", words: "Chess", before: "Chess", after: null, undone: false },
+      { id: seen.changes[1].id, kind: "line", words: "quiet mornings", before: "Busy evenings", after: "quiet mornings", undone: false },
+    ]);
+    await call(env, "POST", "/api/me/compass/undo", ana);
+    const after = await (await call(env, "GET", "/api/me/compass/changes", ana)).json();
+    expect(after.changes[0].undone).toBe(true);
+    expect(after.changes[1].undone).toBe(false);
+  });
+
+  it("a fresh LOOKS RIGHT clears the undo log, and nobody undoes anyone else's lines", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const ben = await person(env, "Ben");
+    const compass = await savedCompass(env, ana);
+    await call(env, "POST", "/api/me/compass/confirm_line", ana, { lineId: compass[0].id, part: "interest", words: "Chess club" });
+    expect((await call(env, "POST", "/api/me/compass/undo", ben)).status).toBe(404);
+    await call(env, "POST", "/api/me/compass/confirm", ana, { lines: [{ part: "interest", text: "Chess", sourceUrl: null }] });
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_changes")[0].n).toBe(0);
+    expect((await call(env, "POST", "/api/me/compass/undo", ana)).status).toBe(404);
   });
 });

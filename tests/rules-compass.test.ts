@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { cleanCompass, compassFromAnswers, fitsYou, hasBannedLabel, isOwnName, normalizeLinks, normalizeSearchName } from "../src/rules/compass";
+import {
+  changeRemove,
+  cleanCompass,
+  compassFromAnswers,
+  fitsYou,
+  hasBannedLabel,
+  isOwnName,
+  normalizeLinks,
+  normalizeSearchName,
+  partForWords,
+  proposeFeedback,
+  validateProposal,
+} from "../src/rules/compass";
 
 const TICKED = ["https://ana.example/blog", "https://en.wikipedia.org/wiki/Chess"];
 
@@ -31,8 +43,8 @@ describe("cleanCompass", () => {
   it("keeps lines with a ticked source, and 'you said' only when the person answered", () => {
     const lines = [
       { part: "interest", text: "Chess, especially endgames", source_url: "https://en.wikipedia.org/wiki/Chess" },
-      { part: "talk_about", text: "Writing a food blog", source_url: "https://ana.example/blog/" },
-      { part: "more_of", text: "Board game evenings", source_url: null },
+      { part: "interest", text: "Writing a food blog", source_url: "https://ana.example/blog/" },
+      { part: "intention", text: "Board game evenings", source_url: null },
     ];
     expect(cleanCompass(lines, TICKED, false).map((l) => l.text)).toEqual(["Chess, especially endgames", "Writing a food blog"]);
     expect(cleanCompass(lines, TICKED, true).map((l) => [l.text, l.sourceUrl])).toEqual([
@@ -68,9 +80,9 @@ describe("cleanCompass", () => {
 describe("questions and FITS YOU", () => {
   it("turns three answers into 'you said' lines", () => {
     expect(compassFromAnswers({ talk: "chess, cycling", more: "board games", avoid: "work talk" })).toEqual([
-      { part: "talk_about", text: "chess", sourceUrl: null },
-      { part: "talk_about", text: "cycling", sourceUrl: null },
-      { part: "more_of", text: "board games", sourceUrl: null },
+      { part: "interest", text: "chess", sourceUrl: null },
+      { part: "interest", text: "cycling", sourceUrl: null },
+      { part: "intention", text: "board games", sourceUrl: null },
       { part: "filter", text: "work talk", sourceUrl: null },
     ]);
   });
@@ -83,5 +95,43 @@ describe("questions and FITS YOU", () => {
   it("knows a label when it sees one", () => {
     for (const label of ["catholique", "Musulmane pratiquante", "de gauche", "souffre d'anxiété", "homosexuel"]) expect(hasBannedLabel(label)).toBe(true);
     expect(hasBannedLabel("Cycling and climbing")).toBe(false);
+  });
+});
+
+describe("SAY IT YOUR WAY", () => {
+  it("guesses a direction from the person's own words", () => {
+    expect(partForWords("more slow mornings")).toBe("intention");
+    expect(partForWords("something low-key")).toBe("delivery");
+    expect(partForWords("less small talk")).toBe("filter");
+    expect(partForWords("I love talking about chess")).toBe("interest");
+    expect(partForWords("Just chess")).toBe("interest");
+  });
+
+  it("accepts plain words on the picked line, unchanged", () => {
+    expect(validateProposal("delivery", "quiet mornings, small groups")).toEqual({
+      ok: true,
+      line: { part: "delivery", words: "quiet mornings, small groups" },
+    });
+  });
+
+  it("rejects a dating label with a reason, and overlong or mismatched words", () => {
+    const dating = validateProposal("interest", "Single and looking to flirt");
+    expect(dating.ok).toBe(false);
+    expect(dating.why).toMatch(/talking, not dating/);
+    expect(validateProposal("interest", "x".repeat(61))).toMatchObject({ ok: false, error: "too_long" });
+    expect(validateProposal("filter", "I love football")).toMatchObject({ ok: false, error: "bad_fit" });
+    expect(validateProposal("interest", "Living with ADHD")).toMatchObject({ ok: false, error: "not_allowed" });
+    expect(validateProposal("nope", "chess")).toMatchObject({ ok: false, error: "missing_part" });
+  });
+
+  it("turns a try debrief into starter words on the matching line", () => {
+    expect(proposeFeedback("went_well")).toEqual({ words: "more of this", part: "intention" });
+    expect(proposeFeedback("awkward")).toEqual({ words: "gentler next time", part: "delivery" });
+    expect(proposeFeedback("no_reply")).toEqual({ words: "something low-key", part: "delivery" });
+    expect(proposeFeedback("didnt_happen")).toEqual({ words: "less of this", part: "filter" });
+  });
+
+  it("records a REMOVE as before-words with no after", () => {
+    expect(changeRemove("work talk")).toEqual({ before: "work talk", after: null });
   });
 });

@@ -2,11 +2,12 @@
 // idle until ONE LOOK AROUND runs the scan in place. Cards by fit with why
 // go, the talking meter, today's read and a tiny try. The borrowed point
 // lives in memory only and is dropped after check-in.
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
 import { Radar } from "../components/Radar";
 import { Screen } from "../components/Screen";
+import { Typed } from "../components/Typed";
 
 interface Read { items: string[]; hours: string | null; kind: string; source: string }
 interface Talking { level: 1 | 2 | 3 | 4 | 5; word: string }
@@ -43,39 +44,6 @@ function locate(): Promise<Point> {
       { enableHighAccuracy: true, timeout: 10_000, maximumAge: 30_000 },
     );
   });
-}
-
-/** One typed status line; keys rise when it completes. Reduced motion: at once. */
-function Typed({ text, onDone }: { text: string; onDone: () => void }) {
-  const [typed, setTyped] = useState(0);
-  const doneRef = useRef(false);
-  useEffect(() => {
-    doneRef.current = false;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setTyped(text.length);
-      return;
-    }
-    setTyped(0);
-    const timer = setInterval(() => {
-      setTyped((t) => {
-        if (t >= text.length) {
-          clearInterval(timer);
-          return t;
-        }
-        return t + 1;
-      });
-    }, 22);
-    return () => clearInterval(timer);
-  }, [text]);
-  useEffect(() => {
-    if (typed >= text.length && !doneRef.current) {
-      doneRef.current = true;
-      onDone();
-    }
-  });
-  return (
-    <span>{text.slice(0, typed)}{typed < text.length && <span class="lcd-cursor" aria-hidden="true" />}</span>
-  );
 }
 
 export function Around() {
@@ -172,7 +140,7 @@ export function Around() {
   const statusNote = note ? <p class="lcd-small" role="status" aria-live="polite">{note}</p> : null;
 
   return (
-    <Screen title="Around" tab="around">
+    <Screen title="Around">
       <div class="around">
       <Radar pins={pins} radiusM={radiusM} scanning={phase === "scanning"} openId={open} onPick={(id) => setOpen(open === id ? null : id)} />
 
@@ -195,7 +163,7 @@ export function Around() {
                   <span class="compass-box-go">SET IT UP</span>
                 </a>
               ) : (
-                <a class="compass-box" href="/compass">
+                <a class="compass-box" href="/compass?review=delivery">
                   <span class="compass-box-text"><span class="compass-box-label">MATCHED TO YOUR COMPASS</span><span>{compassTop}</span></span>
                   <span class="compass-box-go">EDIT</span>
                 </a>

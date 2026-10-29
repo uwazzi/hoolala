@@ -61,6 +61,17 @@ async function view(env: Env, who: Person) {
   return (await call(env, "GET", "/api/here", who)).json();
 }
 
+describe("talking meter", () => {
+  it("stays hidden under 3 ratings, then shows the median word", async () => {
+    const { env, ana, ben, cleo } = await scene();
+    expect((await view(env, ana)).talking).toBeNull();
+    for (const [p, v] of [[ana, 4], [ben, 5], [cleo, 5]] as const) {
+      expect((await call(env, "POST", "/api/around/rate", p, { place_id: "cafe", value: v })).status).toBe(200);
+    }
+    expect((await view(env, ana)).talking).toEqual({ level: 5, word: "very chatty" });
+  });
+});
+
 /** Three people at the café: Ana posts, Ben and Cleo are around. */
 async function scene() {
   const env = testEnv();

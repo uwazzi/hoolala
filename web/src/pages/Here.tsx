@@ -2,10 +2,13 @@
 // and up to three to discover. Refreshes every 5 seconds while open.
 // Anonymous until both accept; quick replies only. No AI.
 import { useEffect, useState } from "preact/hooks";
+import { useLocation } from "preact-iso";
 import type { CheckinView } from "../../../src/types";
 import { api } from "../api";
+import { GoodbyeSheet } from "../components/GoodbyeSheet";
 import { Screen } from "../components/Screen";
 import { PlanBox } from "../components/PlanBox";
+import { Typed } from "../components/Typed";
 import { Workings } from "../components/Workings";
 
 interface Reply { from: string; text: string; at: string }
@@ -15,7 +18,7 @@ interface Mine { id: string; topic: string; translation?: string | null; meeting
 interface Joined { responseId: string; signalId: string; topic: string; translation?: string | null; meetingPoint?: Point | null; whenAt: string; spot: string; expiresAt: string; state: string; signalState: string; ownerName: string | null; sample?: boolean; replies: Reply[] }
 interface Found { id: string; topic: string; translation?: string | null; fitsYou?: boolean; whenAt: string; spot: string; capacity: number; expiresAt: string }
 interface Idea { topic: string; why: string; citationUrl: string | null; sourceDomain: string | null }
-interface HereView { checkin: CheckinView | null; spots: string[]; mine: Mine[]; joined: Joined[]; discover: Found[] }
+interface HereView { checkin: CheckinView | null; spots: string[]; talking: { level: 1 | 2 | 3 | 4 | 5; word: string } | null; mine: Mine[]; joined: Joined[]; discover: Found[] }
 
 const QUICK = [
   { kind: "on_my_way", label: "On my way" },
@@ -49,6 +52,11 @@ function todayAt(hhmm: string): string | null {
   return d.toISOString();
 }
 
+function scrollTo(id: string) {
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById(id)?.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+}
+
 function Replies({ replies }: { replies: Reply[] }) {
   if (!replies.length) return null;
   return (
@@ -59,8 +67,13 @@ function Replies({ replies }: { replies: Reply[] }) {
 }
 
 export function Here() {
+  const { route } = useLocation();
   const [data, setData] = useState<HereView | null>(null);
   const [signedOut, setSignedOut] = useState(false);
+  const [greeted, setGreeted] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [leftThanks, setLeftThanks] = useState(false);
+  const [rated, setRated] = useState(false);
   const [note, setNote] = useState("");
   const [posting, setPosting] = useState(false);
   const [curiousFor, setCuriousFor] = useState<string | null>(null);
@@ -130,6 +143,26 @@ export function Here() {
     }
   }
 
+  function startPosting() {
+    setPosting(true);
+    setNote("");
+    requestAnimationFrame(() => {
+      scrollTo("post");
+      document.getElementById("topic")?.focus({ preventScroll: true });
+    });
+  }
+
+  /** GOODBYE first: the talking value needs the check-in still open. */
+  async function rate(value: 1 | 2 | 3 | 4 | 5 | null) {
+    if (value !== null && data?.checkin) {
+      await api("POST", "/api/around/rate", { place_id: data.checkin.place.id, value });
+      setRated(true);
+    }
+    await api("POST", "/api/checkin/leave");
+    setLeaving(false);
+    setLeftThanks(true);
+  }
+
   function safety(target: { signalId?: string; responseId?: string }) {
     return (
       <div class="tiny-actions">
@@ -146,7 +179,7 @@ export function Here() {
 
   if (signedOut) {
     return (
-      <Screen title="Here" tab="around">
+      <Screen title="Here">
         <h1 class="screen-title">Here</h1>
         <p class="lcd-block">Sign in first, then check in where you are.</p>
         <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/signin">Sign in</a></li></ul>
@@ -154,13 +187,33 @@ export function Here() {
     );
   }
 
+  if (leftThanks) {
+    return (
+      <Screen title="Here">
+        <h1 class="screen-title">THANKS. SEE YOU OUT THERE.</h1>
+        <p class="lcd-block">{rated ? "Your rating joins the others for this place. Nobody sees who rated it." : "No rating, no problem."}</p>
+        <ul class="key-list">
+          <li><button class="lcd-key lcd-key--primary" type="button" onClick={() => route("/around")}>Back to around</button></li>
+        </ul>
+      </Screen>
+    );
+  }
+
   if (!data) {
-    return <Screen title="Here" tab="around"><p class="lcd-kicker" role="status">Loading...</p></Screen>;
+    return <Screen title="Here"><p class="lcd-kicker" role="status">Loading...</p></Screen>;
+  }
+
+  if (leaving && data.checkin) {
+    return (
+      <Screen title="Here">
+        <GoodbyeSheet placeName={data.checkin.place.name} onRate={rate} />
+      </Screen>
+    );
   }
 
   if (!data.checkin) {
     return (
-      <Screen title="Here" tab="around">
+      <Screen title="Here">
         <h1 class="screen-title">What's here?</h1>
         <p class="lcd-block">Signals are for people in the same place, right now. Check in first.</p>
         <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/arrive">Where are you?</a></li></ul>
@@ -170,12 +223,50 @@ export function Here() {
 
   const openMine = data.mine.filter((s) => s.state === "open" || s.state === "full");
   const emptyHere = data.discover.length === 0 && data.mine.length === 0 && data.joined.length === 0;
+  const n = data.discover.length;
+  const own = data.mine.length + data.joined.length;
+  const headline = emptyHere
+    ? "QUIET IN HERE. FOR NOW."
+    : n > 0
+      ? n === 1
+        ? "1 PERSON HERE WOULD LIKE TO TALK."
+        : `${n} PEOPLE HERE WOULD LIKE TO TALK.`
+      : own === 1
+        ? "YOUR SIGNAL IS UP."
+        : "YOUR SIGNALS ARE UP.";
 
   return (
-    <Screen title="Here" tab="around">
-      <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)} · <a href="/place">This place</a></p>
+    <Screen title="Here">
+      <p class="lcd-kicker">{data.checkin.place.name} · here until {time(data.checkin.endsAt)}</p>
+      {data.talking && (
+        <p class="meter-row">
+          <span class="meter-label">TALKING HERE</span>
+          <span class="meter-bars" aria-hidden="true">{[1, 2, 3, 4, 5].map((b) => <span key={b} class={`meter-bar${b <= data.talking!.level ? " on" : ""}`} />)}</span>
+          <span class="meter-word">{data.talking.word}</span>
+        </p>
+      )}
       {data.checkin.place.slug === "sample-cafe" && (
         <p class="lcd-block">This is a SAMPLE place to try Hoolala! alone. Sample Sophie says yes to everything, and nothing here counts on the Live page.</p>
+      )}
+
+      <Headline text={headline} greeted={greeted} onDone={() => setGreeted(true)} />
+      {greeted && (
+        emptyHere ? (
+          !posting && (
+            <>
+              <ul class="key-list"><li><button class="lcd-key lcd-key--primary" type="button" onClick={startPosting}>Post the first one</button></li></ul>
+              <p class="lcd-small">OR <a href="/">A TINY TRY HERE</a></p>
+            </>
+          )
+        ) : (
+          <>
+            <ul class="key-list">
+              {n > 0 && <li><button class="lcd-key lcd-key--primary" type="button" onClick={() => scrollTo("topics")}>{n === 1 ? "See the topic" : `See the ${n} topics`}</button></li>}
+              {openMine.length < 2 && !posting && <li><button class={`lcd-key${n === 0 ? " lcd-key--primary" : ""}`} type="button" onClick={startPosting}>Post my own</button></li>}
+            </ul>
+            <p class="lcd-small">OR <a href="/">A TINY TRY HERE</a></p>
+          </>
+        )
       )}
 
       {data.mine.map((s) => {
@@ -237,16 +328,8 @@ export function Here() {
         </section>
       ))}
 
-      {emptyHere ? (
-        <>
-          <p class="screen-title" role="status">Quiet in here. For now.</p>
-          {!posting && (
-            <ul class="key-list"><li><button class="lcd-key lcd-key--primary" type="button" onClick={() => { setPosting(true); setNote(""); }}>Post the first one</button></li></ul>
-          )}
-        </>
-      ) : (
-        <>
-      <h1 class="screen-title">What's here?</h1>
+      {!emptyHere && (
+        <div id="topics">
       {data.discover.map((s) => (
         <section class="lcd-block" key={s.id} aria-label="A signal here">
           {s.fitsYou && <p class="lcd-kicker">Fits you</p>}
@@ -270,12 +353,12 @@ export function Here() {
           {safety({ signalId: s.id })}
         </section>
       ))}
-      <p class="lcd-small">That's everything here right now.{openMine.length < 2 && !posting ? " Post one?" : ""}</p>
-        </>
+      <p class="lcd-small">That's everything here right now.</p>
+        </div>
       )}
 
       {posting ? (
-        <form onSubmit={postSignal} noValidate>
+        <form id="post" onSubmit={postSignal} noValidate>
           <label class="lcd-label" for="topic">What's the topic?</label>
           <input class="lcd-field" id="topic" maxLength={60} required value={topic} onInput={(e) => setTopic(e.currentTarget.value)}
             placeholder="Coffee break at 15:00. Small talk welcome." />
@@ -300,6 +383,12 @@ export function Here() {
               ))}
               <li class="idea"><Workings id={ideas.workingsId} /></li>
             </ul>
+          )}
+          {ideas && (
+            <a class="dashed-link" href="/compass?review=suggest">
+              <span>Ideas feel off? Review your compass</span>
+              <span aria-hidden="true">&gt;</span>
+            </a>
           )}
           <fieldset class="chips">
             <legend class="lcd-label">When?</legend>
@@ -331,19 +420,23 @@ export function Here() {
             <li><button class="lcd-key" type="button" onClick={() => setPosting(false)}>Not now</button></li>
           </ul>
         </form>
-      ) : (
-        openMine.length < 2 && !emptyHere && (
-          <ul class="key-list"><li><button class="lcd-key lcd-key--primary" type="button" onClick={() => { setPosting(true); setNote(""); }}>Post one</button></li></ul>
-        )
-      )}
+      ) : null}
 
       <p class="lcd-small" role="status" aria-live="polite">{note}</p>
       {postedWorkings !== undefined && <Workings id={postedWorkings} />}
-      <ul class="key-list">
-        <li><button class="lcd-key" type="button" onClick={async () => { await api("POST", "/api/checkin/leave"); location.href = "/arrive"; }}>I'm leaving</button></li>
-      </ul>
+      <div class="more-list">
+        <span class="lcd-kicker">More:</span>
+        <a href="/place">ABOUT THIS PLACE</a>
+        <button class="link-button" type="button" onClick={() => setLeaving(true)}>I'M LEAVING</button>
+      </div>
     </Screen>
   );
+}
+
+/** The typed headline, once per visit; later refreshes show it at once. */
+function Headline({ text, greeted, onDone }: { text: string; greeted: boolean; onDone: () => void }) {
+  if (greeted) return <p class="screen-title" role="status">{text}</p>;
+  return <p class="screen-title" role="status"><Typed text={text} onDone={onDone} /></p>;
 }
 
 /** The AI translation, labelled as AI and always under the person's own words. */

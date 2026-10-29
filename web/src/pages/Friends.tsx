@@ -181,7 +181,7 @@ export function Friends() {
   }
 
   return (
-    <Screen title="Friends" back={false} tab="friends">
+    <Screen title="Friends" back={false}>
       {none || !view ? (
         <>
           <h1 class="screen-title">Friends</h1>
