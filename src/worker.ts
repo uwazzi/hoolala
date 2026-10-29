@@ -22,6 +22,7 @@ import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDi
 import { handleMeetingPoint, handlePlan } from "./api/plan";
 import { handleHear, handleNext, handleSurpriseDraft } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry } from "./api/tries";
+import { handleRate, handleScan } from "./api/around";
 import {
   handleCreateCrew,
   handleCrew,
@@ -177,6 +178,12 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/crew/remove" && method === "POST") {
     return handleRemoveMember(request, env);
+  }
+  if (url.pathname === "/api/around/scan" && method === "POST") {
+    return handleScan(request, env);
+  }
+  if (url.pathname === "/api/around/rate" && method === "POST") {
+    return handleRate(request, env);
   }
   const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
   if (peek && method === "GET") {

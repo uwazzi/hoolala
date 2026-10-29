@@ -166,8 +166,8 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Acceptance: invite opens WhatsApp prefilled on a real phone; a friend who taps the link joins the crew; no counts per person anywhere.
 
 ### WP32 Around me (Sun 1)
-- [ ] Consent screen ("used for this scan only, never stored or shown", skip link); radar with sweep, pins placed by bearing and fit (never exact addresses); 500 m, then 1 km and 2 km widening on tap only; code fit (GOOD/OK/LOW from compass, features, visits) and talking rating (median from 3+ verified visits); `src/llm/whygo.ts` + `src/llm/readit.ts` (schemas, low effort, validators, template/link fallbacks, `llm_calls` and `workings` rows); `place_ratings` table; rating capture on I'M LEAVING (QUIET / CHATTY / LIVELY); 10 scans an hour.
-- [ ] Evals: 10 WHY GO + 5 READ IT cases. Seed: pilot place + 5 to 8 around it with SAMPLE-marked ratings; OSM stays the provider. Acceptance: HANDOFF-v6-around-me phone tests (consent, sweep, tap pin, widen, leave-rating) pass on staging.
+- [x] Consent screen ("used for this scan only, never stored or shown", skip link); nearby list with distance and bearing (no radar sweep, see DECISIONS 29 Oct); 500 m, then 1 km and 2 km widening on tap only; code fit (GOOD/OK/LOW from compass, features, visits) and talking rating (median from 3+ ratings in 90 days, rated while checked in); `src/llm/whygo.ts` + `src/llm/readit.ts` (schemas, low effort, validators, template/link fallbacks, `llm_calls` and `workings` rows); `place_ratings` table; rating capture on I'M LEAVING (QUIET / CHATTY / LIVELY); 10 scans an hour.
+- [x] Evals: 10 WHY GO + 5 READ IT cases. Seed: 6 SAMPLE places around Riponne with SAMPLE-marked ratings (`scripts/demo-around.sql`); OSM stays the provider. Acceptance: HANDOFF-v6-around-me phone tests (consent, list, detail, widen, leave-rating) pass on staging.
 
 ### WP31 add-on: compact header and Around softkeys
 - [x] Compact brand bar on every screen (44 px, HOOLALA! left, tagline right, dashed bottom border); softkeys TODAY · AROUND · FRIENDS on top-level screens; Here sits under AROUND.

@@ -16,8 +16,7 @@ interface Props {
 
 const TABS: { id: TopTab; label: string; href: string }[] = [
   { id: "today", label: "Today", href: "/" },
-  // WP31 add-on: AROUND points at Here until WP32 builds /around.
-  { id: "around", label: "Around", href: "/here" },
+  { id: "around", label: "Around", href: "/around" },
   { id: "friends", label: "Friends", href: "/friends" },
 ];
 

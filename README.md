@@ -53,13 +53,15 @@ All on `muse-spark-1.3` (standard mode: what we send isn't used for training). E
 | FIND ME | Responses API, up to 3 web searches; findings resolved to returned pages; then a compass draft | low | 8.0 s | Three questions |
 | PLACE IT | Responses API, up to 2 web searches; every detail resolved to a returned page | low | 8.5 s | People's own details only |
 | PLAN IT | Chat Completions tool loop: 4 read-only tools in parallel, then `draft_meeting_point` limited to real spots | medium | 4.1 s | The poster's own spot and time |
+| WHY GO | Chat Completions, strict JSON; one grounded line per nearby place, every fact must exist | low | — | Template from real inputs |
+| READ IT | Chat Completions, strict JSON; today's menu or event off the place's own page, checked against it | low | — | The menu link only |
 | CHECK IT | `workings` rows: tools, sources, verdicts, grounding; owner only, no personal text | | | "Model off: rules only." |
 
 What real calls taught us (and the code now handles): the JSON answer arrives after a preamble message; the model cites a site's home page or a bare domain instead of the page it found, so citations are resolved against the pages the search actually returned, and invented sites are dropped. Details in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-## Evaluation: 59 cases, 59 passing
+## Evaluation: 74 cases, 74 passing
 
-`npm run eval` (43 offline cases, run in CI before every deploy) and `npm run eval:live` (16 cases against Muse Spark). Latest results: [`evals/results/latest.json`](evals/results/latest.json).
+`npm run eval` (58 offline cases, run in CI before every deploy) and `npm run eval:live` (16 cases against Muse Spark). Latest results: [`evals/results/latest.json`](evals/results/latest.json).
 
 | Suite | Pass | What it checks |
 |---|---|---|

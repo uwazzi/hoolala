@@ -77,3 +77,57 @@ export function webFactsStale(newestWebFactAt: string | null, now: Date): boolea
 export function monthOf(now: Date): string {
   return now.toISOString().slice(0, 7);
 }
+
+// WP32 Around me: metres, bearings, fit and talking labels. Pure.
+
+export function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const t = Math.PI / 180;
+  const dLat = (lat2 - lat1) * t;
+  const dLng = (lng2 - lng1) * t;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * t) * Math.cos(lat2 * t) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/** Compass bearing from the person to the place, 0 to 360, 0 is north. */
+export function bearingDeg(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const t = Math.PI / 180;
+  const dLng = (lng2 - lng1) * t;
+  const y = Math.sin(dLng) * Math.cos(lat2 * t);
+  const x = Math.cos(lat1 * t) * Math.sin(lat2 * t) - Math.sin(lat1 * t) * Math.cos(lat2 * t) * Math.cos(dLng);
+  return ((Math.atan2(y, x) / t) % 360 + 360) % 360;
+}
+
+/** Any compass word of 4+ letters found in the place's words. */
+export function compassOverlap(interests: string[], haystack: string): boolean {
+  const hay = haystack.toLowerCase();
+  return interests.some((i) =>
+    i
+      .toLowerCase()
+      .split(/[^a-zà-ÿ]+/i)
+      .some((w) => w.length >= 4 && hay.includes(w)),
+  );
+}
+
+export type Fit = "GOOD" | "OK" | "LOW";
+
+/** GOOD needs the compass plus something real (features or visits). */
+export function fitFor(input: { compass: boolean; features: boolean; visits: number }): Fit {
+  if (input.compass && (input.features || input.visits >= 5)) return "GOOD";
+  if (input.compass || input.features || input.visits >= 5) return "OK";
+  return "LOW";
+}
+
+export type Talking = "LOW" | "MIXED" | "HIGH";
+
+/** Median of ratings from the last 90 days; fewer than 3 stays unlabeled. */
+export function talkingLabel(ratings: { value: number; visit_date: string }[], nowIso: string): Talking | null {
+  const cutoff = Date.parse(nowIso) - 90 * 86_400_000;
+  const values = ratings
+    .filter((r) => Date.parse(r.visit_date) >= cutoff)
+    .map((r) => r.value)
+    .sort((a, b) => a - b);
+  if (values.length < 3) return null;
+  const median = values.length % 2 ? values[(values.length - 1) / 2] : (values[values.length / 2 - 1] + values[values.length / 2]) / 2;
+  return median <= 1.5 ? "LOW" : median >= 2.5 ? "HIGH" : "MIXED";
+}
