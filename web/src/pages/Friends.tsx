@@ -181,20 +181,7 @@ export function Friends() {
   }
 
   return (
-    <Screen
-      title="Friends"
-      back={false}
-      softkeys={
-        <>
-          <a class="lcd-softkey" href="/">Today</a>
-          <a class="lcd-softkey" href="/friends">Friends</a>
-        </>
-      }
-    >
-      <div class="brand">
-        <p class="brand-name">Hoolala!</p>
-        <p class="brand-tagline">You never know until you go.</p>
-      </div>
+    <Screen title="Friends" back={false}>
       {none || !view ? (
         <>
           <h1 class="screen-title">Friends</h1>

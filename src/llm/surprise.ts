@@ -57,7 +57,7 @@ export async function nextQuestion(env: Env, turns: Turn[]): Promise<{ question:
 }
 
 const DRAFT_SYSTEM = `You turn a short conversation into a person's Personal Compass: what they like talking about. Use only their own answers.
-Parts: "interest" (passions), "talk_about" (projects, things they're making or working on), "more_of" (inspiration, what they'd like more of), "filter" (what they'd rather not talk about).
+Parts: "interest" (TALK ABOUT: passions, projects, things they're making or working on), "intention" (MORE OF: inspiration, what they'd like more of), "filter" (LESS OF: what they'd rather not talk about), "delivery" (HOW I GO: when and how they like going out), "action" (NEXT TIME: one try they'd like next).
 Up to 8 lines, each at most 60 characters, using their own words. Never invent anything they didn't say.
 Then one playful, kind observation (at most 140 characters) about the mix of things they said, not about who they are: no personality types, no judgement, no advice.
 Then two short topic ideas (at most 50 characters each) they could post at a café to start a conversation, from what they said.
@@ -72,7 +72,7 @@ const DRAFT_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        properties: { part: { type: "string", enum: ["interest", "talk_about", "more_of", "filter"] }, text: { type: "string" } },
+        properties: { part: { type: "string", enum: ["interest", "intention", "filter", "delivery", "action"] }, text: { type: "string" } },
         required: ["part", "text"],
       },
     },

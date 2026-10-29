@@ -25,22 +25,10 @@ export function Home() {
   }, []);
 
   return (
-    <Screen
-      back={false}
-      softkeys={
-        <>
-          <a class="lcd-softkey" href="/">Today</a>
-          <a class="lcd-softkey" href="/friends">Friends</a>
-        </>
-      }
-    >
-      <div class="brand">
-        <p class="brand-name">Hoolala!</p>
-        <p class="brand-tagline">You never know until you go.</p>
-      </div>
+    <Screen back={false}>
       {!me ? (
         <>
-          <h1 class="hero-display">Get outside. Meet people.</h1>
+          <h1 class="hero-display">Get outside. Meet people. Grow inside.</h1>
           <p class="hero-line">One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always.</p>
           <ul class="key-list">
             <li>
@@ -55,7 +43,7 @@ export function Home() {
         <TryFlow plant={plant} onPlant={setPlant} />
       ) : (
         <>
-          <h1 class="hero-display">Get outside. Meet people.</h1>
+          <h1 class="hero-display">Get outside. Meet people. Grow inside.</h1>
           <p class="hero-line">One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always.</p>
           <div class="plant-card">
             <Plant leaves={plant?.leaves ?? 0} cell={8} />
@@ -64,6 +52,12 @@ export function Home() {
               <span class="plant-card-sub">Your plant grows with every one. It never wilts.</span>
             </div>
           </div>
+          {hasCompass && (
+            <a class="dashed-link" href="/compass">
+              <span>My compass</span>
+              <span aria-hidden="true">&gt;</span>
+            </a>
+          )}
           <ul class="key-list">
             <li>
               <button class="lcd-key lcd-key--primary" type="button" onClick={() => plant && setInFlow(true)} disabled={!plant}>
@@ -86,11 +80,6 @@ export function Home() {
             {hasCompass === false && (
               <li>
                 <a class="lcd-key" href="/start">Want a head start?</a>
-              </li>
-            )}
-            {hasCompass && (
-              <li>
-                <a class="lcd-key" href="/compass">My compass</a>
               </li>
             )}
             <li>

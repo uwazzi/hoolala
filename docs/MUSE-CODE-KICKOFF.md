@@ -7,8 +7,11 @@ Thu 29 Oct 2026. Hand-over from the design session to Muse Code. Deadline: submi
 | File | What it is |
 |---|---|
 | `docs/HANDOFF-v6.md` | The spec: changelog, DESIGN rules, TRY IT, `tries.ts`, issues, days left |
+| `docs/HANDOFF-v6-around-me.md` | Around me (WP32) and the compact header (WP31 add-on) |
 | `docs/design/v6/Flow.dc.html` | Home and tiny-try flow, reference only |
 | `docs/design/v6/Friends.dc.html` | Friends, reference only |
+| `docs/design/v6/Around.dc.html` | Around me: consent, radar, cards, radius, reference only |
+| `docs/design/v6/Here.dc.html` | Checked in at a place, with the live fixes, reference only |
 | `docs/MUSE-CODE-KICKOFF.md` | This file |
 
 The prototype files are design references: copy, layout, states, the plant algorithm and the 15 tries. They are not production code (they use the canvas runtime, not Preact).
@@ -18,8 +21,9 @@ The prototype files are design references: copy, layout, states, the plant algor
 ## The prompt to paste into Muse Code
 
 ```text
-Work from branch v6-docs. Read AGENTS.md first, then docs/HANDOFF-v6.md and docs/MUSE-CODE-KICKOFF.md.
-Product decision (29 Oct, from the owner): the home now says GET OUTSIDE. MEET PEOPLE.
+Work from branch v6-docs. Read AGENTS.md first, then docs/HANDOFF-v6.md, docs/HANDOFF-v6-around-me.md
+and docs/MUSE-CODE-KICKOFF.md.
+Product decision (29 Oct, from the owner): the home now says GET OUTSIDE. MEET PEOPLE. GROW INSIDE.
 and the daily tiny try is the hero. Signals here stays as the second path. Do not
 reopen this decision; if something conflicts, log it in docs/DECISIONS.md and ask.
 
@@ -27,15 +31,21 @@ Work in this order, one package per branch and PR, milestone "Submission (4 Nov)
 
 0. DOCS-v6 (today): apply sections 1 to 3 of docs/HANDOFF-v6.md to docs/CHANGELOG.md,
    docs/DESIGN.md and docs/MUSE-SPARK-BY-FUNCTION.md; apply the AGENTS.md changes in
-   docs/MUSE-CODE-KICKOFF.md; add WP28 to WP31 to docs/BUILD-PLAN.md.
+   docs/MUSE-CODE-KICKOFF.md; add WP28 to WP32 to docs/BUILD-PLAN.md.
    GitHub housekeeping (if you have gh access): close the issues listed in
    HANDOFF-v6 section 5 "Close now", each with a comment naming the PR; create
-   WP28, WP29, WP30, WP31 from section 5 with label work-package.
-1. WP31 staging fixes (Fri 30, small).
+   WP28, WP29, WP30, WP31 from section 5, and WP32 from HANDOFF-v6-around-me,
+   with label work-package.
+1. WP31 staging fixes (Fri 30, small), including the compact header and
+   TODAY · AROUND · FRIENDS softkeys from HANDOFF-v6-around-me. Reference:
+   docs/design/v6/Here.dc.html (one POST THE FIRST ONE key, no duplicate).
 2. WP28 home v6 and tiny tries (Fri 30). Reference: docs/design/v6/Flow.dc.html.
 3. WP29 TRY IT with guardrails (Sat 31 morning). src/rules/tries.ts tests first,
    exactly as specified in HANDOFF-v6 section 4.
-4. WP30 friends, slim (Sun 1). Reference: docs/design/v6/Friends.dc.html.
+4. WP32 Around me (Sun 1) and WP30 friends (Sun 1), in the scope the owner chose
+   (Option A or B in HANDOFF-v6-around-me, "Where it fits in the days").
+   References: docs/design/v6/Around.dc.html, docs/design/v6/Friends.dc.html.
+   Keep the typed lines and the radar exactly as designed.
 5. WP9 safety pass (Sun 1).
 
 For every package: tests first for src/rules/ and permission checks; npm test,
@@ -55,7 +65,7 @@ These lines in the current AGENTS.md would block the new design. Change them as 
 
 1. **Header line:** "Updated 27 Oct 2026 for Signals here v5" becomes "Updated 29 Oct 2026 for v6: tiny tries lead; Signals here is the second path (`docs/HANDOFF-v6.md`)."
 
-2. **What we are building:** open the paragraph with: "A finite, real-world nudge with a Nokia LCD look. The first screen says GET OUTSIDE. MEET PEOPLE. and offers one tiny try a day on a private 5-step ladder; a private pixel plant gains a coloured leaf for every try. When people share a place, Signals here lets them post small invitations to talk..." Add TRY IT to the list of Muse Spark functions.
+2. **What we are building:** open the paragraph with: "A finite, real-world nudge with a Nokia LCD look. The first screen says GET OUTSIDE. MEET PEOPLE. GROW INSIDE. and offers one tiny try a day on a private 5-step ladder; a private pixel plant gains a coloured leaf for every try. When people share a place, Signals here lets them post small invitations to talk..." Add TRY IT to the list of Muse Spark functions.
 
 3. **Folder table:** add `src/rules/tries.ts` (step bounds, validation, leaves, next-step suggestion) to `src/rules/`; `src/llm/tryit.ts` (TRY IT) to `src/llm/`; `src/api/` gains `tries`, `plant`, `crew`; new `src/content/tries.ts` (the 15-try library, data not code).
 
@@ -73,9 +83,10 @@ These lines in the current AGENTS.md would block the new design. Change them as 
 
 ## Owner decisions (Muse Code asks, does not decide)
 
-- **WP21 Telegram Mini App:** proposed move to ROADMAP. Owner to confirm.
 - **WP7 share card:** proposed to fold into WP30's dare card. Owner to confirm.
 - **"GHOSTED" in copy:** the prototype says NO REPLY / GHOSTED; the handoff uses NO REPLY only. Owner's call.
+- **Around me scope:** Option A (Around me in full, Friends = dare link only) or Option B (Friends as planned, Around me without menus and ratings). Owner to choose.
+- **Places provider:** reuse FIND ME's provider unless the owner says otherwise.
 - **Pilot place and filming permission** (due today).
 - Anything that changes the demo beat sheet beyond HANDOFF-v6 section 3.
 

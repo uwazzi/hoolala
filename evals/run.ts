@@ -7,15 +7,18 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { planMeeting } from "../src/llm/agent";
 import { placeIt } from "../src/llm/place";
 import { findMe } from "../src/llm/findme";
+import { validateReadIt } from "../src/llm/readit";
 import { screenWithModel } from "../src/llm/screen";
 import { suggestFor } from "../src/llm/suggest";
+import { validateWhyGo } from "../src/llm/whygo";
 import { cleanCompass, hasBannedLabel, isOwnName } from "../src/rules/compass";
 import { ground, resolveCitation } from "../src/rules/grounding";
 import { checkDraft, claimsAction } from "../src/rules/plan";
 import { confirmProblem, underCap } from "../src/rules/places";
 import { screenText } from "../src/rules/screening";
+import { validateTry } from "../src/rules/tries";
 import type { Env } from "../src/types";
-import { FINDME_PUBLIC, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES } from "./cases";
+import { FINDME_PUBLIC, READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
 
 interface Result {
   suite: string;
@@ -112,6 +115,24 @@ record({
 });
 record({ suite: "place", name: "No points for confirming your own detail", live: false, pass: confirmProblem({ added_by: "ana", state: "found" }, "ana", true, false) === "own" });
 record({ suite: "place", name: "Points stop at 30 a day", live: false, pass: underCap(28, 5) === 2 && underCap(30, 2) === 0 });
+
+for (const c of TRY_CASES) {
+  const got = validateTry(c.draft, c.ask);
+  record({ suite: "tryit", name: c.name, live: false, pass: got === c.expect, detail: `got ${got}` });
+}
+
+for (const c of WHYGO_CASES) {
+  const kept = validateWhyGo(c.value, [WHYGO_PLACE]);
+  const got = kept === null ? -1 : kept.length;
+  record({ suite: "whygo", name: c.name, live: false, pass: got === c.keep, detail: `kept ${got}` });
+}
+
+for (const c of READIT_CASES) {
+  const got = validateReadIt(c.value, c.page);
+  const pass =
+    c.expect === null ? got === null : got !== null && JSON.stringify(got.items) === JSON.stringify(c.expect.items) && got.hours === c.expect.hours;
+  record({ suite: "readit", name: c.name, live: false, pass, detail: `got ${JSON.stringify(got)}` });
+}
 
 // --- Live: Muse Spark ---------------------------------------------------------
 

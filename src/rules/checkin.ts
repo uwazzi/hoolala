@@ -18,7 +18,7 @@ export const CITIES = [
 export const CITY_RADIUS_M = 12_000;
 export type CityId = (typeof CITIES)[number]["id"];
 
-export const PLACE_KINDS: readonly PlaceKind[] = ["cafe", "bar", "coworking", "library", "other"];
+export const PLACE_KINDS: readonly PlaceKind[] = ["cafe", "bar", "coworking", "library", "food", "shop", "outdoors", "culture", "sport", "other"];
 
 export interface Point {
   lat: number;

@@ -16,6 +16,8 @@ Pitch line (video opening, README): **"We've sat at the same table for six month
 | 1 | **ARRIVE** (no AI) | Share location, pick the place, or ADD THIS PLACE. GPS wrong? Search by name | None, on purpose | | `src/rules/checkin.ts`: radius, place search within the city, optional poster key and code, 4-hour expiry; the person's coordinates discarded after the lookup | Same |
 | 2 | **PLACE IT** | The place card: hours, menu highlights, spots. "AI / FOUND > google maps" until people confirm it | Parallel tool calling, structured output, web search | Tools: `google_place_details` (live, field-masked), `web_search` (menu and hours on the place's website), `get_place_facts`; parallel; JSON schema `{facts[{field, value, source, url}]}`; `reasoning_effort: low`; cached per place for 30 days as fetched facts only where the source allows | `src/rules/places.ts`: facts carry a source; Google content shown live with attribution, only the place id kept; nothing becomes a Hoolala! fact without a person confirming; SCREEN IT on people's edits; points rules | People's confirmed facts only |
 | 2b | **TRY IT** | "Last one got no reply. Happens. Same step, a fresh try." The next tiny try, written for this person, place and time | Structured output, short creative drafting | Schema `{title, hint, step, words_max, minutes, asks_of_other, place_kind, why}`, `reasoning_effort: low`; inputs: step (from code), place kind, time of day, last 3 outcomes, compass interests | `src/rules/tries.ts`: step must equal the requested step; every field inside that step's bounds; always-on limits; then SCREEN IT; stored with the code-assigned step | The hand-written library (15 tries, 3 per step) |
+| 2c | **WHY GO** | "Why this one: compass (coffee) + shared table + 7 Hoolala! visits." One line per nearby place | Short grounded drafting | Schema `{why (≤140), tiny_try (≤80), facts_used[]}`, `reasoning_effort: low`, 6 s timeout, one call for up to 6 places | Used facts must exist; no invented numbers, times or prices; banned themes and step 1 to 3 bounds on the try | Template from facts ("On your compass: coffee. Talking here: often chatty.") |
+| 2d | **READ IT** | Today's menu or event from the place's own page | Extraction with source check | Page text (20 kB), place name, date; schema `{items[] (≤3), hours?, kind}` | Every item must appear in the source text; no allergen or health claims | "See their menu" link only |
 | 3 | **SUGGEST IT** | "Need a topic?" Three ideas that fit you, the place and what's on nearby: "Their flat white is apparently famous. Verdict at 16:00?" | Web search with citations, structured output | `web_search` (at most 1, cached per place for 1 hour), schema `{ideas[{topic, why, citation_url?}]}`, `reasoning_effort: low`; compass lines and place facts as context | `src/rules/grounding.ts`: events need a returned citation; ideas pass SCREEN IT; AI / SUGGESTION, never posted automatically | Hand-written topics by time of day |
 | 4 | **SCREEN IT** | Every topic, reply and place detail checked before anyone sees it, translated FR/EN | Structured output (classification with reasons), translation | `{verdict, category, reason, fr, en}`, `reasoning_effort: minimal`, prompt caching on the house rules | `src/rules/screening.ts` first (contacts, links, handles, length, word list, crisis words); approve or reject, never rewrite | Code rules only |
 | 5 | **PLAN IT** | "Terrace at 15:10 works for all three of you. Confirm?" | Parallel tool calling and planning | `get_signal`, `get_place_spots`, `get_place_hours`, `get_quick_replies`, `draft_meeting_point`; max 4 per turn; `reasoning_effort: medium` | Draft only; the poster confirms with a tap; only this signal and place | The spot and time the poster picked |
@@ -35,7 +37,7 @@ Then the model steps out:
 | Function | Effort | Why |
 |---|---|---|
 | SCREEN IT | minimal | Fast verdict on every post, reply and detail |
-| FIND ME, PLACE IT, SUGGEST IT, SNAP IT | low | Search, extraction and short drafts |
+| FIND ME, PLACE IT, SUGGEST IT, WHY GO, READ IT, SNAP IT | low | Search, extraction and short drafts |
 | PLAN IT | medium | Combines several tool results into one proposal |
 | Evaluation runs | high | Judge-style checks |
 
@@ -46,13 +48,15 @@ Then the model steps out:
 - SCREEN IT: rejects dating lines, phone numbers and handles, selling, insults, and abusive place edits; approves ordinary French and English; never rewrites.
 - SUGGEST IT: an event without a returned citation is dropped.
 - PLAN IT: never returns "sent"; only real spots; respects capacity.
+- WHY GO: every used fact exists; invented prices, features and flirting tries rejected.
+- READ IT: items absent from the source page are dropped.
 - Crisis words bypass the model.
 
 ## The demo, beat by beat (3 minutes)
 
 | Time | Beat | Capability on screen |
 |---|---|---|
-| 0:00 | Home: GET OUTSIDE. MEET PEOPLE. One try typed out, tried for real at the place: NO REPLY, answered kindly, and the plant gains a coloured leaf. NEXT TIME: SAME STEP, with TRY IT's "why this one". | TRY IT |
+| 0:00 | Home: GET OUTSIDE. MEET PEOPLE. GROW INSIDE. One try typed out, tried for real at the place: NO REPLY, answered kindly, and the plant gains a coloured leaf. NEXT TIME: SAME STEP, with TRY IT's "why this one". | TRY IT |
 | 0:12 | GET STARTED: "Want a head start?" YES. Three findings with sources, one NOT ME (a namesake). The compass in three lines. LOOKS RIGHT. | FIND ME (web search, structured output) |
 | 0:35 | And when you're somewhere with others: ARRIVE, share location, pick the café. Then the failure case: "the lake", search by name works. | None, on purpose |
 | 0:50 | THE PLACE: hours and menu fetched with sources; one price is wrong: FIX IT, +5 place points (private). | PLACE IT (parallel tools) |

@@ -10,6 +10,11 @@ export interface MapPlace {
   kind: PlaceKind;
   /** Used to measure distance in the request. Only OSM's may be stored (see coordsStorable). */
   point: Point;
+  /** The place's own site, when the provider lists one: READ IT's way in. */
+  website?: string | null;
+  /** Public contact details from the listing: shown on the card, never stored. */
+  phone?: string | null;
+  hours?: string | null;
 }
 
 export const PROVIDER_TIMEOUT_MS = 5000;

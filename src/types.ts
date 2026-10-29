@@ -138,8 +138,8 @@ export interface LoginTokenRow {
   used_at: IsoDateTime | null;
 }
 
-export type CompassPart = "interest" | "talk_about" | "more_of" | "filter";
-export type CompassOrigin = "find_me" | "questions" | "edit";
+export type CompassPart = "interest" | "intention" | "filter" | "delivery" | "action";
+export type CompassOrigin = "find_me" | "questions" | "edit" | "feedback" | "suggest" | "delivery";
 
 export interface CompassItemRow {
   id: string;
@@ -155,14 +155,18 @@ export interface CompassItemRow {
 export interface CompassChangeRow {
   id: string;
   user_id: string;
-  before: string;
-  after: string;
+  kind: "line" | "remove";
+  line_id: string | null;
+  before: string | null;
+  after: string | null;
   words: string;
-  confirmed_at: IsoDateTime;
+  feedback_ref: string | null;
+  proposed_at: IsoDateTime;
+  confirmed_at: IsoDateTime | null;
   undone_at: IsoDateTime | null;
 }
 
-export type PlaceKind = "cafe" | "bar" | "coworking" | "library" | "other";
+export type PlaceKind = "cafe" | "bar" | "coworking" | "library" | "food" | "shop" | "outdoors" | "culture" | "sport" | "other";
 export type PlaceStatus = "new" | "active" | "hidden";
 
 export interface PlaceRow {
@@ -370,7 +374,7 @@ export interface MomentRow {
   label: string;
 }
 
-export type WorkingsFunction = "findme" | "place" | "suggest" | "screen" | "plan" | "snap";
+export type WorkingsFunction = "findme" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it" | "why_go" | "read_it";
 
 export interface WorkingRow {
   id: string;

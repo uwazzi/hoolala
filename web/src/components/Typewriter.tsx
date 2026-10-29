@@ -5,7 +5,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-export function Typewriter({ lead, title, meta, children }: { lead: string; title: string; meta?: string | null; children?: ComponentChildren }) {
+export function Typewriter({ lead, title, meta, why, children }: { lead: string; title: string; meta?: string | null; why?: string | null; children?: ComponentChildren }) {
   const [typed, setTyped] = useState(0);
   const total = lead.length + title.length;
   useEffect(() => {
@@ -37,6 +37,7 @@ export function Typewriter({ lead, title, meta, children }: { lead: string; titl
         {!done && typed > lead.length && <span class="lcd-cursor" aria-hidden="true" />}
       </div>
       {meta && done && <div class="says-meta keys-rise">{meta}</div>}
+      {why && done && <div class="says-why keys-rise">Why this one: {why}</div>}
       {done && children}
     </>
   );

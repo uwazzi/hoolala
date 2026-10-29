@@ -6,6 +6,7 @@ import { useEffect } from "preact/hooks";
 import { Friends } from "./pages/Friends";
 import { Home } from "./pages/Home";
 import { Join } from "./pages/Join";
+import { Around } from "./pages/Around";
 import { Arrive } from "./pages/Arrive";
 import { Compass } from "./pages/Compass";
 import { Here } from "./pages/Here";
@@ -54,6 +55,7 @@ function App() {
       <Route path="/friends/join" component={Join} />
       <Route path="/friends" component={Friends} />
       <Route path="/signin" component={SignIn} />
+      <Route path="/around" component={Around} />
       <Route path="/arrive" component={Arrive} />
       <Route path="/start" component={Start} />
       <Route path="/surprise" component={Surprise} />

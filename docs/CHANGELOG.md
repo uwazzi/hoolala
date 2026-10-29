@@ -1,8 +1,15 @@
 # Hoolala! changelog
 
+## 2026-10-29: v6.1, the rest of the app as clear as the home
+
+- **Navigation and Here (WP31b):** softkeys TODAY · AROUND · FRIENDS on every top-level screen; duplicate POST ONE removed; typed headline; talking meter; I'M LEAVING opens the talking rating.
+- **Around me (WP32):** first screen reworked (idle radar, promise, compass line, thumb-zone ONE LOOK AROUND, scan in place); scan within 500 m, widened only by a tap (1 km, 2 km); cards by fit with "why go", a tiny try for the place and today's menu or event from the place's own page; talking rating from verified visits, shown from 3 ratings, about the place never people; location used once.
+- **Compass (WP33):** four directions with a needle; a source on every line; plain-words changes with BEFORE / AFTER and UNDO; first-time reveal; MY COMPASS on Today; optional COMPASS? row after a try. Four collection routes, all confirmed by the person.
+- **Surprise me (WP34):** hold the pixel mic in the thumb zone; the ball shows asking, listening and thinking; captions always on; each answer becomes a compass line only after KEEP; SOUND ON / OFF; typing fallback without a mic.
+
 ## 2026-10-29: Tiny tries lead (v6)
 
-- **Decision:** the first screen says why Hoolala! exists: GET OUTSIDE. MEET PEOPLE. The daily **tiny try** is the hero; Signals here becomes the second path ("At a café or coworking? See who here would like to talk"). Reverses the 27 Oct decision. Reason: first user test (Sylvie) did not know what to do on opening the app.
+- **Decision:** the first screen says why Hoolala! exists: GET OUTSIDE. MEET PEOPLE. GROW INSIDE. The daily **tiny try** is the hero; Signals here becomes the second path ("At a café or coworking? See who here would like to talk"). Reverses the 27 Oct decision. Reason: first user test (Sylvie) did not know what to do on opening the app.
 - **Small talk (rule 14) moves from ROADMAP into the build**, simplified: GET A TRY > GO > TELL ME on one screen. Four honest answers: WENT WELL, NO REPLY, AWKWARD BUT DONE, DIDN'T HAPPEN. Then NEXT TIME: GENTLER / SAME STEP / BRAVER, with a suggestion the person can ignore. The guess and plot twist move to ROADMAP.
 - **The plant (private):** one leaf per try (went well, no reply, awkward); nothing for didn't happen; every third leaf flowers. Never wilts, no streaks, no reminders. Colour appears only in the plant (rule 42).
 - **Hoolala! types:** prompts appear letter by letter; keys rise in after (rule 43).

@@ -16,17 +16,45 @@ export interface NewTry {
   id: string;
   userId: string;
   step: number;
-  libraryId: string;
+  source: "library" | "try_it";
+  libraryId: string | null;
   placeKind: string;
   outcome: string;
+  title: string | null;
+  hint: string | null;
+  why: string | null;
   createdAt: string;
 }
 
 export async function recordTry(db: D1Database, t: NewTry): Promise<void> {
   await db
-    .prepare("INSERT INTO tries (id, user_id, step, source, library_id, place_kind, outcome, created_at) VALUES (?, ?, ?, 'library', ?, ?, ?, ?)")
-    .bind(t.id, t.userId, t.step, t.libraryId, t.placeKind, t.outcome, t.createdAt)
+    .prepare("INSERT INTO tries (id, user_id, step, source, library_id, place_kind, outcome, title, hint, why, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(t.id, t.userId, t.step, t.source, t.libraryId, t.placeKind, t.outcome, t.title, t.hint, t.why, t.createdAt)
     .run();
+}
+
+export async function lastOutcomes(db: D1Database, userId: string, limit: number): Promise<string[]> {
+  const res = await db.prepare("SELECT outcome FROM tries WHERE user_id = ? ORDER BY created_at DESC LIMIT ?").bind(userId, limit).all<{ outcome: string }>();
+  return res.results.map((r) => r.outcome);
+}
+
+export interface TryRow {
+  id: string;
+  user_id: string;
+  step: number;
+  source: string;
+  library_id: string | null;
+  place_kind: string;
+  outcome: string;
+  title: string | null;
+  hint: string | null;
+  why: string | null;
+  created_at: string;
+}
+
+/** One recorded try, owner only. Powers the COMPASS? fix-up from a debrief. */
+export async function getTry(db: D1Database, userId: string, id: string): Promise<TryRow | null> {
+  return await db.prepare("SELECT * FROM tries WHERE id = ? AND user_id = ?").bind(id, userId).first<TryRow>();
 }
 
 export async function tryCounts(db: D1Database, userId: string): Promise<{ tries: number; leaves: number }> {

@@ -56,6 +56,7 @@ describe("tiny tries", () => {
     const first = await (await call(env, "GET", "/api/tries/today", ana)).json();
     expect(first.step).toBe(1);
     expect(first.try.step).toBe(1);
+    expect(first.try.source).toBe("library");
     const cafe = await (await call(env, "GET", "/api/tries/today?place=cafe", ana)).json();
     expect(cafe.try.place).toBe("cafe");
     const other = await (await call(env, "GET", "/api/tries/today?skip=1", ana)).json();
@@ -124,6 +125,86 @@ describe("tiny tries", () => {
     await call(env, "POST", "/api/tries", ben, { libraryId: "1-anywhere", outcome: "went_well" });
     expect(await (await call(env, "GET", "/api/me/plant", ana)).json()).toEqual({ tries: 4, leaves: 3, step: 1 });
     expect(await (await call(env, "GET", "/api/me/plant", ben)).json()).toEqual({ tries: 1, leaves: 1, step: 1 });
+  });
+
+  describe("with the model on", () => {
+    const AI = { LLM_ENABLED: "true", META_API_KEY: "test-meta-key", META_API_BASE: "https://api.meta.test/v1", MUSE_SPARK_MODEL: "muse-spark-1.3" };
+    const DRAFT = {
+      title: "SMILE AT THREE PEOPLE.",
+      hint: "A SMILE IS ENOUGH. A NOD COUNTS TOO.",
+      step: 1,
+      words_max: 0,
+      minutes: 2,
+      asks_of_other: "none",
+      place_kind: "anywhere",
+      why: "Step 1 keeps it silent-friendly.",
+    };
+    const SCREEN_OK = { verdict: "approve", category: "none", lang: "en", en: "fine", fr: "bien" };
+    let answers: unknown[];
+
+    beforeEach(() => {
+      answers = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (url: string) => {
+          if (!String(url).includes("api.meta.test")) return Response.json({ elements: [] });
+          const answer = answers.shift();
+          const content = answer === "garbage" ? "not json" : JSON.stringify(answer);
+          return Response.json({ choices: [{ message: { content } }], usage: { prompt_tokens: 100, completion_tokens: 50 } });
+        }),
+      );
+    });
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("offers a fresh try with its why, else today's library try", async () => {
+      const env = testEnv({ ...AI });
+      const ana = await person(env, "Ana");
+      answers = [DRAFT, SCREEN_OK];
+      const fresh = await (await call(env, "GET", "/api/tries/today", ana)).json();
+      expect(fresh.try.source).toBe("try_it");
+      expect(fresh.try.why).toBe(DRAFT.why);
+      answers = ["garbage"];
+      const fallback = await (await call(env, "GET", "/api/tries/today", ana)).json();
+      expect(fallback.try.source).toBe("library");
+    });
+
+    it("stores try_it drafts re-checked, with the code-assigned step", async () => {
+      const env = testEnv({ ...AI });
+      const ana = await person(env, "Ana");
+      setStep(env, ana, 3);
+      const res = await call(env, "POST", "/api/tries", ana, { source: "try_it", draft: { ...DRAFT, step: 3, place_kind: "anywhere" }, outcome: "went_well" });
+      expect(res.status).toBe(200);
+      const row = env.DB.sqlite.prepare("SELECT step, source, title, why FROM tries WHERE user_id = ?").get(ana.id) as {
+        step: number;
+        source: string;
+        title: string;
+        why: string;
+      };
+      expect(row).toEqual({ step: 3, source: "try_it", title: DRAFT.title, why: DRAFT.why });
+      expect((await call(env, "POST", "/api/tries", ana, { source: "try_it", draft: { ...DRAFT, step: 3, minutes: 30 }, outcome: "went_well" })).status).toBe(400);
+      expect(
+        (await call(env, "POST", "/api/tries", ana, { source: "try_it", draft: { ...DRAFT, step: 3, hint: "Tell her she looks sexy." }, outcome: "went_well" })).status,
+      ).toBe(422);
+    });
+  });
+
+  it("returns the try id on record, and the try with its title for its owner", async () => {
+    const env = testEnv();
+    const ana = await person(env, "Ana");
+    const ben = await person(env, "Ben");
+    const recorded = await (await call(env, "POST", "/api/tries", ana, { libraryId: "1-anywhere", outcome: "awkward" })).json();
+    expect(typeof recorded.try_id).toBe("string");
+    const one = await (await call(env, "GET", `/api/tries/${recorded.try_id}`, ana)).json();
+    // The outcome alone creates no compass line and no change.
+    expect(env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM compass_items WHERE user_id = ?").get(ana.id)).toEqual({ n: 0 });
+    expect(env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM compass_changes WHERE user_id = ?").get(ana.id)).toEqual({ n: 0 });
+    expect(one.try.outcome).toBe("awkward");
+    expect(typeof one.try.title).toBe("string");
+    expect(one.try.title.length).toBeGreaterThan(0);
+    expect((await call(env, "GET", `/api/tries/${recorded.try_id}`, ben)).status).toBe(404);
+    expect((await call(env, "GET", "/api/tries/00000000-0000-0000-0000-000000000000", ana)).status).toBe(404);
   });
 
   it("delete account removes the tries", async () => {

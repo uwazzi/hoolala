@@ -16,10 +16,11 @@ export const MAX_AUDIO_BYTES = 2_000_000;
 
 export const OPENING = "Hi, I'm Hoolala! What could you talk about for an hour?";
 
-// The no-AI conversation: same opening, then these, in order.
+// The no-AI conversation: same opening, then these, in order. Every
+// direction is covered; the model still asks about making things too.
 export const SCRIPTED = [
   OPENING,
-  "What are you making or working on at the moment?",
+  "When do you like to be out, and alone or with others?",
   "Who or what has inspired you lately?",
   "What would you like more of in your week?",
   "Anything you'd rather not talk about?",
@@ -101,13 +102,17 @@ export function cleanIdeas(raw: unknown): string[] {
   return out;
 }
 
-// Passions, projects, inspiration, more of, rather not (the labels the reveal shows).
-const SCRIPTED_PART = ["interest", "talk_about", "more_of", "more_of", "filter"] as const;
+// Passions, going out, inspiration, more of, rather not: TALK ABOUT,
+// HOW I GO, MORE OF twice, LESS OF. Every direction is covered.
+const SCRIPTED_PART = ["interest", "delivery", "intention", "intention", "filter"] as const;
 
 function partFor(q: string): CompassLine["part"] {
   const i = SCRIPTED.indexOf(q);
   if (i >= 0) return SCRIPTED_PART[i];
-  return /rather not|avoid|steer clear|not talk/i.test(q) ? "filter" : "interest";
+  if (/rather not|avoid|steer clear|not talk|less of|never/i.test(q)) return "filter";
+  if (/\bmore\b|\bwant\b|again/i.test(q)) return "intention";
+  if (/walk|near|morning|evening|weekend|alone|group|gentl|low-key|quiet|small|how often|how do you/i.test(q)) return "delivery";
+  return "interest";
 }
 
 /** Without the model: each answer, split on commas, under its question's part. */

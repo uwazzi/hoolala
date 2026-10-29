@@ -15,12 +15,17 @@ export interface PlantState {
 }
 
 interface LibraryTryView {
-  id: string;
+  id: string | null;
   step: number;
   place: string;
   title: string;
   hint: string;
   meta: string;
+  source: "library" | "try_it";
+  why: string | null;
+  minutes?: number;
+  words_max?: number;
+  asks_of_other?: string;
 }
 
 type OutcomeKind = "went_well" | "no_reply" | "awkward" | "didnt_happen";
@@ -50,7 +55,7 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
   const [pick, setPick] = useState(0);
   const [current, setCurrent] = useState<LibraryTryView | null>(null);
   const [note, setNote] = useState("");
-  const [debrief, setDebrief] = useState<{ kind: OutcomeKind; suggestion: -1 | 0 | 1; grew: number } | null>(null);
+  const [debrief, setDebrief] = useState<{ kind: OutcomeKind; suggestion: -1 | 0 | 1; grew: number; tryId: string | null } | null>(null);
   const [lastOutcome, setLastOutcome] = useState<OutcomeKind | null>(null);
   const [moved, setMoved] = useState(0);
   const [next, setNext] = useState<-1 | 0 | 1>(0);
@@ -73,18 +78,34 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
   async function tell(kind: OutcomeKind) {
     if (!current) return;
     setNote("");
-    const res = await api<{ step: number; leaves: number; grew: number; suggestion: -1 | 0 | 1 }>("POST", "/api/tries", {
-      libraryId: current.id,
-      placeKind: place,
-      outcome: kind,
-    });
+    const res = await api<{ try_id: string; step: number; leaves: number; grew: number; suggestion: -1 | 0 | 1 }>(
+      "POST",
+      "/api/tries",
+      current.source === "try_it"
+        ? {
+            source: "try_it",
+            draft: {
+              title: current.title,
+              hint: current.hint,
+              step: current.step,
+              words_max: current.words_max,
+              minutes: current.minutes,
+              asks_of_other: current.asks_of_other,
+              place_kind: place,
+              why: current.why,
+            },
+            placeKind: place,
+            outcome: kind,
+          }
+        : { libraryId: current.id, placeKind: place, outcome: kind },
+    );
     if (res.status !== 200) {
       setNote("That didn't save. Try again?");
       return;
     }
     const counts = await api<PlantState>("GET", "/api/me/plant");
     if (counts.status === 200) onPlant(counts.data);
-    setDebrief({ kind, suggestion: res.data.suggestion, grew: res.data.grew });
+    setDebrief({ kind, suggestion: res.data.suggestion, grew: res.data.grew, tryId: res.data.try_id ?? null });
     setGrew(res.data.grew);
     setNext(res.data.suggestion);
     setLastOutcome(kind);
@@ -123,7 +144,7 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
 
   return (
     <>
-      <div class="goal-bar">Get outside. Meet people.</div>
+      <div class="goal-bar">Get outside. Meet people. Grow inside.</div>
       <div class="plant-meter">
         <Plant leaves={plant.leaves} grew={grew} cell={10} />
         <div>
@@ -151,7 +172,7 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
         {!texts ? (
           <p class="lcd-kicker" role="status">Finding today’s try...</p>
         ) : (
-          <Typewriter key={`${screen}:${current?.id ?? ""}:${pick}:${debrief?.kind ?? ""}`} lead={texts.lead} title={texts.title} meta={texts.meta}>
+          <Typewriter key={`${screen}:${current?.id ?? ""}:${pick}:${debrief?.kind ?? ""}`} lead={texts.lead} title={texts.title} meta={texts.meta} why={screen === "offer" ? current?.why ?? null : null}>
             <div class="try-keys keys-rise">
               {screen === "offer" && (
                 <>
@@ -209,6 +230,12 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
                   {debrief.kind !== "didnt_happen" && (
                     <a class="dashed-link" href="/friends">
                       <span>Tell my friends what happened</span>
+                      <span aria-hidden="true">&gt;</span>
+                    </a>
+                  )}
+                  {debrief.tryId && (
+                    <a class="dashed-link" href={`/compass?fix=${debrief.tryId}`}>
+                      <span>Compass? That try felt off</span>
                       <span aria-hidden="true">&gt;</span>
                     </a>
                   )}

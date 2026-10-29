@@ -4,9 +4,10 @@ import { useEffect, useState } from "preact/hooks";
 import { CITIES } from "../../../src/rules/checkin";
 import type { CheckinView, NearbyPlace, PlaceKind, PlaceSummary } from "../../../src/types";
 import { api } from "../api";
+import { GoodbyeSheet } from "../components/GoodbyeSheet";
 import { Screen } from "../components/Screen";
 
-type Step = "loading" | "signed-out" | "ask" | "locating" | "pick" | "add" | "search" | "checking" | "here";
+type Step = "loading" | "signed-out" | "ask" | "locating" | "pick" | "add" | "search" | "checking" | "here" | "goodbye" | "thanks";
 type Point = { lat: number; lng: number };
 
 const KINDS: { id: PlaceKind; label: string }[] = [
@@ -14,6 +15,11 @@ const KINDS: { id: PlaceKind; label: string }[] = [
   { id: "bar", label: "Bar" },
   { id: "coworking", label: "Coworking" },
   { id: "library", label: "Library" },
+  { id: "food", label: "Food" },
+  { id: "shop", label: "Shops" },
+  { id: "outdoors", label: "Outdoors" },
+  { id: "culture", label: "Culture" },
+  { id: "sport", label: "Sport" },
   { id: "other", label: "Other" },
 ];
 
@@ -71,6 +77,7 @@ export function Arrive() {
   const [step, setStep] = useState<Step>("loading");
   const [note, setNote] = useState("");
   const [here, setHere] = useState<CheckinView | null>(null);
+  const [rated, setRated] = useState(false);
   const [point, setPoint] = useState<Point | null>(null);
   const [nearby, setNearby] = useState<NearbyPlace[]>([]);
   const [name, setName] = useState("");
@@ -177,10 +184,20 @@ export function Arrive() {
     failed(res.data.error);
   }
 
+  /** GOODBYE first: the talking value needs the check-in still open. */
   async function leave() {
+    setRated(false);
+    go("goodbye");
+  }
+
+  async function rate(value: 1 | 2 | 3 | 4 | 5 | null) {
+    if (value !== null && here) {
+      await api("POST", "/api/around/rate", { place_id: here.place.id, value });
+      setRated(true);
+    }
     await api("POST", "/api/checkin/leave");
     setHere(null);
-    go("ask", "You've left. See you next time.");
+    go("thanks");
   }
 
   const searchLink = (
@@ -310,6 +327,18 @@ export function Arrive() {
           <ul class="key-list">
             <li><a class="lcd-key lcd-key--primary" href="/here">What's here?</a></li>
             <li><button class="lcd-key" type="button" onClick={leave}>I'm leaving</button></li>
+          </ul>
+        </>
+      )}
+
+      {step === "goodbye" && here && <GoodbyeSheet placeName={here.place.name} onRate={rate} />}
+
+      {step === "thanks" && (
+        <>
+          <h1 class="screen-title">THANKS. SEE YOU OUT THERE.</h1>
+          <p class="lcd-block">{rated ? "Your rating joins the others for this place. Nobody sees who rated it." : "No rating, no problem."}</p>
+          <ul class="key-list">
+            <li><a class="lcd-key lcd-key--primary" href="/around">Back to around</a></li>
           </ul>
         </>
       )}
