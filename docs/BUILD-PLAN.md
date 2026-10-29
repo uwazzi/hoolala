@@ -219,11 +219,11 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests first: shared voice component; names become roles only; off-list roles dropped; labels rejected to fallback; nothing saved before LOOKS RIGHT; full flow with `LLM_ENABLED=false`; no transcripts in logs.
 
 ### WP37 Your game of tiny tries (v6.2, Sat 31 to Sun 1)
-- [ ] Library fallback first: 24 hand-written tries filled with topic, place and roles; a full game of 9 renders with `LLM_ENABLED=false`, 3 per level, talk and kind in each.
-- [ ] TRY IT game generation: one call for 9 tries `{title, level, kind, who_role, place_kind, why}`; code assigns step and minutes; validator (talk and kind per level, compass roles only, service roles light, no buying, looks, contact details or LESS OF, words_max, UK English, no em dashes); rejected twice swaps in a library try.
-- [ ] Screens: WRITING YOUR GAME checklist; tabs with START HERE on the pace tab; try cards with info line and NEW ONE (never repeats in the game); NEW GAME FROM SCRATCH; safety footnote; pick stores today's try, then Around me or skip. `game_tries` rows, games purged after 7 days; 20 NEW ONE and 3 NEW GAME a day, then the library.
-- [ ] 15 eval cases (5 pass, 10 reject).
-- [ ] Tests first: library game shape; model step ignored; NEW ONE never repeats; every validator rule rejects; limits fall back to library; pick stores today's try.
+- [x] Library fallback first: 24 hand-written tries filled with topic, place and roles; a full game of 9 renders with `LLM_ENABLED=false`, 3 per level, talk and kind in each.
+- [x] TRY IT game generation: one call for 9 tries `{title, level, kind, who_role, place_kind, why}`; code assigns step and minutes; validator (talk and kind per level, compass roles only, service roles light, no buying, looks, contact details or LESS OF, words_max, UK English, no em dashes); rejected twice swaps in a library try.
+- [x] Screens: WRITING YOUR GAME checklist; tabs with START HERE on the pace tab; try cards with info line and NEW ONE (never repeats in the game); NEW GAME FROM SCRATCH; safety footnote; pick stores today's try, then Around me or skip. `game_tries` rows, games purged after 7 days; 20 NEW ONE and 3 NEW GAME a day, then the library.
+- [x] 15 eval cases (5 pass, 10 reject).
+- [x] Tests first: library game shape; model step ignored; NEW ONE never repeats; every validator rule rejects; limits fall back to library; pick stores today's try.
 
 ### WP38 Today, simplified (v6.2, Fri 30)
 - [ ] Home per spec: compact plant row, TODAY'S TRY · STEP n typed with hint and FROM YOUR COMPASS >, LET'S GO with ANOTHER ONE and NOT TODAY; motto, big plant card, MY COMPASS box, DARE A FRIEND, WHERE? chips, Around link and TELL MY FRIENDS removed.

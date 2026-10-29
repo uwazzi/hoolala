@@ -4,6 +4,7 @@ import { render } from "preact";
 import { LocationProvider, Route, Router, useLocation } from "preact-iso";
 import { useEffect } from "preact/hooks";
 import { Friends } from "./pages/Friends";
+import { Game } from "./pages/Game";
 import { Home } from "./pages/Home";
 import { Join } from "./pages/Join";
 import { Around } from "./pages/Around";
@@ -57,6 +58,7 @@ function App() {
       <Route path="/around" component={Around} />
       <Route path="/arrive" component={Arrive} />
       <Route path="/surprise" component={Surprise} />
+      <Route path="/game" component={Game} />
       <Route path="/compass" component={Compass} />
       <Route path="/here" component={Here} />
       <Route path="/meet" component={Meet} />

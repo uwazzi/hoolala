@@ -3,7 +3,7 @@
 // Anything failing any gate returns null and the caller uses the library.
 
 import { STEP_NAMES } from "../content/tries";
-import { validateTry, type Ask, type TryDraft } from "../rules/tries";
+import { validateTry, type Ask, type GameKind, type GameLevel, type TryDraft } from "../rules/tries";
 import type { Env } from "../types";
 import { structured, writeWorking } from "./client";
 import { screenWithModel } from "./screen";
@@ -89,4 +89,138 @@ export async function draftTry(env: Env, userId: string, ask: Ask): Promise<TryD
   }
   await writeWorking(env, { userId, fn: "try_it", tools: [], verdict: "approved", effort: "low" });
   return res.value;
+}
+
+// ---- WP37: the game. One call writes nine tries, or one replacement.
+// Shape-checked here; the game rules (src/rules/tries.ts) accept or reject
+// each try, and rejected ones become library tries, never rewrites.
+
+export interface GameDraftTry {
+  title: string;
+  level: GameLevel;
+  kind: GameKind;
+  who_role: string | null;
+  place_kind: string | null;
+  step?: unknown;
+}
+
+export interface GameInput {
+  talkAbout: string | null;
+  moreOf: string | null;
+  howIGo: string | null;
+  lessOf: string[];
+  roles: { role: string; roleClass: string }[];
+}
+
+const GAME_SYSTEM = `You write a personal game of nine tiny real-world tries: three each in SOFT, BRAVE and BOLD. Each level mixes SMALL TALK (talk) and KIND IT (kind: small acts of kindness). Personalise with the person's topic, place and the people in their days: who_role is a role from their list or null for a stranger (never a name).
+Public everyday places only. BOLD stays public. Never flirting or dating, looks or clothing, contact details, touch, following, filming, children other than their own, money or buying, late-night drinking, or private places. Kindness is words, help or something from home, never buying. Service people only in light tries: never about their private life, never asked to leave their work.
+UK English, no em dashes. Each title: one try in plain words, at most 24 words. level exactly soft, brave or bold, three of each; kind exactly talk or kind. why: one short reason this try fits them. Never set step: code assigns it. Answer with the JSON schema only.`;
+
+const NEW_ONE_SYSTEM = `You write one replacement tiny real-world try at the given level and kind, never one of the excluded titles. who_role is a role from the person's list or null for a stranger (never a name).
+Public everyday places only. Never flirting or dating, looks or clothing, contact details, touch, following, filming, children other than their own, money or buying, late-night drinking, or private places. Kindness is words, help or something from home, never buying. Service people only in light tries: never about their private life, never asked to leave their work.
+UK English, no em dashes. The title: one try in plain words, at most 24 words. why: one short reason this try fits them. Never set step: code assigns it. Answer with the JSON schema only.`;
+
+const TRY_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    title: { type: "string" },
+    level: { type: "string" },
+    kind: { type: "string" },
+    who_role: { type: ["string", "null"] },
+    place_kind: { type: ["string", "null"] },
+    why: { type: "string" },
+  },
+  required: ["title", "level", "kind", "who_role", "place_kind", "why"],
+};
+
+const GAME_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: { tries: { type: "array", items: TRY_SCHEMA } },
+  required: ["tries"],
+};
+
+const LEVELS = ["soft", "brave", "bold"];
+const KINDS = ["talk", "kind"];
+
+/** Shape only; the game rules decide each try. */
+export function validateGameDraft(value: unknown): GameDraftTry[] | null {
+  if (!value || typeof value !== "object") return null;
+  const tries = (value as Record<string, unknown>).tries;
+  if (!Array.isArray(tries) || tries.length !== 9) return null;
+  const out: GameDraftTry[] = [];
+  for (const t of tries) {
+    if (!t || typeof t !== "object") return null;
+    const r = t as Record<string, unknown>;
+    if (typeof r.title !== "string" || !r.title.trim()) return null;
+    if (!LEVELS.includes(r.level as string) || !KINDS.includes(r.kind as string)) return null;
+    if (r.who_role !== null && typeof r.who_role !== "string") return null;
+    if (r.place_kind !== null && typeof r.place_kind !== "string") return null;
+    if (typeof r.why !== "string" || !r.why.trim()) return null;
+    out.push({ title: r.title.trim(), level: r.level as GameLevel, kind: r.kind as GameKind, who_role: r.who_role, place_kind: r.place_kind, step: r.step });
+  }
+  return out;
+}
+
+/** Shape only; the game rules decide the try. */
+export function validateNewOneDraft(value: unknown): GameDraftTry | null {
+  if (!value || typeof value !== "object") return null;
+  const r = value as Record<string, unknown>;
+  if (typeof r.title !== "string" || !r.title.trim()) return null;
+  if (!LEVELS.includes(r.level as string) || !KINDS.includes(r.kind as string)) return null;
+  if (r.who_role !== null && typeof r.who_role !== "string") return null;
+  if (r.place_kind !== null && typeof r.place_kind !== "string") return null;
+  if (typeof r.why !== "string" || !r.why.trim()) return null;
+  return { title: r.title.trim(), level: r.level as GameLevel, kind: r.kind as GameKind, who_role: r.who_role, place_kind: r.place_kind, step: r.step };
+}
+
+function gameUser(input: GameInput): string {
+  const lines = [
+    `TALK ABOUT: ${input.talkAbout ?? "unknown"}.`,
+    `MORE OF: ${input.moreOf ?? "unknown"}.`,
+    `HOW I GO: ${input.howIGo ?? "unknown"}.`,
+    input.lessOf.length > 0 ? `LESS OF (never these): ${input.lessOf.join("; ")}.` : "LESS OF: none.",
+    input.roles.length > 0 ? `People: ${input.roles.map((r) => `${r.role} (${r.roleClass})`).join(", ")}.` : "People: none named.",
+  ];
+  return lines.join("\n");
+}
+
+export async function draftGameTries(env: Env, userId: string, input: GameInput): Promise<GameDraftTry[] | null> {
+  const res = await structured<GameDraftTry[]>(env, {
+    purpose: "try_it",
+    system: GAME_SYSTEM,
+    user: gameUser(input),
+    schemaName: "game",
+    schema: GAME_SCHEMA,
+    validate: validateGameDraft,
+    effort: "low",
+    timeoutMs: 8000,
+    maxTokens: 1500,
+  });
+  await writeWorking(env, { userId, fn: "try_it", tools: [], verdict: res.ok ? "approved: shape" : `rejected: ${res.reason}`, effort: "low" });
+  return res.ok ? res.value : null;
+}
+
+export async function draftNewOneTry(
+  env: Env,
+  userId: string,
+  input: GameInput,
+  level: GameLevel,
+  kind: GameKind,
+  exclude: string[],
+): Promise<GameDraftTry | null> {
+  const res = await structured<GameDraftTry>(env, {
+    purpose: "try_it",
+    system: NEW_ONE_SYSTEM,
+    user: `${gameUser(input)}\nLevel: ${level}. Kind: ${kind}.\nExcluded titles (never repeat): ${exclude.length > 0 ? exclude.join(" | ") : "none"}.`,
+    schemaName: "new_one",
+    schema: TRY_SCHEMA,
+    validate: validateNewOneDraft,
+    effort: "low",
+    timeoutMs: 8000,
+    maxTokens: 400,
+  });
+  await writeWorking(env, { userId, fn: "try_it", tools: [], verdict: res.ok ? "approved: shape" : `rejected: ${res.reason}`, effort: "low" });
+  return res.ok ? res.value : null;
 }

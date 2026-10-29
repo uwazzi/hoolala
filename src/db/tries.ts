@@ -64,3 +64,62 @@ export async function tryCounts(db: D1Database, userId: string): Promise<{ tries
     .first<{ tries: number; leaves: number | null }>();
   return { tries: row?.tries ?? 0, leaves: row?.leaves ?? 0 };
 }
+
+export interface GameTryRow {
+  id: string;
+  user_id: string;
+  game_id: string;
+  level: string;
+  step: number;
+  kind: string;
+  who_role: string | null;
+  title: string;
+  source: string;
+  created_at: string;
+  picked_at: string | null;
+}
+
+export interface NewGameTry {
+  id: string;
+  userId: string;
+  gameId: string;
+  level: string;
+  step: number;
+  kind: string;
+  whoRole: string | null;
+  title: string;
+  source: "ai" | "library";
+  createdAt: string;
+}
+
+export async function saveGameTries(db: D1Database, rows: NewGameTry[]): Promise<void> {
+  await db.batch(
+    rows.map((t) =>
+      db
+        .prepare("INSERT INTO game_tries (id, user_id, game_id, level, step, kind, who_role, title, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        .bind(t.id, t.userId, t.gameId, t.level, t.step, t.kind, t.whoRole, t.title, t.source, t.createdAt),
+    ),
+  );
+}
+
+export async function gameBelongs(db: D1Database, userId: string, gameId: string): Promise<boolean> {
+  const row = await db.prepare("SELECT 1 AS ok FROM game_tries WHERE user_id = ? AND game_id = ? LIMIT 1").bind(userId, gameId).first<{ ok: number }>();
+  return row !== null;
+}
+
+/** Picking stores today's try. Owner only; null when the try isn't theirs. */
+export async function pickGameTry(db: D1Database, userId: string, id: string, pickedAt: string): Promise<GameTryRow | null> {
+  await db.prepare("UPDATE game_tries SET picked_at = ? WHERE id = ? AND user_id = ?").bind(pickedAt, id, userId).run();
+  return await db.prepare("SELECT * FROM game_tries WHERE id = ? AND user_id = ?").bind(id, userId).first<GameTryRow>();
+}
+
+export async function latestPickedGameTry(db: D1Database, userId: string): Promise<GameTryRow | null> {
+  return await db
+    .prepare("SELECT * FROM game_tries WHERE user_id = ? AND picked_at IS NOT NULL ORDER BY picked_at DESC LIMIT 1")
+    .bind(userId)
+    .first<GameTryRow>();
+}
+
+export async function purgeOldGames(db: D1Database, beforeIso: string): Promise<void> {
+  await db.prepare("DELETE FROM game_tries WHERE created_at < ?").bind(beforeIso).run();
+}
