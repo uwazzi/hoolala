@@ -40,7 +40,7 @@ export function Home() {
       </div>
       {!me ? (
         <>
-          <h1 class="hero-display">Get outside. Meet people.</h1>
+          <h1 class="hero-display">Get outside. Meet people. Grow inside.</h1>
           <p class="hero-line">One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always.</p>
           <ul class="key-list">
             <li>
@@ -55,7 +55,7 @@ export function Home() {
         <TryFlow plant={plant} onPlant={setPlant} />
       ) : (
         <>
-          <h1 class="hero-display">Get outside. Meet people.</h1>
+          <h1 class="hero-display">Get outside. Meet people. Grow inside.</h1>
           <p class="hero-line">One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always.</p>
           <div class="plant-card">
             <Plant leaves={plant?.leaves ?? 0} cell={8} />

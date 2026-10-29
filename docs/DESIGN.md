@@ -10,7 +10,7 @@ This system is the visual **and interaction** source of truth for every Hoolala!
 
 > The tagline "You never know until you go." always sits directly under the HOOLALA! name. It is the only brand line. The positioning line "Your data. Your choice. Your attention." is used for Go App-Free, the pitch and the README, never under the logo. "Less screen. More life." is retired and must not be used.
 >
-> Version 6 (29 Oct 2026): the first screen says GET OUTSIDE. MEET PEOPLE. and offers today's **tiny try**; small talk (rule 14) is in the build, adapted by TRY IT within code-set bounds; the private plant; Friends (invite and crew timeline). Signals here stays, as the second path. New rules 42 to 45.
+> Version 6 (29 Oct 2026): the first screen says GET OUTSIDE. MEET PEOPLE. GROW INSIDE. and offers today's **tiny try**; small talk (rule 14) is in the build, adapted by TRY IT within code-set bounds; the private plant; Friends (invite and crew timeline). Signals here stays, as the second path. New rules 42 to 45.
 >
 > Version 5 (27 Oct 2026): a venue is now **any place**, no host needed. FIND ME (onboarding from the public footprint, with consent) brings the Personal Compass back; check-in is share location, pick or ADD THIS PLACE; PLACE IT fetches place details people confirm for **place points** (private). New: FootprintCheck, PlaceCard; VenueCheckIn becomes PlaceCheckIn.
 >
@@ -140,7 +140,11 @@ The interaction contract. Every screen, agent reply and API must keep these.
 
 ## The home (v6, today)
 
-**Home (TODAY):** HOOLALA! and the tagline. GET OUTSIDE. MEET PEOPLE. (display, 40 px). One line: "One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always." The plant card (pixel plant, N TINY TRIES, links to My moments). GIVE ME TODAY'S TRY > (primary). INVITE A FRIEND TOO > (secondary). Softkeys TODAY / FRIENDS. After GIVE ME TODAY'S TRY, the one-screen flow of rule 14 with the goal bar, the plant and step meter, the three-step path (current solid, done shaded, next dashed) and the typed HOOLALA! SAYS block. Signals here is a dashed link at the bottom of the flow.
+**Home (TODAY):** HOOLALA! and the tagline. GET OUTSIDE. MEET PEOPLE. GROW INSIDE. (display, 40 px). One line: "One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always." The plant card (pixel plant, N TINY TRIES, links to My moments). GIVE ME TODAY'S TRY > (primary). INVITE A FRIEND TOO > (secondary). Softkeys TODAY / FRIENDS. After GIVE ME TODAY'S TRY, the one-screen flow of rule 14 with the goal bar, the plant and step meter, the three-step path (current solid, done shaded, next dashed) and the typed HOOLALA! SAYS block. Signals here is a dashed link at the bottom of the flow.
+
+## The compact header (v6, all screens)
+
+One brand bar, 44 px high: **HOOLALA!** left (Silkscreen 700, 18 px), the tagline right (Space Mono 11 px, secondary ink), 24 px side margins, 2 px dashed bottom border. Replaces the phone-style status bar. Screen names live in the softkeys (TODAY · AROUND · FRIENDS), not the header.
 
 ## Hackathon build and roadmap (29 Oct 2026, v6)
 

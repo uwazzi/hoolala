@@ -123,7 +123,7 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
 
   return (
     <>
-      <div class="goal-bar">Get outside. Meet people.</div>
+      <div class="goal-bar">Get outside. Meet people. Grow inside.</div>
       <div class="plant-meter">
         <Plant leaves={plant.leaves} grew={grew} cell={10} />
         <div>

@@ -74,6 +74,9 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP30): Friends slim: one named crew per person with a shared try (fixed at creation from the creator's step), invite links hashed with 7-day expiry, a new link retires the old one, timeline posts (140 chars, outcome tag, screened like topics), NICE ONE toggle showing first names only. Invite wording (renamed from dare 29 Oct, owner call). Removal or leaving takes the member's stories with them; the last one out closes the crew. Signed-out invitees keep the token on their phone; Friends completes the join after sign-in. Messenger uses the `fb-messenger://share` link (needs the app; no app id for the web dialog). Demo crew for the video ships as `scripts/demo-crew.sql` (owner runs once on staging; public token like the DEMO place code).
 - 2026-10-29 (WP30, types): `CrewRow`, `CrewMemberRow`, `CrewInviteRow`, `CrewPostRow`, `CrewNiceRow` added to the contract.
 
+- 2026-10-29 (v6b): Package round 2 integrated (HANDOFF-v6-around-me for WP32, Here/Around prototypes, compact header). Conflicts resolved: INVITE wording stands over the package's dare (owner call 29 Oct); the package's A/B fork is moot (WP30 shipped full, timeline included); hero gains GROW INSIDE (owner-confirmed 29 Oct); WP32 ships full per owner call.
+- 2026-10-29 (v6b): WHY GO and READ IT join Muse Spark (nine functions), both low effort with validators and template/link fallbacks; scan coordinates never stored.
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.
