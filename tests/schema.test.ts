@@ -33,6 +33,11 @@ const TABLES = [
   "llm_calls",
   "metrics_daily",
   "tries",
+  "crews",
+  "crew_members",
+  "crew_invites",
+  "crew_posts",
+  "crew_nice",
 ];
 
 describe("D1 schema", () => {
