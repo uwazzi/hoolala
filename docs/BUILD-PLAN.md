@@ -44,7 +44,7 @@ If time after Sun 1 (in this order): WP7 share card image, SNAP IT for menu boar
 
 If late, cut in this order: PLAN IT (keep the poster's own spot and time), Google Maps in PLACE IT (keep web search and people's facts), translation in SCREEN IT, SUGGEST IT web search, compass editing in plain words (keep EDIT and REMOVE), Live page animation. Cut order from 29 Oct (v6): WP30 timeline (keep the dare link), then TRY IT generation (keep the validator, the library and the "why" line), then WP31 extras.
 
-Never cut: ARRIVE with location, add place and search by name, Telegram login and email sign-in, FIND ME consent and IS THIS YOU?, the place card with sources and private points, Signals here with server-side audience, anonymity and expiry, I'M CURIOUS and mutual accept, quick replies, block and report, SCREEN IT (at least the code rules), CHECK IT and the eval set, mutual QR, the Live page with the connection rate, crisis message, the prior-work declaration.
+Never cut: ARRIVE with location, add place and search by name, email sign-in, FIND ME consent and IS THIS YOU?, the place card with sources and private points, Signals here with server-side audience, anonymity and expiry, I'M CURIOUS and mutual accept, quick replies, block and report, SCREEN IT (at least the code rules), CHECK IT and the eval set, mutual QR, the Live page with the connection rate, crisis message, the prior-work declaration.
 
 ## Data model (D1)
 
@@ -162,6 +162,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
+> Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. Work kept on branch `wp21/telegram`. Kept here for history.
 - [ ] Location inside the Mini App: Telegram's location API where available, browser geolocation otherwise.
 - [ ] A partner poster QR opens `t.me/<bot>/here?startapp=<slug>_<key>` on phones with Telegram, and the web URL otherwise (the web page shows both options).
 - [ ] Mini App loads the same front end; `POST /api/auth/telegram` verifies `initData` with HMAC-SHA256 using the bot token, checks `auth_date` freshness, creates or finds the user by Telegram id, asks once for the 18+ confirmation, uses the Telegram first name only.

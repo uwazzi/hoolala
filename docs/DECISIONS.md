@@ -61,6 +61,8 @@ One line per decision: date, decision, why. Newest at the bottom.
 
 - 2026-10-29 (v6, DOCS): Tiny tries lead; the home says GET OUTSIDE. MEET PEOPLE. and offers one tiny try a day; Signals here is the second path. TRY IT drafts inside code-set bounds; Friends slim (dare and crew). Reverses the 27 Oct hero decision: the first user test did not know what to do on opening the app. Spec: `docs/HANDOFF-v6.md`.
 
+- 2026-10-29 (v6): WP21 Telegram Mini App moved to ROADMAP (owner-confirmed); the web app is the demo. Work kept on branch `wp21/telegram`.
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.
