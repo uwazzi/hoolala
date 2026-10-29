@@ -1,6 +1,10 @@
 -- WP32 v6.1: places gain culture and sport kinds (theatres, cinemas, museums,
 -- pools, gyms), so the scan lists meeting places of every kind. Rebuilds
 -- the kind CHECK.
+-- Enforcement is off during the rebuild (see 0011): dropping a referenced
+-- table with it on fails the whole migration.
+PRAGMA foreign_keys = OFF;
+DROP TABLE IF EXISTS places_new;
 CREATE TABLE places_new (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
@@ -32,3 +36,4 @@ CREATE UNIQUE INDEX idx_places_code ON places(code) WHERE code IS NOT NULL;
 CREATE UNIQUE INDEX idx_places_google ON places(google_place_id) WHERE google_place_id IS NOT NULL;
 CREATE UNIQUE INDEX idx_places_osm ON places(osm_id) WHERE osm_id IS NOT NULL;
 CREATE INDEX idx_places_city_key ON places(city_key);
+PRAGMA foreign_keys = ON;
