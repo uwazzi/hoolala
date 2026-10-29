@@ -87,10 +87,14 @@ export function Around() {
   const [note, setNote] = useState("");
 
   useEffect(() => {
-    api<{ compass: CompassLine[] }>("GET", "/api/me/compass").then((res) => {
-      if (res.status === 401) return setPhase("signed-out");
-      if (res.status === 200) setCompass(res.data.compass);
-    });
+    api<{ compass: CompassLine[] }>("GET", "/api/me/compass")
+      .then((res) => {
+        if (res.status === 401) return setPhase("signed-out");
+        if (res.status === 200) setCompass(res.data.compass);
+      })
+      .catch(() => {
+        // Offline: the compass box stays hidden, the scan still works.
+      });
   }, []);
 
   const radiusM = RADII[widen];
@@ -119,7 +123,13 @@ export function Around() {
       }
       setSpot(p);
     }
-    const res = await api<{ places: Place[] }>("POST", "/api/around/scan", { ...p, consent: true, widen: atWiden });
+    let res;
+    try {
+      res = await api<{ places: Place[] }>("POST", "/api/around/scan", { ...p, consent: true, widen: atWiden });
+    } catch {
+      setPhase("ask");
+      return setNote("No connection. Try again when you're back online.");
+    }
     if (res.status === 401) return setPhase("signed-out");
     if (res.status !== 200) {
       setPhase("ask");
@@ -136,7 +146,13 @@ export function Around() {
     if (!spot) return;
     setNote("Checking you in...");
     const body = place.external ? { external: place.external, ...spot } : { placeId: place.id, ...spot };
-    const res = await api("POST", "/api/checkin", body);
+    let res;
+    try {
+      res = await api("POST", "/api/checkin", body);
+    } catch {
+      setSpot(null);
+      return setNote("No connection. Try again when you're back online.");
+    }
     setSpot(null); // The borrowed point is dropped, whatever happens next.
     if (res.status === 200) return route("/here");
     setNote(res.status === 401 ? "Sign in first, then check in." : "Check-in didn't work. You may be too far from the door.");
