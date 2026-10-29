@@ -82,7 +82,7 @@ describe("the surprise", () => {
     const lines = cleanSurpriseCompass(
       [
         { part: "interest", text: "Chess" },
-        { part: "talk_about", text: "Your café app" },
+        { part: "interest", text: "Your café app" },
         { part: "interest", text: "Jazz piano" },
         { part: "interest", text: "Introverted cycling" },
       ],
@@ -90,7 +90,7 @@ describe("the surprise", () => {
     );
     expect(lines).toEqual([
       { part: "interest", text: "Chess", sourceUrl: null },
-      { part: "talk_about", text: "Your café app", sourceUrl: null },
+      { part: "interest", text: "Your café app", sourceUrl: null },
     ]);
   });
 
@@ -114,7 +114,7 @@ describe("the surprise", () => {
   it("without the model, turns the answers into 'you said' lines", () => {
     const scripted = [
       { q: SCRIPTED[0], a: "Chess and cycling." },
-      { q: SCRIPTED[1], a: "a café app" },
+      { q: SCRIPTED[1], a: "slow evenings, with one friend" },
       { q: SCRIPTED[3], a: "board game evenings" },
       { q: SCRIPTED[4], a: "work talk" },
       { q: "What got you into chess?", a: "my grandfather" },
@@ -123,11 +123,30 @@ describe("the surprise", () => {
     expect(compassFromTurns(scripted)).toEqual([
       { part: "interest", text: "Chess", sourceUrl: null },
       { part: "interest", text: "cycling", sourceUrl: null },
-      { part: "talk_about", text: "a café app", sourceUrl: null },
-      { part: "more_of", text: "board game evenings", sourceUrl: null },
+      { part: "delivery", text: "slow evenings", sourceUrl: null },
+      { part: "delivery", text: "with one friend", sourceUrl: null },
+      { part: "intention", text: "board game evenings", sourceUrl: null },
       { part: "filter", text: "work talk", sourceUrl: null },
       { part: "interest", text: "my grandfather", sourceUrl: null },
       { part: "filter", text: "football", sourceUrl: null },
+    ]);
+  });
+
+  it("covers every direction across the five scripted questions", () => {
+    const lines = compassFromTurns(SCRIPTED.map((q) => ({ q, a: "slow chess evenings" })));
+    expect(new Set(lines.map((l) => l.part))).toEqual(new Set(["interest", "delivery", "intention", "filter"]));
+  });
+
+  it("feeds inspiration to MORE OF, and model-asked how-questions to HOW I GO", () => {
+    const lines = compassFromTurns([
+      { q: SCRIPTED[2], a: "a street photographer" },
+      { q: "Do you walk to places, or take the bus?", a: "mostly walking" },
+      { q: "What would you want again next week?", a: "slow coffees" },
+    ]);
+    expect(lines).toEqual([
+      { part: "intention", text: "a street photographer", sourceUrl: null },
+      { part: "delivery", text: "mostly walking", sourceUrl: null },
+      { part: "intention", text: "slow coffees", sourceUrl: null },
     ]);
   });
 });

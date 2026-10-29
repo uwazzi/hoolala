@@ -5,7 +5,7 @@
 
 import { triesFor, tryById, type TryPlace } from "../content/tries";
 import { compassTexts } from "../db/compass";
-import { lastOutcomes, recordTry, setUserStep, tryCounts, userStep } from "../db/tries";
+import { getTry, lastOutcomes, recordTry, setUserStep, tryCounts, userStep } from "../db/tries";
 import { draftTry, timeOfDay, validateDraft } from "../llm/tryit";
 import { llmEnabled } from "../llm/client";
 import { suggestNext, validateTry, type Outcome, type Step } from "../rules/tries";
@@ -104,8 +104,9 @@ export async function handleRecordTry(request: Request, env: Env, now = new Date
     stored = { source: "library", libraryId: found.id, title: null, hint: null, why: null };
   }
 
+  const tryId = crypto.randomUUID();
   await recordTry(env.DB, {
-    id: crypto.randomUUID(),
+    id: tryId,
     userId: user.id,
     step,
     source: stored.source,
@@ -119,7 +120,17 @@ export async function handleRecordTry(request: Request, env: Env, now = new Date
   });
   const counts = await tryCounts(env.DB, user.id);
   const leaf = outcome !== "didnt_happen";
-  return json({ ok: true, step, leaves: counts.leaves, grew: leaf ? Math.min(counts.leaves, 9) - 1 : -1, suggestion: suggestNext(step, outcome) });
+  return json({ ok: true, try_id: tryId, step, leaves: counts.leaves, grew: leaf ? Math.min(counts.leaves, 9) - 1 : -1, suggestion: suggestNext(step, outcome) });
+}
+
+/** One recorded try for its owner: title and outcome, for the COMPASS? fix-up. */
+export async function handleTry(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const row = await getTry(env.DB, user.id, id);
+  if (!row) return json({ error: "not_found" }, 404);
+  const lib = row.library_id ? tryById(row.library_id) : null;
+  return json({ try: { id: row.id, title: row.title ?? lib?.title ?? "A tiny try", outcome: row.outcome, created_at: row.created_at } });
 }
 
 export async function handleStep(request: Request, env: Env, now = new Date()): Promise<Response> {

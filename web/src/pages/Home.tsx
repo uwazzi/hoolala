@@ -52,6 +52,12 @@ export function Home() {
               <span class="plant-card-sub">Your plant grows with every one. It never wilts.</span>
             </div>
           </div>
+          {hasCompass && (
+            <a class="dashed-link" href="/compass">
+              <span>My compass</span>
+              <span aria-hidden="true">&gt;</span>
+            </a>
+          )}
           <ul class="key-list">
             <li>
               <button class="lcd-key lcd-key--primary" type="button" onClick={() => plant && setInFlow(true)} disabled={!plant}>
@@ -74,11 +80,6 @@ export function Home() {
             {hasCompass === false && (
               <li>
                 <a class="lcd-key" href="/start">Want a head start?</a>
-              </li>
-            )}
-            {hasCompass && (
-              <li>
-                <a class="lcd-key" href="/compass">My compass</a>
               </li>
             )}
             <li>

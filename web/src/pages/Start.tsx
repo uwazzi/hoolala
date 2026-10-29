@@ -12,7 +12,7 @@ type Step = "ask" | "who" | "looking" | "pick" | "questions" | "drafting" | "dra
 interface Finding { text: string; url: string; source: string }
 interface Line { part: string; text: string; sourceUrl: string | null; source: string }
 
-const PART_LABEL: Record<string, string> = { interest: "Into", talk_about: "Happy to talk about", more_of: "Would like more of", filter: "Rather not talk about" };
+const PART_LABEL: Record<string, string> = { interest: "Talk about", intention: "More of", filter: "Less of", delivery: "How I go", action: "Next time" };
 
 const ERRORS: Record<string, string> = {
   not_you: "Hoolala! only looks you up. Use the name you use online, with your first name in it.",
@@ -203,7 +203,7 @@ export function Start() {
           <p class="lcd-block">That's your compass{me?.firstName ? `, ${me.firstName}` : ""}. Change it any time in My compass.</p>
           <ul class="key-list">
             <li><a class="lcd-key lcd-key--primary" href="/arrive">Where are you?</a></li>
-            <li><a class="lcd-key" href="/compass">My compass</a></li>
+            <li><a class="lcd-key" href="/compass?fresh=1">See my compass</a></li>
           </ul>
         </>
       )}

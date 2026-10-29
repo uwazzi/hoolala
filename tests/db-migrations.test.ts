@@ -54,10 +54,20 @@ describe("migrations with data", () => {
     db.exec("INSERT INTO moments (id, user_id, interaction_id, label) VALUES ('m1', 'u1', 'i1', 'First hello')");
     db.exec("INSERT INTO metrics_daily (place_id, day) VALUES ('p1', '2026-10-29')");
     db.exec("INSERT INTO place_ratings (place_id, user_id, value, visit_date, week, created_at) VALUES ('p1', 'u1', 3, '2026-10-29', '2026-W44', 't')");
+    db.exec("INSERT INTO compass_items (id, user_id, part, text, origin, active, created_at) VALUES ('l1', 'u1', 'talk_about', 'Chess', 'find_me', 1, 't'), ('l2', 'u1', 'more_of', 'Slow mornings', 'questions', 1, 't')");
+    db.exec("INSERT INTO compass_changes (id, user_id, before, after, words, confirmed_at) VALUES ('ch1', 'u1', 'Busy evenings', 'Slow mornings', 'slow mornings', 't')");
     for (const f of files.slice(split)) db.exec(readFileSync(`src/db/migrations/${f}`, "utf8"));
     for (const table of CLOSURE) {
       expect((db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n, table).toBe(1);
     }
+    // WP33: old parts land on the v6.1 lines, origins and the undo log survive.
+    expect(db.prepare("SELECT part, origin FROM compass_items ORDER BY id").all()).toEqual([
+      { part: "interest", origin: "find_me" },
+      { part: "intention", origin: "questions" },
+    ]);
+    expect(db.prepare("SELECT kind, before, proposed_at, confirmed_at FROM compass_changes").all()).toEqual([
+      { kind: "line", before: "Busy evenings", proposed_at: "t", confirmed_at: "t" },
+    ]);
     expect((db.prepare("PRAGMA foreign_key_check").all() as unknown[]).length).toBe(0);
     expect(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE '_mig_backup_%'").all()).toEqual([]);
     db.prepare("INSERT INTO places (id, slug, name, kind, created_at) VALUES ('p2', 's2', 'Cinema', 'culture', 't')").run();

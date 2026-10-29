@@ -190,6 +190,23 @@ describe("tiny tries", () => {
     });
   });
 
+  it("returns the try id on record, and the try with its title for its owner", async () => {
+    const env = testEnv();
+    const ana = await person(env, "Ana");
+    const ben = await person(env, "Ben");
+    const recorded = await (await call(env, "POST", "/api/tries", ana, { libraryId: "1-anywhere", outcome: "awkward" })).json();
+    expect(typeof recorded.try_id).toBe("string");
+    const one = await (await call(env, "GET", `/api/tries/${recorded.try_id}`, ana)).json();
+    // The outcome alone creates no compass line and no change.
+    expect(env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM compass_items WHERE user_id = ?").get(ana.id)).toEqual({ n: 0 });
+    expect(env.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM compass_changes WHERE user_id = ?").get(ana.id)).toEqual({ n: 0 });
+    expect(one.try.outcome).toBe("awkward");
+    expect(typeof one.try.title).toBe("string");
+    expect(one.try.title.length).toBeGreaterThan(0);
+    expect((await call(env, "GET", `/api/tries/${recorded.try_id}`, ben)).status).toBe(404);
+    expect((await call(env, "GET", "/api/tries/00000000-0000-0000-0000-000000000000", ana)).status).toBe(404);
+  });
+
   it("delete account removes the tries", async () => {
     const env = testEnv();
     const ana = await person(env, "Ana");
