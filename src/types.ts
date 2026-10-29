@@ -74,6 +74,7 @@ export interface UserRow {
   deleted_at: IsoDateTime | null;
   is_sample?: number; // migration 0005
   current_step: number; // migration 0006: tiny-try ladder, 1 to 5
+  intro_seen_at: IsoDateTime | null; // migration 0014: onboarding story seen
 }
 
 export interface TryRow {
@@ -139,7 +140,7 @@ export interface LoginTokenRow {
 }
 
 export type CompassPart = "interest" | "intention" | "filter" | "delivery" | "action";
-export type CompassOrigin = "find_me" | "questions" | "edit" | "feedback" | "suggest" | "delivery";
+export type CompassOrigin = "questions" | "edit" | "feedback" | "suggest" | "delivery";
 
 export interface CompassItemRow {
   id: string;
@@ -374,7 +375,7 @@ export interface MomentRow {
   label: string;
 }
 
-export type WorkingsFunction = "findme" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it" | "why_go" | "read_it";
+export type WorkingsFunction = "findme" | "compassdraft" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it" | "why_go" | "read_it";
 
 export interface WorkingRow {
   id: string;
@@ -460,4 +461,5 @@ export interface MeResponse {
   id: string;
   firstName: string | null;
   isAdult: boolean;
+  introSeen: boolean;
 }

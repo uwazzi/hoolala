@@ -1,12 +1,11 @@
-// WP34 Surprise Me voice: five fixed questions, each filling a compass
-// direction; the fifth lands wherever the words point. Pure. Audio is
-// heard, then forgotten: only the words the person sends are used, and
-// only the compass lines they keep are saved, as "you said".
+// Surprise Me voice: three fixed questions, each filling a compass direction.
+// Pure. Audio is heard, then forgotten: only the words the person sends are
+// used, and only the compass lines they confirm are saved, as "you said".
 
 import type { CompassLine } from "./compass";
 import { screenText } from "./screening";
 
-export const MAX_TURNS = 5;
+export const MAX_TURNS = 3;
 export const MAX_QUESTION = 140;
 export const MAX_ANSWER = 300;
 // Muse Voice Transcribe takes mono 16-bit WAV at 16 or 24 kHz. 60 s at 16 kHz is ~1.9 MB.
@@ -22,14 +21,12 @@ export interface SurpriseQuestion {
   part: CompassLine["part"] | null;
 }
 
-// The five questions, in order. The last one is open: its direction is
-// guessed from the person's own words when they answer.
+// The three questions, in order, each filling its direction. Mom Test rules:
+// real past moments, never opinions or futures.
 export const QUESTIONS: SurpriseQuestion[] = [
-  { q: "What could you talk about for an hour?", part: "interest" },
-  { q: "What would you like a little more of?", part: "intention" },
-  { q: "What drains you, or what should I leave alone?", part: "filter" },
-  { q: "When do you like to be out, alone or with others?", part: "delivery" },
-  { q: "Anything else I should know about you?", part: null },
+  { q: "When did you last have a good chat with someone? What about?", part: "interest" },
+  { q: "What did you start, make or get going lately?", part: "intention" },
+  { q: "Who do you bump into in a normal week?", part: "delivery" },
 ];
 
 /** The conversation so far, as the client sends it back. Null when malformed. Skipped questions come back with an empty answer. */

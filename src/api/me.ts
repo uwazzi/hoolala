@@ -1,13 +1,22 @@
 // WP2: the signed-in person. GET /api/me · PATCH /api/me · DELETE /api/me
+// WP35: POST /api/me/intro-seen marks the onboarding story watched or skipped.
 
-import { deleteAccount, setFirstName, sessionIdsForUser } from "../db/auth";
+import { deleteAccount, markIntroSeen, setFirstName, sessionIdsForUser } from "../db/auth";
 import { clearSessionCookie, normalizeFirstName } from "../rules/auth";
 import type { Env, MeResponse, UserRow } from "../types";
 import { json } from "./health";
 import { forgetSessions, getSessionUser } from "./session";
 
 function me(user: UserRow): MeResponse {
-  return { id: user.id, firstName: user.first_name, isAdult: user.is_adult === 1 };
+  return { id: user.id, firstName: user.first_name, isAdult: user.is_adult === 1, introSeen: user.intro_seen_at !== null };
+}
+
+export async function handleIntroSeen(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const seen = now.toISOString();
+  await markIntroSeen(env.DB, user.id, seen);
+  return json(me({ ...user, intro_seen_at: user.intro_seen_at ?? seen }));
 }
 
 export async function handleMe(request: Request, env: Env, now = new Date()): Promise<Response> {

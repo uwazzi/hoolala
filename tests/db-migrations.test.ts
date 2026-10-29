@@ -60,9 +60,8 @@ describe("migrations with data", () => {
     for (const table of CLOSURE) {
       expect((db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n, table).toBe(1);
     }
-    // WP33: old parts land on the v6.1 lines, origins and the undo log survive.
+    // WP36: find_me rows are deleted with FIND ME; questions rows land on the v6.1 lines and the undo log survives.
     expect(db.prepare("SELECT part, origin FROM compass_items ORDER BY id").all()).toEqual([
-      { part: "interest", origin: "find_me" },
       { part: "intention", origin: "questions" },
     ]);
     expect(db.prepare("SELECT kind, before, proposed_at, confirmed_at FROM compass_changes").all()).toEqual([

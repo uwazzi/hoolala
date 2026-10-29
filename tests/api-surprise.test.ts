@@ -73,7 +73,7 @@ describe("Surprise Me voice", () => {
     expect((await post(env, "/api/me/surprise/hear", null, wav(), "audio/wav")).status).toBe(401);
   });
 
-  it("asks the five fixed questions in order, each with its direction", async () => {
+  it("asks the three fixed questions in order, each with its direction", async () => {
     const env = testEnv(AI);
     const ana = await person(env);
     const turns: { q: string; a: string }[] = [];

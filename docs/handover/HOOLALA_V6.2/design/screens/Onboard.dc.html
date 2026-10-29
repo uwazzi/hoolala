@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! onboarding: surprise me, compass, game</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}
+button{font:inherit;color:inherit}
+@keyframes hl-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes hl-rise{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes hl-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes hl-talk{0%,100%{transform:scale(1,1)}25%{transform:scale(1.07,0.95)}50%{transform:scale(0.97,1.04)}75%{transform:scale(1.05,0.97)}}
+@keyframes hl-think{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes hl-ping{0%{transform:translate(-50%,-50%) scale(1);opacity:0.6}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0}}
+.hl-cursor{display:inline-block;width:10px;height:0.9em;background:#182513;vertical-align:-2px;margin-left:2px;animation:hl-blink 0.9s steps(1) infinite}
+.hl-rise{animation:hl-rise 0.3s ease-out both}
+.hl-spin{animation:hl-think 0.8s steps(8) infinite}
+.hl-key{cursor:pointer;user-select:none;-webkit-user-select:none}
+.hl-key:hover{outline:2px solid #182513;outline-offset:2px}
+.hl-key:active{transform:translateY(2px)}
+.hl-ball{cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none}
+textarea:focus{outline:2px solid #182513;outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.hl-spin{animation:none}.hl-cursor{animation:none}.hl-rise{animation-duration:0.01s}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; overflow: hidden">
+  <header style="flex-shrink: 0; margin: 0 24px; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px dashed #304327">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 11px; line-height: 1.3; color: #304327; text-align: right">You never know until you go.</div>
+  </header>
+
+  <div style="flex-shrink: 0; margin: 10px 24px 0 24px; display: flex; align-items: center; gap: 6px">
+    <sc-for list="{{ stages }}" as="s" hint-placeholder-count="4">
+      <div style="{{ s.style }}">{{ s.label }}</div>
+    </sc-for>
+  </div>
+
+  <!-- 1. SURPRISE ME (the voice design, 3 questions) -->
+  <sc-if value="{{ isVoice }}" hint-placeholder-val="{{ true }}">
+    <div style="margin: 10px 24px 0 24px; display: flex; justify-content: space-between; align-items: center; min-height: 28px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="3"><span style="{{ d.style }}"></span></sc-for>
+        <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327; margin-left: 4px">{{ fillsShown }}</span>
+      </div>
+      <button class="hl-key" onClick="{{ toggleSound }}" style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 10px; background: #DDE7C6">
+        <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 3h2l2-2h1v6H4L2 5H0z" fill="#182513"></path><sc-if value="{{ soundOn }}" hint-placeholder-val="{{ true }}"><rect x="6" y="2" width="1" height="4" fill="#182513"></rect></sc-if></svg>
+        <span>{{ soundLabel }}</span>
+      </button>
+    </div>
+
+    <div style="position: relative; height: 150px; flex-shrink: 0">
+      <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12"><div style="{{ b.style }}"></div></sc-for>
+      <sc-if value="{{ listening }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; border: 2px solid #182513; border-radius: 50%; animation: hl-ping 1s ease-out infinite"></div>
+      </sc-if>
+      <div style="position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; margin: -52px 0 0 -52px">
+        <div style="{{ ballStyle }}">
+          <svg width="104" height="104" viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true">
+            <path d="M5 0h4v1h2v1h1v1h1v2h1v4h-1v2h-1v1h-1v1H9v1H5v-1H3v-1H2v-1H1V9H0V5h1V3h1V2h1V1h2z" fill="#182513"></path>
+            <rect x="3" y="3" width="2" height="2" fill="#DDE7C6"></rect>
+            <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}"><rect x="9" y="9" width="1" height="1" fill="#DDE7C6"></rect></sc-if>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; padding: 0 24px 10px 24px; display: flex; flex-direction: column; gap: 10px">
+      <div style="text-align: center; font-family: 'Silkscreen', monospace; font-size: 11px; min-height: 16px">{{ hint }}</div>
+      <sc-if value="{{ isIntro }}" hint-placeholder-val="{{ true }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 14px">
+          <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 24px; line-height: 1.15; text-align: center">LET'S GET PERSONAL.</div>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5; text-align: center">Three questions about real moments you've had, so your tiny tries fit you. No right answers. Hold the mic at the bottom and answer out loud, or type. About a minute.</p>
+          <button class="hl-key" onClick="{{ startQs }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border: 0; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 17px"><span>START</span><span>&gt;</span></button>
+          <div style="font-size: 11px; line-height: 1.5; color: #304327; text-align: center">Heard, then forgotten. Your voice becomes words and is never kept. Only lines you keep are saved, and only you see them.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ inQs }}" hint-placeholder-val="{{ false }}">
+        <div aria-live="polite" style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 20px; line-height: 1.2; text-align: center; min-height: 48px">{{ captionShown }}<sc-if value="{{ captionTyping }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></div>
+      </sc-if>
+
+      <sc-if value="{{ showTranscript }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="border: 2px dashed #304327; border-radius: 2px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">{{ transcriptLabel }}</span>
+          <span style="font-size: 15px; line-height: 1.45">{{ transcriptShown }}<sc-if value="{{ listening }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ confirming }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">AI · FOR YOUR COMPASS</span>
+            <span style="font-size: 13px; line-height: 1.4"><b style="font-family: 'Silkscreen', monospace; font-size: 11px">{{ draftPart }}</b> {{ draftText }}</span>
+          </div>
+          <button class="hl-key" onClick="{{ keep }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px; background: #182513; color: #DDE7C6; border: 0; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px"><span>NEXT</span><span>&gt;</span></button>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <button class="hl-key" onClick="{{ again }}" style="min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">SAY AGAIN</button>
+            <button class="hl-key" onClick="{{ typeInstead }}" style="min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">FIX BY TYPING</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ typingMode }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 8px">
+          <label style="display: flex; flex-direction: column"><span style="position: absolute; left: -9999px">Your answer</span>
+            <textarea value="{{ draft }}" onChange="{{ onDraft }}" rows="2" placeholder="Type your answer" style="font-family: 'Space Mono', monospace; font-size: 15px; line-height: 1.4; padding: 10px; border: 2px solid #182513; border-radius: 2px; background: #DDE7C6; color: #182513; resize: none"></textarea>
+          </label>
+          <button class="hl-key" onClick="{{ sendTyped }}" style="{{ sendStyle }}"><span>SEND</span><span>&gt;</span></button>
+          <button class="hl-key" onClick="{{ backToVoice }}" style="background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline">ANSWER OUT LOUD INSTEAD</button>
+        </div>
+      </sc-if>
+      <div style="flex-grow: 1"></div>
+      <sc-if value="{{ inQs }}" hint-placeholder-val="{{ false }}"><div style="font-size: 11px; line-height: 1.4; color: #304327; text-align: center">Heard, then forgotten. Only lines you keep go in your compass.</div></sc-if>
+    </div>
+
+    <sc-if value="{{ inQs }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-shrink: 0; padding: 8px 24px 14px 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; border-top: 2px solid #182513">
+      <button class="hl-key" onClick="{{ typeInstead }}" style="justify-self: start; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 48px; min-height: 48px; background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 10px">
+        <svg width="28" height="20" viewBox="0 0 14 10" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h14v10H0z M1 1v8h12V1z" fill="#182513" fill-rule="evenodd"></path><rect x="2" y="2" width="2" height="1" fill="#182513"></rect><rect x="5" y="2" width="2" height="1" fill="#182513"></rect><rect x="8" y="2" width="2" height="1" fill="#182513"></rect><rect x="3" y="4" width="2" height="1" fill="#182513"></rect><rect x="6" y="4" width="2" height="1" fill="#182513"></rect><rect x="9" y="4" width="2" height="1" fill="#182513"></rect><rect x="4" y="6" width="6" height="1" fill="#182513"></rect></svg>
+        <span>TYPE</span>
+      </button>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <button class="hl-ball" aria-label="Hold to talk" onMouseDown="{{ down }}" onMouseUp="{{ up }}" onMouseLeave="{{ up }}" onTouchStart="{{ down }}" onTouchEnd="{{ up }}" style="{{ micStyle }}">
+          <svg width="40" height="56" viewBox="0 0 10 14" shape-rendering="crispEdges" aria-hidden="true">
+            <path d="M3 0h4v1h1v7H7v1H3V8H2V1h1z" fill="{{ micInk }}"></path>
+            <path d="M0 5h1v3h1v1h1v1h4V9h1V8h1V5h1v4H9v1H8v1H6v2h2v1H2v-1h2v-2H2v-1H1V9H0z" fill="{{ micInk }}"></path>
+          </svg>
+        </button>
+        <span style="font-family: 'Silkscreen', monospace; font-size: 10px">{{ micLabel }}</span>
+      </div>
+      <button class="hl-key" onClick="{{ skip }}" style="justify-self: end; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 48px; min-height: 48px; background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 10px">
+        <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 1h2v1h1v1h1v1h1v2H4v1H3v1H2v1H0zM5 1h2v1h1v1h1v1h1v2H9v1H8v1H7v1H5z" fill="#182513"></path></svg>
+        <span>SKIP</span>
+      </button>
+    </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- 2. COMPASS: one tap to save -->
+  <sc-if value="{{ isCompass }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; padding: 20px 24px 16px 24px; display: flex; flex-direction: column; gap: 14px">
+      <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 26px; line-height: 1.15; min-height: 60px">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{ dirs }}" as="d" hint-placeholder-count="4">
+          <div style="{{ d.style }}">
+            <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">{{ d.pole }} · {{ d.name }}</div>
+            <div style="font-size: 13px; font-weight: 700; line-height: 1.3">{{ d.value }}</div>
+            <div style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #304327">{{ d.src }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="{{ peopleStyle }}">
+        <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">PEOPLE IN YOUR DAYS</div>
+        <div style="font-size: 13px; font-weight: 700; line-height: 1.3">{{ peopleLine }}</div>
+        <div style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #304327">{{ peopleSrc }}</div>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5">Nothing is saved until you say it looks right. Change or undo any line later in MY COMPASS.</p>
+      <div style="flex-grow: 1"></div>
+      <sc-if value="{{ done }}" hint-placeholder-val="{{ true }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 10px">
+          <button class="hl-key" onClick="{{ confirmCompass }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border: 0; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 16px"><span>LOOKS RIGHT. MAKE MY GAME</span><span>&gt;</span></button>
+          <button class="hl-key" onClick="{{ restart }}" style="min-height: 44px; background: transparent; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 13px">CHANGE SOMETHING</button>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- 3. TRY IT writes the game -->
+  <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; padding: 20px 24px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; gap: 14px">
+        <div class="hl-spin"><svg width="40" height="40" viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 0h4v1h2v1h1v1h1v2h1v4h-1v2h-1v1h-1v1H9v1H5v-1H3v-1H2v-1H1V9H0V5h1V3h1V2h1V1h2z" fill="#182513"></path><rect x="3" y="3" width="2" height="2" fill="#DDE7C6"></rect></svg></div>
+        <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 24px; line-height: 1.15">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px">
+        <sc-for list="{{ buildLines }}" as="b" hint-placeholder-count="5">
+          <div style="{{ b.style }}">{{ b.text }}</div>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; line-height: 1.5; color: #304327">TRY IT writes fresh words every time, so no two games are the same. Code sets each level, checks every try against the safety rules, and swaps in a hand-written one if a try fails.</div>
+    </div>
+  </sc-if>
+
+  <!-- 4. THE GAME: three levels, written fresh, each try replaceable -->
+  <sc-if value="{{ isGame }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; padding: 14px 24px 12px 24px; display: flex; flex-direction: column; gap: 10px; min-height: 0">
+      <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 22px; line-height: 1.15; min-height: 52px">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+      <div role="tablist" aria-label="Levels" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{ levels }}" as="l" hint-placeholder-count="3">
+          <button role="tab" class="hl-key" onClick="{{ l.pick }}" style="{{ l.style }}"><span style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 14px">{{ l.name }}</span><span style="font-size: 10px">{{ l.tag }}</span></button>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; line-height: 1.4">{{ levelLine }}</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <sc-for list="{{ tries }}" as="t" hint-placeholder-count="3">
+          <div style="{{ t.style }}">
+            <button class="hl-key" onClick="{{ t.pick }}" style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; padding: 10px 0 10px 12px; background: transparent; border: 0; color: inherit">
+              <span style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 12px; line-height: 1.35">{{ t.title }}</span>
+              <span style="font-size: 10px">{{ t.info }}</span>
+            </button>
+            <button class="hl-key" onClick="{{ t.renew }}" aria-label="Write a new one instead" style="flex-shrink: 0; width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: 0; border-left: 2px dashed currentColor; color: inherit; font-family: 'Silkscreen', monospace; font-size: 9px">
+              <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v1h1v1H6v1H5V2H2v1H1v3h1v1h3V6h1V5h1V4h1v2H7v1H6v1H2V7H1V6H0V2h1V1h1z" fill="currentColor"></path></svg>
+              <span>NEW ONE</span>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+      <button class="hl-key" onClick="{{ newGame }}" style="align-self: center; background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline; min-height: 32px">NONE OF THESE? NEW GAME FROM SCRATCH</button>
+      <div style="flex-grow: 1"></div>
+      <div style="font-size: 10px; line-height: 1.4; color: #304327">Every level stays safe: public places, no contact details, no touching, nothing about looks. Any level is fine. Trying counts.</div>
+      <sc-if value="{{ noChoice }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 56px; border: 2px dashed #304327; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 14px; color: #304327">PICK A TRY ABOVE</div>
+      </sc-if>
+      <sc-if value="{{ hasChoice }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 12px; line-height: 1.4">Saved as today's try. Want a place for it? Around me scans 500 m for places where people chat. Optional.</div>
+          <a class="hl-key" href="Around.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px; text-decoration: none"><span>FIND A PLACE AROUND ME</span><span>&gt;</span></a>
+          <a class="hl-key" href="Flow.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 44px; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px; text-decoration: none">SKIP. I KNOW WHERE TO GO</a>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startAt":{"editor":"enum","default":"surprise","options":["surprise","compass","game"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.qs = [
+      { q: 'Think of the last time you lost track of time talking with someone. What were you talking about?', part: 'TALK ABOUT', a: 'Board games with my brother, last Saturday. We argued about the rules for an hour.', draft: 'Board games (with my brother, last Saturday)', topic: 'board games', rec: 'favourite board game' },
+      { q: 'Where were you the last time a chat just happened, without you planning it?', part: 'MORE OF', a: 'At the café by the station. The waiter asked about the book I was reading.', draft: 'Cafés, where chats just happen', place: 'the café' },
+      { q: 'The last time you talked to someone new, how did it start?', part: 'HOW I GO', a: 'My neighbour said hello on the stairs first, and I just answered.', draft: 'Gently: easier when the other person starts', pace: 0 }
+    ];
+    this.roleList = [
+      [/\b(mum|mother|mom)\b/i, 'your mum', 'MUM', 'close'], [/\b(dad|father)\b/i, 'your dad', 'DAD', 'close'],
+      [/\bbrother\b/i, 'your brother', 'BROTHER', 'close'], [/\bsister\b/i, 'your sister', 'SISTER', 'close'],
+      [/\b(gran|grandma|grandad|grandpa|grandmother|grandfather)\b/i, 'your grandparent', 'GRANDPARENT', 'close'],
+      [/\b(family|cousin|aunt|uncle)\b/i, 'someone in your family', 'FAMILY', 'close'],
+      [/\b(colleague|co-?worker|teammate)\b/i, 'a colleague', 'COLLEAGUE', 'close'],
+      [/\bneighbou?r\b/i, 'your neighbour', 'NEIGHBOUR', 'close'], [/\bflatmate\b/i, 'your flatmate', 'FLATMATE', 'close'],
+      [/\b(waiter|waitress|server)\b/i, 'the waiter', 'WAITER', 'service'], [/\bbarista\b/i, 'the barista', 'BARISTA', 'service'],
+      [/\b(driver|bus)\b/i, 'the bus driver', 'DRIVER', 'service'], [/\b(cashier|shopkeeper)\b/i, 'the cashier', 'CASHIER', 'service'],
+      [/\blibrarian\b/i, 'the librarian', 'LIBRARIAN', 'service']
+    ];
+    /* [words, step, kind, who]: who is none, any, close (family, colleague, neighbour) or service (waiter, driver) */
+    this.pools = [
+      { name: 'SOFT', tag: 'STEPS 1-2', line: 'A nod, a thank you, a kind word. Over in seconds.', min: 1, tries: [
+        ['Smile and nod at three people at {p}.', 1, 'TALK', 'none'], ['Say good morning to {who} and ask how they are.', 2, 'TALK', 'any'],
+        ['Hold the door for someone at {p} and say "have a good one".', 1, 'KIND', 'none'], ['Thank {who} for one thing they did this week, and say what it was.', 2, 'KIND', 'any'],
+        ['Tell {who} "have a good day" as you leave.', 1, 'KIND', 'service'], ['Ask {who} how their week is going.', 2, 'TALK', 'close'],
+        ['Ask someone at {p} if the seat next to them is free, then say thanks.', 2, 'TALK', 'none'], ['Let someone go ahead of you in the queue at {p}.', 1, 'KIND', 'none'] ] },
+      { name: 'BRAVE', tag: 'STEPS 3-4', line: 'One question or one kind act, with a reply. A minute or two.', min: 2, tries: [
+        ['Ask someone at {p} for their {rec}.', 3, 'TALK', 'none'], ['Ask {who} one question about their weekend, then one more.', 3, 'TALK', 'close'],
+        ['Offer {who} a hand with something small: carrying, finding, holding.', 3, 'KIND', 'close'], ['Tell {who} one thing they do that makes your day easier.', 4, 'KIND', 'any'],
+        ['Mention {topic} to {who} and ask if they are into it too.', 4, 'TALK', 'any'], ['Ask {who} what they would pick today, and why.', 3, 'TALK', 'service'],
+        ['Make {who} a drink or bring a snack from home, no reason needed.', 4, 'KIND', 'close'], ['Tell {who} they did a great job today, out loud.', 4, 'KIND', 'service'] ] },
+      { name: 'BOLD', tag: 'STEP 5', line: 'Big for you, still small for the world. Five minutes, in public.', min: 5, tries: [
+        ['Ask two people at {p} for their {rec}, then tell each the other\'s answer.', 5, 'TALK', 'none'], ['Suggest a ten-minute {topic} break with {who} this week.', 5, 'TALK', 'close'],
+        ['Ask {who} if there is something you could do for them this week, and do it.', 5, 'KIND', 'close'], ['Start a two-minute chat about {topic} at {p}, and say your name before you go.', 5, 'TALK', 'none'],
+        ['Leave a thank-you note for {who} where they will find it today.', 5, 'KIND', 'any'], ['Ask at {p} if there is a group or event you could join, and go once.', 5, 'TALK', 'none'],
+        ['Ask {who} to show you something they are good at, and learn it for five minutes.', 5, 'TALK', 'any'], ['Tell {who} out loud what difference they make to your week.', 5, 'KIND', 'close'] ] }
+    ];
+    var s = props.startAt ?? 'surprise';
+    var demo = s !== 'surprise';
+    this.state = {
+      stage: demo ? s : 'voice', phase: 'intro', i: 0, cap: 0, heard: 0, levels: [], sound: true, draft: '', typedText: null,
+      kept: demo ? this.qs.map((q) => ({ part: q.part, text: q.draft, typed: false, answer: q.a })) : [],
+      typed: 0, held: 0, level: null, picks: this.freshPicks(), writing: {}, chosen: null
+    };
+  }
+  componentDidMount() {
+    var rm = false;
+    try { rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    this.reduced = rm;
+    this.timer = setInterval(() => this.tick(30), 30);
+  }
+  componentWillUnmount() { clearInterval(this.timer); this.clear(); try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }
+  clear() { clearInterval(this.capT); clearInterval(this.heardT); clearInterval(this.lvT); clearTimeout(this.waitT); }
+  shuffle(n) { var a = []; for (var k = 0; k < n; k++) a.push(k); for (var j = a.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[r]; a[r] = t; } return a; }
+  pickLevel(l) {
+    var tries = this.pools[l].tries, order = this.shuffle(tries.length);
+    var talk = order.filter((k) => tries[k][2] === 'TALK')[0], kind = order.filter((k) => tries[k][2] === 'KIND')[0];
+    var third = order.filter((k) => k !== talk && k !== kind)[0];
+    return this.shuffle(3).map((j) => [talk, kind, third][j]).map((t) => ({ t: t, w: Math.floor(Math.random() * 100) }));
+  }
+  freshPicks() { return [0, 1, 2].map((l) => this.pickLevel(l)); }
+  roles() {
+    var text = this.state.kept.map((k) => k.answer || k.text).join(' '), out = [];
+    this.roleList.forEach((r) => { if (r[0].test(text) && !out.some((o) => o.label === r[2])) out.push({ phrase: r[1], label: r[2], cls: r[3] }); });
+    return out;
+  }
+  who(kind, w, rs) {
+    var fall = { any: { phrase: 'someone you see often', label: '' }, close: { phrase: 'someone you see every day', label: '' }, service: { phrase: 'the person serving you', label: '' } };
+    if (kind === 'none') return null;
+    var list = kind === 'any' ? rs : rs.filter((r) => r.cls === kind);
+    return list.length ? list[w % list.length] : fall[kind];
+  }
+  /* voice, as in Surprise me */
+  ask(i) {
+    this.clear();
+    var q = this.qs[i].q;
+    this.setState({ phase: 'speaking', i: i, cap: 0, heard: 0, typedText: null, draft: '' });
+    if (this.state.sound) { try { var u = new SpeechSynthesisUtterance(q); u.lang = 'en-GB'; u.rate = 1.05; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); } catch (e) {} }
+    this.capT = setInterval(() => {
+      if (this.state.cap >= q.length) { clearInterval(this.capT); this.setState({ phase: 'ready' }); return; }
+      this.setState({ cap: this.state.cap + 1 });
+    }, 45);
+  }
+  down(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (this.state.phase !== 'ready' && this.state.phase !== 'confirm') return;
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (x) {}
+    this.clear();
+    var a = this.qs[this.state.i].a;
+    this.setState({ phase: 'listening', heard: 0, typedText: null });
+    this.heardT = setInterval(() => { if (this.state.heard < a.length) this.setState({ heard: this.state.heard + 2 }); }, 55);
+    this.lvT = setInterval(() => this.setState({ levels: Array.from({ length: 12 }, () => 4 + Math.round(Math.random() * 22)) }), 90);
+  }
+  up() {
+    if (this.state.phase !== 'listening') return;
+    this.clear();
+    var a = this.qs[this.state.i].a;
+    this.setState({ phase: 'thinking', heard: Math.max(this.state.heard, 8), levels: [] });
+    this.waitT = setTimeout(() => this.setState({ phase: 'confirm', heard: a.length }), 800);
+  }
+  nextQ(kept) {
+    var i = this.state.i + 1;
+    if (i >= this.qs.length) { this.clear(); this.go('compass', { kept: kept }); return; }
+    this.setState({ kept: kept });
+    this.ask(i);
+  }
+  /* shared typed headline for the later stages */
+  head() {
+    var s = this.state.stage;
+    if (s === 'compass') return "THAT'S YOU, IN " + this.state.kept.length + ' ANSWERS.';
+    if (s === 'build') return 'WRITING YOUR GAME...';
+    if (s === 'game') return 'YOUR GAME. PICK A LEVEL, PICK A TRY.';
+    return '';
+  }
+  tick(sp) {
+    if (this.state.stage === 'voice') return;
+    var h = this.head();
+    if (this.state.typed < h.length) { this.setState({ typed: this.reduced ? h.length : this.state.typed + 1 }); return; }
+    var held = this.state.held + sp;
+    if (this.state.stage === 'build' && held >= 2600) { this.go('game'); return; }
+    if (held < 4000) this.setState({ held: held });
+  }
+  go(stage, extra) { this.setState(Object.assign({ stage: stage, typed: 0, held: 0 }, extra || {})); }
+  ctx() {
+    var k = this.state.kept;
+    var find = (part) => k.filter((x) => x.part === part)[0];
+    var talk = find('TALK ABOUT'), more = find('MORE OF'), how = find('HOW I GO');
+    var topic = talk ? (talk.typed ? talk.text.toLowerCase() : this.qs[0].topic) : 'something you like';
+    var rec = talk && !talk.typed ? this.qs[0].rec : 'best tip about ' + topic;
+    var place = more ? (more.typed ? more.text.toLowerCase() : this.qs[1].place) : 'the café';
+    var pace = how && how.typed ? (/straight|fast|quick|dive/i.test(how.text) ? 1 : 0) : 0;
+    return { topic: topic, rec: rec, place: place, pace: pace };
+  }
+  fill(tpl, c, who) { return tpl.replace(/\{who\}/g, who ? who.phrase : 'someone').replace(/\{p\}/g, c.place).replace(/\{rec\}/g, c.rec).replace(/\{topic\}/g, c.topic); }
+  renew(l, slot) {
+    var key = l + '-' + slot, picks = this.state.picks.map((x) => x.slice());
+    var used = picks[l].map((x) => x.t), options = [];
+    for (var k = 0; k < this.pools[l].tries.length; k++) if (used.indexOf(k) < 0) options.push(k);
+    picks[l][slot] = { t: options[Math.floor(Math.random() * options.length)], w: Math.floor(Math.random() * 100) };
+    var w = Object.assign({}, this.state.writing); w[key] = true;
+    var chosen = this.state.chosen && this.state.chosen.l === l && this.state.chosen.i === slot ? null : this.state.chosen;
+    this.setState({ writing: w, chosen: chosen });
+    setTimeout(() => { var w2 = Object.assign({}, this.state.writing); delete w2[key]; this.setState({ picks: picks, writing: w2 }); }, 700);
+  }
+  renderVals() {
+    var st = this.state, stage = st.stage, ph = st.phase, q = this.qs[Math.min(st.i, 2)];
+    var order = ['voice', 'compass', 'game'];
+    var cur = stage === 'build' ? 1 : order.indexOf(stage);
+    var h = this.head(), done = st.typed >= h.length;
+    var c = this.ctx(), rs = this.roles();
+    var lvl = st.level === null ? c.pace : st.level;
+    var L = this.pools[lvl];
+    var inQ = stage === 'voice';
+    var ballAnim = ph === 'speaking' ? 'animation:hl-talk 0.45s ease-in-out infinite' : ph === 'listening' ? 'transform:scale(1.08,0.9);transition:transform 0.15s' : ph === 'thinking' ? 'animation:hl-think 0.8s steps(8) infinite' : 'animation:hl-breathe 2.6s ease-in-out infinite';
+    var hints = { intro: '', speaking: 'HOOLALA! IS ASKING…', ready: 'YOUR TURN', listening: 'LISTENING. LET GO WHEN YOU’RE DONE.', thinking: 'GOT IT. ONE SECOND…', confirm: 'CHECK IT, OR HOLD THE MIC TO REDO', typing: '' };
+    var answer = st.typedText ?? q.a;
+    var draftText = st.typedText ? st.typedText.replace(/[.!]+$/, '') : q.draft;
+    var kept = st.kept, find = (part) => kept.filter((x) => x.part === part)[0];
+    var buildLines = ['READING YOUR COMPASS', rs.length ? 'ADDING YOUR PEOPLE: ' + rs.map((r) => r.label).join(' · ') : 'NO PEOPLE NAMED: TRIES SAY SOMEONE', 'TRY IT WRITES 9 TRIES: SMALL TALK AND KIND IT', 'CODE CHECKS EACH ONE: SAFE, PUBLIC, SHORT', 'CODE SETS THE LEVELS: SOFT, BRAVE, BOLD'];
+    return {
+      stages: ['SURPRISE ME', 'COMPASS', 'GAME', 'AROUND?'].map((n, k) => ({ label: n, style: 'flex:1;text-align:center;padding:4px 0;font-family:Silkscreen,monospace;font-size:9px;border:2px solid #182513;border-radius:2px;' + (k === cur ? 'background:#182513;color:#DDE7C6' : k < cur ? 'background:#AEC58A' : 'background:transparent;color:#304327;border-style:dashed') })),
+      isVoice: inQ, isCompass: stage === 'compass', isBuild: stage === 'build', isGame: stage === 'game',
+      /* voice */
+      dots: this.qs.map((x, k) => ({ style: 'display:inline-block;width:10px;height:10px;border:2px solid #182513;' + (k < st.i ? 'background:#182513' : k === st.i ? 'background:#304327;outline:2px solid #182513;outline-offset:1px' : 'background:transparent') })),
+      fillsShown: ph === 'intro' ? '3 QUESTIONS' : 'Q' + (st.i + 1) + ' OF 3 · FILLS ' + q.part,
+      soundOn: st.sound, soundLabel: st.sound ? 'SOUND ON' : 'SOUND OFF',
+      toggleSound: () => { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} this.setState({ sound: !st.sound }); },
+      bars: (ph === 'listening' ? st.levels : []).map((hh, k) => ({ style: 'position:absolute;left:50%;top:50%;width:6px;height:' + hh + 'px;background:#182513;transform-origin:50% 0;transform:translate(-50%,0) rotate(' + (k * 30) + 'deg) translateY(62px)' })),
+      listening: ph === 'listening', thinking: ph === 'thinking',
+      ballStyle: 'width:104px;height:104px;' + ballAnim,
+      down: (e) => this.down(e), up: () => this.up(),
+      hint: hints[ph] || '',
+      captionShown: q.q.slice(0, ph === 'speaking' ? st.cap : q.q.length), captionTyping: ph === 'speaking',
+      showTranscript: ph === 'listening' || ph === 'thinking' || ph === 'confirm',
+      transcriptLabel: ph === 'confirm' ? (st.typedText ? 'YOU TYPED' : 'I HEARD') : 'HEARING…',
+      transcriptShown: ph === 'confirm' ? answer : q.a.slice(0, st.heard),
+      confirming: ph === 'confirm', draftPart: q.part + ':', draftText: draftText,
+      keep: () => this.nextQ(st.kept.concat({ part: q.part, text: draftText, typed: !!st.typedText, answer: st.typedText ?? q.a })),
+      again: () => this.setState({ phase: 'ready', heard: 0, typedText: null }),
+      typeInstead: () => { this.clear(); try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} this.setState({ phase: 'typing', draft: st.typedText ?? '' }); },
+      typingMode: ph === 'typing',
+      draft: st.draft, onDraft: (e) => this.setState({ draft: e.target.value }),
+      sendStyle: 'display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 16px;border-radius:2px;font-family:Silkscreen,monospace;font-size:14px;' + (st.draft.trim() ? 'background:#182513;color:#DDE7C6;border:0' : 'background:transparent;border:2px solid #182513;opacity:0.4'),
+      sendTyped: () => { if (st.draft.trim()) this.setState({ phase: 'confirm', typedText: st.draft.trim() }); },
+      backToVoice: () => this.setState({ phase: 'ready' }),
+      skip: () => this.nextQ(st.kept),
+      micStyle: 'width:76px;height:76px;padding:0;display:flex;align-items:center;justify-content:center;border:2px solid #182513;border-radius:2px;transition:transform 0.1s;' + (ph === 'listening' ? 'background:#DDE7C6;transform:scale(0.94);box-shadow:0 0 0 6px #BED39C,0 0 0 8px #182513' : ph === 'speaking' || ph === 'thinking' ? 'background:#304327;opacity:0.5' : 'background:#182513'),
+      micInk: ph === 'listening' ? '#182513' : '#DDE7C6',
+      micLabel: ph === 'listening' ? 'LET GO TO SEND' : ph === 'confirm' ? 'HOLD TO REDO' : ph === 'ready' ? 'HOLD TO TALK' : 'WAIT…',
+      /* typed headline */
+      headShown: h.slice(0, st.typed), typing: !done, done: done,
+      /* compass */
+      dirs: [['N', 'MORE OF'], ['E', 'TALK ABOUT'], ['S', 'LESS OF'], ['W', 'HOW I GO']].map((d) => {
+        var line = find(d[1]);
+        return { pole: d[0], name: d[1], value: line ? line.text : 'Add later, if you like', src: line ? (line.typed ? 'FROM: YOU TYPED' : 'FROM: SURPRISE ME') : 'EMPTY FOR NOW',
+          style: 'display:flex;flex-direction:column;gap:4px;padding:10px;min-height:76px;box-sizing:border-box;border-radius:2px;' + (line ? 'background:#DDE7C6;border:2px solid #182513' : 'background:transparent;border:2px dashed #304327') };
+      }),
+      confirmCompass: () => this.go('build', { level: null, chosen: null, picks: this.freshPicks() }),
+      restart: () => { this.clear(); this.setState({ stage: 'voice', phase: 'intro', i: 0, kept: [], typed: 0, held: 0 }); },
+      buildLines: buildLines.map((t, k) => ({ text: (st.held >= k * 450 ? '■ ' : '□ ') + t, style: 'font-family:Silkscreen,monospace;font-size:11px;line-height:1.4;' + (st.held >= k * 450 ? 'color:#182513' : 'color:#304327;opacity:0.5') })),
+      /* game */
+      levels: this.pools.map((g, k) => ({ name: g.name, tag: k === c.pace ? 'START HERE' : g.tag, pick: () => this.setState({ level: k }),
+        style: 'min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid #182513;border-radius:2px;' + (k === lvl ? 'background:#182513;color:#DDE7C6' : 'background:transparent;color:#182513') })),
+      levelLine: L.line,
+      tries: st.picks[lvl].map((pk, i) => {
+        var t = L.tries[pk.t], wr = !!st.writing[lvl + '-' + i];
+        var who = this.who(t[3], pk.w, rs);
+        var sel = st.chosen && st.chosen.l === lvl && st.chosen.i === i;
+        return { title: wr ? 'TRY IT IS WRITING A NEW ONE...' : this.fill(t[0], c, who),
+          info: wr ? 'CHECKING IT AGAINST THE RULES' : (t[2] === 'KIND' ? 'KIND IT' : 'SMALL TALK') + ' · STEP ' + t[1] + ' · ' + L.min + ' MIN' + (who && who.label ? ' · FROM YOUR COMPASS: ' + who.label : ''),
+          pick: () => { if (!wr) this.setState({ chosen: { l: lvl, i: i } }); },
+          renew: () => { if (!wr) this.renew(lvl, i); },
+          style: 'display:flex;align-items:stretch;border:2px solid #182513;border-radius:2px;' + (sel ? 'background:#182513;color:#DDE7C6' : wr ? 'background:transparent;color:#304327;border-style:dashed' : 'background:#DDE7C6;color:#182513') };
+      }),
+      newGame: () => this.go('build', { chosen: null, picks: this.freshPicks() }),
+      noChoice: !st.chosen, hasChoice: !!st.chosen,
+      peopleLine: rs.length ? rs.map((r) => r.label).join(' · ') : 'Nobody named yet. Tries will say someone.',
+      peopleSrc: rs.length ? 'FROM: YOUR ANSWERS · ROLES ONLY, NEVER NAMES' : 'EMPTY FOR NOW',
+      peopleStyle: 'display:flex;flex-direction:column;gap:4px;padding:10px;box-sizing:border-box;border-radius:2px;' + (rs.length ? 'background:#DDE7C6;border:2px solid #182513' : 'background:transparent;border:2px dashed #304327'),
+      isIntro: ph === 'intro', inQs: ph !== 'intro', startQs: () => this.ask(0)
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -43,3 +43,70 @@ export function triesFor(step: number, place: TryPlace): LibraryTry[] {
   if (place === "anywhere") return at;
   return [...at.filter((t) => t.place === place), ...at.filter((t) => t.place === "anywhere")];
 }
+
+// WP37: the 24-try game library (copy from specs/game.md). Data, not code:
+// the fallback when TRY IT is off or a draft fails, and the eval reference.
+// Placeholders: {p} place, {topic} topic, {rec} "favourite ..." from the
+// topic, {who} a compass role phrase (or a someone when nobody fits).
+
+export type GameLevel = "soft" | "brave" | "bold";
+export type GameKind = "talk" | "kind";
+export type GameWho = "none" | "any" | "close" | "service";
+
+export interface GameLibraryTry {
+  level: GameLevel;
+  step: number;
+  kind: GameKind;
+  who: GameWho;
+  template: string;
+}
+
+export const GAME_LIBRARY: GameLibraryTry[] = [
+  { level: "soft", step: 1, kind: "talk", who: "none", template: "Smile and nod at three people at {p}." },
+  { level: "soft", step: 2, kind: "talk", who: "any", template: "Say good morning to {who} and ask how they are." },
+  { level: "soft", step: 1, kind: "kind", who: "none", template: 'Hold the door for someone at {p} and say "have a good one".' },
+  { level: "soft", step: 2, kind: "kind", who: "any", template: "Thank {who} for one thing they did this week, and say what it was." },
+  { level: "soft", step: 1, kind: "kind", who: "service", template: 'Tell {who} "have a good day" as you leave.' },
+  { level: "soft", step: 2, kind: "talk", who: "close", template: "Ask {who} how their week is going." },
+  { level: "soft", step: 2, kind: "talk", who: "none", template: "Ask someone at {p} if the seat next to them is free, then say thanks." },
+  { level: "soft", step: 1, kind: "kind", who: "none", template: "Let someone go ahead of you in the queue at {p}." },
+  { level: "brave", step: 3, kind: "talk", who: "none", template: "Ask someone at {p} for their {rec}." },
+  { level: "brave", step: 3, kind: "talk", who: "close", template: "Ask {who} one question about their weekend, then one more." },
+  { level: "brave", step: 3, kind: "kind", who: "close", template: "Offer {who} a hand with something small: carrying, finding, holding." },
+  { level: "brave", step: 4, kind: "kind", who: "any", template: "Tell {who} one thing they do that makes your day easier." },
+  { level: "brave", step: 4, kind: "talk", who: "any", template: "Mention {topic} to {who} and ask if they are into it too." },
+  { level: "brave", step: 3, kind: "talk", who: "service", template: "Ask {who} what they would pick today, and why." },
+  { level: "brave", step: 4, kind: "kind", who: "close", template: "Make {who} a drink or bring a snack from home, no reason needed." },
+  { level: "brave", step: 4, kind: "kind", who: "service", template: "Tell {who} they did a great job today, out loud." },
+  { level: "bold", step: 5, kind: "talk", who: "none", template: "Ask two people at {p} for their {rec}, then tell each the other's answer." },
+  { level: "bold", step: 5, kind: "talk", who: "close", template: "Suggest a ten-minute {topic} break with {who} this week." },
+  { level: "bold", step: 5, kind: "kind", who: "close", template: "Ask {who} if there is something you could do for them this week, and do it." },
+  { level: "bold", step: 5, kind: "talk", who: "none", template: "Start a two-minute chat about {topic} at {p}, and say your name before you go." },
+  { level: "bold", step: 5, kind: "kind", who: "any", template: "Leave a thank-you note for {who} where they will find it today." },
+  { level: "bold", step: 5, kind: "talk", who: "none", template: "Ask at {p} if there is a group or event you could join, and go once." },
+  { level: "bold", step: 5, kind: "talk", who: "any", template: "Ask {who} to show you something they are good at, and learn it for five minutes." },
+  { level: "bold", step: 5, kind: "kind", who: "close", template: "Tell {who} out loud what difference they make to your week." },
+];
+
+/** When no compass role fits {who}: a someone, never a name. No FROM YOUR COMPASS label. */
+export const GAME_FILL_FALLBACK: Record<string, string> = {
+  any: "someone you see often",
+  close: "someone you see every day",
+  service: "the person serving you",
+};
+
+/** Every compass role in plain words for a try. Lowercase, so {who} fills read as typed. */
+export const ROLE_PHRASE: Record<string, string> = {
+  barista: "the barista",
+  boss: "your boss",
+  brother: "your brother",
+  child: "your child",
+  colleague: "a colleague",
+  dad: "your dad",
+  friend: "a friend",
+  mum: "your mum",
+  neighbour: "your neighbour",
+  regular: "a regular",
+  sister: "your sister",
+  teammate: "a teammate",
+};

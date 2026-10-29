@@ -18,7 +18,7 @@ Muse Spark does the work in between: it gets to know you from what's public (onl
 ## Try it in two minutes, on your own
 
 1. Open <https://hoolala.hg-labs.io> and **Sign in** (an email link; 18+).
-2. **Want a head start?** Let FIND ME look you up, or answer three questions.
+2. **Get personal:** three spoken questions about real moments, then LOOKS RIGHT to save your compass.
 3. **Where are you?** → **Try the SAMPLE place**. It works from anywhere (code DEMO).
 4. Sample Sophie has a signal open. Tap **I'm curious**: she says yes straight away.
 5. **Plan the meeting point**: PLAN IT drafts one; you confirm. Then **Meet Sample Sophie** → **We met**.
@@ -30,7 +30,7 @@ Then **This place** (at a real café) shows details with their sources. The SAMP
 
 | Step | What happens | Muse Spark |
 |---|---|---|
-| Get started | "Want a head start?" With your OK, Hoolala! searches the web for you (only you, at most 3 searches). You tick what's really you; your private Personal Compass is drafted. Or three questions, no AI. | **FIND ME**: web search, grounded citations, structured output |
+| Get started | A short story, then three spoken questions about real moments. Each answer drafts one compass line; LOOKS RIGHT saves them. Transcripts never stored. | **COMPASS DRAFT**: structured output, code validator |
 | Arrive | Share location and pick the place (Hoolala! places, then OpenStreetMap), add it, or search by name in your town. | None, on purpose |
 | Post | A topic, when, where in the place, for how many (1 to 3). "Need a topic?" gives three ideas, one maybe about something on nearby tonight, with its source. | **SUGGEST IT**: web search, grounded; **SCREEN IT**: verdict and FR/EN translation |
 | The place | THIS PLACE: hours, menu, wifi and spots, AI / FOUND with their source, then confirmed by people here; THAT'S RIGHT, FIX IT, NOT ANY MORE; private place points | **PLACE IT**: web search, grounded |
@@ -50,7 +50,7 @@ All on `muse-spark-1.3` (standard mode: what we send isn't used for training). E
 |---|---|---|---|---|
 | SCREEN IT | Chat Completions, strict JSON schema; approve/reject with a category, FR/EN translation; never rewrites | minimal | 1.0 s | Code rules decide alone |
 | SUGGEST IT | Responses API, 1 web search, strict JSON; every event must cite a page the search returned | low | 5.9 s | Three fixed ideas for the hour |
-| FIND ME | Responses API, up to 3 web searches; findings resolved to returned pages; then a compass draft | low | 8.0 s | Three questions |
+| COMPASS DRAFT | Chat Completions, strict JSON; one spoken answer to a line with topic, place, pace and roles | low | — | The trimmed answer with keyword roles |
 | PLACE IT | Responses API, up to 2 web searches; every detail resolved to a returned page | low | 8.5 s | People's own details only |
 | PLAN IT | Chat Completions tool loop: 4 read-only tools in parallel, then `draft_meeting_point` limited to real spots | medium | 4.1 s | The poster's own spot and time |
 | WHY GO | Chat Completions, strict JSON; one grounded line per nearby place, every fact must exist | low | — | Template from real inputs |
@@ -67,18 +67,18 @@ What real calls taught us (and the code now handles): the JSON answer arrives af
 |---|---|---|
 | SCREEN IT | 20/20 | Phone numbers, emails, links, handles, dating, selling, insults, crisis words bypassing the model; and live: dating without dating words, a compliment on looks, selling without sale words, a disguised handle, a mild insult, approvals in French, English and German with translations |
 | Grounding | 5/5 | Events without a returned citation dropped; invented sites dropped; site-only citations resolved to the right page |
-| FIND ME | 4/4 | Refuses to look up someone else; live run on a public figure: sourced findings, no labels, at most 3 searches |
-| Compass | 6/6 | Never keeps an unticked finding, or a personality, health, political or religious label; every line has a source or "you said" |
+| COMPASS DRAFT | 8/8 | Roles only, never names; the question's part; what happened, never who; no personality, health, political or religious labels |
 | PLAN IT | 4/4 | Never "sent" or "confirmed"; only real spots; never after the signal ends; live tool loop drafts a valid point |
 | SUGGEST IT | 1/1 | Live: grounded ideas for a real café |
 | PLACE IT | 4/4 | Never a menu item without a returned page; no points for your own detail; 30 a day; live: sourced details for a real Lausanne café |
 | TRY IT | 15/15 | Drafts live or die by the validator: right step and place, inside the talking, minutes and ask bounds, and never flirting, contacts, streak shame or advice |
+| GAME | 15/15 | Five passes (talk and kind in each level, with roles); ten rejections (buying, heavy service tries, BOLD at home, names, looks, contact asks, LESS OF, single-kind levels, model-set steps, em dashes) |
 
 Live fallback rate: 0 of 16. The live eval caught a real bug before users did (FIND ME was dropping every finding because the model cites bare domains).
 
 ## Privacy, in short
 
-Location used once and discarded; check-ins deleted after 24 hours; anonymous until both accept; FIND ME results never stored; the compass is private and never used to match people; AI calls logged as token counts only. The full page: <https://hoolala.hg-labs.io/privacy>
+Location used once and discarded; check-ins deleted after 24 hours; anonymous until both accept; voice transcripts never stored; the compass is private and never used to match people; AI calls logged as token counts only. The full page: <https://hoolala.hg-labs.io/privacy>
 
 ## Architecture
 
@@ -118,12 +118,16 @@ Building started 27 Oct 2026. Before that: brainstorming, the design system and 
 | Places and check-in (location, add a place, search by town), OpenStreetMap | Done |
 | Signals here: post, discover, I'M CURIOUS, accept, quick replies, block, report | Done |
 | MEET (mutual QR), STAY IN TOUCH, Live page, SAMPLE place | Done |
-| SCREEN IT, SUGGEST IT, FIND ME and the Personal Compass, PLAN IT, CHECK IT, evaluation set | Done |
+| SCREEN IT, SUGGEST IT, the Personal Compass from spoken answers, PLAN IT, CHECK IT, evaluation set | Done |
 | PLACE IT and place points | Done |
 | Telegram Mini App | Started, paused to finish the web app first |
 | Pilot at a real place | Planned for Mon 2 Nov |
 
 **How it was built.** With coding agents, each commit marked with an `Agent:` trailer: 30 by Claude Code, 2 by Muse Code at the time of writing. Rules every agent follows: [AGENTS.md](AGENTS.md).
+
+## Research behind the story
+
+The onboarding story states six sourced findings: WHO 2025 (1 in 6), Kardas, Kumar and Epley 2022 (expected awkwardness), Tissera et al. 2025 (the liking gap), Wild et al. 2025 and Drebing et al. 2025 (one hello lifts you for hours), Lanser and Eisenberger 2022 and Lee et al. 2025 (kindness). Full list: [docs/RESEARCH.md](docs/RESEARCH.md).
 
 ## Limitations, honestly
 

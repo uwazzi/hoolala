@@ -1,6 +1,6 @@
-// WP24: the Personal Compass. Private: only the person's own requests read it
+// The Personal Compass. Private: only the person's own requests read it
 // (and FITS YOU, which only orders what they already see). The only place its
-// SQL lives. Raw FIND ME findings are never written anywhere.
+// SQL lives. Drafts are never written; only confirmed lines and roles are.
 
 import type { CompassLine } from "../rules/compass";
 import type { CompassItemRow, CompassOrigin, D1Database } from "../types";
@@ -13,29 +13,36 @@ export async function getCompass(db: D1Database, userId: string): Promise<Compas
   return results;
 }
 
-/** LOOKS RIGHT: the confirmed lines replace whatever was there, and the undo log with them. */
-export async function replaceCompass(db: D1Database, userId: string, lines: CompassLine[], origin: CompassOrigin, nowIso: string): Promise<void> {
+/** LOOKS RIGHT: the confirmed lines and roles replace whatever was there, and the undo log with them. */
+export async function saveCompass(
+  db: D1Database, userId: string, lines: { part: CompassLine["part"]; words: string }[], people: { role: string; roleClass: string }[], nowIso: string,
+): Promise<void> {
   await db.batch([
     db.prepare("DELETE FROM compass_items WHERE user_id = ?").bind(userId),
+    db.prepare("DELETE FROM compass_people WHERE user_id = ?").bind(userId),
     db.prepare("DELETE FROM compass_changes WHERE user_id = ?").bind(userId),
     ...lines.map((l) =>
       db
-        .prepare("INSERT INTO compass_items (id, user_id, part, text, source_url, origin, active, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)")
-        .bind(crypto.randomUUID(), userId, l.part, l.text, l.sourceUrl, origin, nowIso),
+        .prepare("INSERT INTO compass_items (id, user_id, part, text, source_url, origin, active, created_at) VALUES (?, ?, ?, ?, NULL, 'questions', 1, ?)")
+        .bind(crypto.randomUUID(), userId, l.part, l.words, nowIso),
+    ),
+    ...people.map((p) =>
+      db
+        .prepare("INSERT INTO compass_people (user_id, role, role_class, source, created_at) VALUES (?, ?, ?, 'surprise', ?)")
+        .bind(userId, p.role, p.roleClass, nowIso),
     ),
   ]);
 }
 
-/** SURPRISE ME keep: one new line in the person's own words. */
-export async function addCompassLine(
-  db: D1Database, userId: string, part: CompassLine["part"], text: string, origin: CompassOrigin, nowIso: string,
-): Promise<string> {
-  const id = crypto.randomUUID();
-  await db
-    .prepare("INSERT INTO compass_items (id, user_id, part, text, source_url, origin, active, created_at) VALUES (?, ?, ?, ?, NULL, ?, 1, ?)")
-    .bind(id, userId, part, text, origin, nowIso)
-    .run();
-  return id;
+export async function listCompassPeople(db: D1Database, userId: string): Promise<{ role: string; roleClass: string }[]> {
+  return (
+    await db.prepare("SELECT role, role_class AS roleClass FROM compass_people WHERE user_id = ? ORDER BY rowid").bind(userId).all()
+  ).results as { role: string; roleClass: string }[];
+}
+
+export async function removeCompassPerson(db: D1Database, userId: string, role: string): Promise<boolean> {
+  const res = await db.prepare("DELETE FROM compass_people WHERE user_id = ? AND role = ?").bind(userId, role).run();
+  return (res.meta?.changes ?? 0) > 0;
 }
 
 export async function removeCompassLine(db: D1Database, userId: string, id: string): Promise<boolean> {
@@ -46,6 +53,7 @@ export async function removeCompassLine(db: D1Database, userId: string, id: stri
 export async function deleteCompass(db: D1Database, userId: string): Promise<void> {
   await db.batch([
     db.prepare("DELETE FROM compass_items WHERE user_id = ?").bind(userId),
+    db.prepare("DELETE FROM compass_people WHERE user_id = ?").bind(userId),
     db.prepare("DELETE FROM compass_changes WHERE user_id = ?").bind(userId),
   ]);
 }

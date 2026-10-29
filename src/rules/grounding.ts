@@ -1,6 +1,6 @@
 // Grounding rules for AI output. Pure. A claim about the world (an event for
-// SUGGEST IT, a finding for FIND ME) must cite a page the model's own web
-// search returned in that same call (or a link the person gave); otherwise it
+// SUGGEST IT) must cite a page the model's own web search returned in that
+// same call (or a link the person gave); otherwise it
 // is dropped. Nothing the model claims reaches people without a source they
 // can open.
 
@@ -94,9 +94,9 @@ export function resolveCitation(
   if (best) return best.url;
   const own = given.find((g) => host(g) === h);
   if (own) return own;
-  // FIND ME only: every page the search returned was about this person, and
-  // they confirm each finding (THAT'S ME / NOT ME), so a returned page on the
-  // cited site is an honest source even when the wording differs.
+  // Person-confirmed findings only: the person confirmed each finding, so a
+  // returned page on the cited site is an honest source even when the wording
+  // differs.
   if (opts.sameSiteFallback) return pages.find((p) => host(p.url) === h)?.url ?? null;
   return null;
 }

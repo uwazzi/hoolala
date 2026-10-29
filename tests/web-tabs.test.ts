@@ -12,7 +12,7 @@ describe("softkey trio", () => {
   });
 
   it("keeps Back for flows and side pages", () => {
-    for (const p of ["/arrive", "/meet", "/surprise", "/friends/join", "/signin", "/live", "/privacy", "/start", "/nope"]) {
+    for (const p of ["/arrive", "/meet", "/surprise", "/friends/join", "/signin", "/live", "/privacy", "/nope"]) {
       expect(tabForPath(p)).toBeNull();
     }
   });

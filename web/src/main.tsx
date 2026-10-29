@@ -4,6 +4,7 @@ import { render } from "preact";
 import { LocationProvider, Route, Router, useLocation } from "preact-iso";
 import { useEffect } from "preact/hooks";
 import { Friends } from "./pages/Friends";
+import { Game } from "./pages/Game";
 import { Home } from "./pages/Home";
 import { Join } from "./pages/Join";
 import { Around } from "./pages/Around";
@@ -16,7 +17,6 @@ import { NotFound } from "./pages/Placeholders";
 import { Place } from "./pages/Place";
 import { Privacy } from "./pages/Privacy";
 import { SignIn } from "./pages/SignIn";
-import { Start } from "./pages/Start";
 import { Surprise } from "./pages/Surprise";
 import "./styles.css";
 
@@ -57,8 +57,8 @@ function App() {
       <Route path="/signin" component={SignIn} />
       <Route path="/around" component={Around} />
       <Route path="/arrive" component={Arrive} />
-      <Route path="/start" component={Start} />
       <Route path="/surprise" component={Surprise} />
+      <Route path="/game" component={Game} />
       <Route path="/compass" component={Compass} />
       <Route path="/here" component={Here} />
       <Route path="/meet" component={Meet} />

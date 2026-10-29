@@ -1,92 +1,96 @@
 import { describe, expect, it } from "vitest";
 import {
   changeRemove,
-  cleanCompass,
-  compassFromAnswers,
+  cleanRole,
+  extractRoles,
+  fallbackDraft,
   fitsYou,
   hasBannedLabel,
-  isOwnName,
-  normalizeLinks,
-  normalizeSearchName,
   partForWords,
+  PEOPLE_ROLES,
   proposeFeedback,
+  roleClass,
+  trimDraft,
+  validateDraft,
   validateProposal,
 } from "../src/rules/compass";
 
-const TICKED = ["https://ana.example/blog", "https://en.wikipedia.org/wiki/Chess"];
-
-describe("isOwnName: FIND ME only looks up the person", () => {
-  it("accepts names that contain the person's first name", () => {
-    expect(isOwnName("Ana Lopes", "Ana")).toBe(true);
-    expect(isOwnName("ANA lopes-martin", "Ana")).toBe(true);
-    expect(isOwnName("Zoé Martin", "Zoe")).toBe(true);
-    expect(isOwnName("Anne-Sophie Roy", "Anne-Sophie")).toBe(true);
+describe("people in your days: roles only, never names", () => {
+  it("reads roles from own words, first mention first, strangers nobody", () => {
+    expect(extractRoles("my brother Tom and my sister Ana")).toEqual(["brother", "sister"]);
+    expect(extractRoles("coffee with friends, then mum called")).toEqual(["friend", "mum"]);
+    expect(extractRoles("a stranger on the train, my mom and my dad")).toEqual(["mum", "dad"]);
+    expect(extractRoles("chess and long walks")).toEqual([]);
   });
 
-  it("refuses someone else's name, or no first name on file", () => {
-    expect(isOwnName("Linus Torvalds", "Ana")).toBe(false);
-    expect(isOwnName("Anabel Ruiz", "Ana")).toBe(false);
-    expect(isOwnName("Ana Lopes", null)).toBe(false);
+  it("folds proposed roles to the allow-list or drops them", () => {
+    expect([...PEOPLE_ROLES]).toHaveLength(12);
+    expect(cleanRole("brother Tom")).toBe("brother");
+    expect(cleanRole("friends")).toBe("friend");
+    expect(cleanRole("Tom")).toBeNull();
+    expect(cleanRole("dog")).toBeNull();
+    expect(cleanRole(42)).toBeNull();
   });
 
-  it("reads names and links", () => {
-    expect(normalizeSearchName("  Ana   Lopes ")).toBe("Ana Lopes");
-    expect(normalizeSearchName("ana@example.com")).toBeNull();
-    expect(normalizeLinks(["https://ana.example/blog"])).toEqual(["https://ana.example/blog"]);
-    expect(normalizeLinks(["http://ana.example"])).toBeNull();
-    expect(normalizeLinks(["a", "b", "c", "d"])).toBeNull();
-    expect(normalizeLinks(undefined)).toEqual([]);
+  it("knows close roles from service roles", () => {
+    for (const role of ["mum", "dad", "brother", "sister", "child", "friend", "neighbour"] as const) expect(roleClass(role)).toBe("close");
+    for (const role of ["barista", "boss", "colleague", "teammate", "regular"] as const) expect(roleClass(role)).toBe("service");
   });
 });
 
-describe("cleanCompass", () => {
-  it("keeps lines with a ticked source, and 'you said' only when the person answered", () => {
-    const lines = [
-      { part: "interest", text: "Chess, especially endgames", source_url: "https://en.wikipedia.org/wiki/Chess" },
-      { part: "interest", text: "Writing a food blog", source_url: "https://ana.example/blog/" },
-      { part: "intention", text: "Board game evenings", source_url: null },
-    ];
-    expect(cleanCompass(lines, TICKED, false).map((l) => l.text)).toEqual(["Chess, especially endgames", "Writing a food blog"]);
-    expect(cleanCompass(lines, TICKED, true).map((l) => [l.text, l.sourceUrl])).toEqual([
-      ["Chess, especially endgames", "https://en.wikipedia.org/wiki/Chess"],
-      ["Writing a food blog", "https://ana.example/blog"],
-      ["Board game evenings", null],
+describe("validateDraft: what happened, never who the person is", () => {
+  const good = { part: "interest", line: "Long chats about books", topic: "books", place_kind: "park", pace: "social", people: [{ role: "friend" }] };
+
+  it("accepts a good draft and folds its people", () => {
+    expect(validateDraft("interest", good)).toEqual({
+      part: "interest",
+      line: "Long chats about books",
+      topic: "books",
+      placeKind: "park",
+      pace: "social",
+      people: ["friend"],
+    });
+  });
+
+  it("rejects the wrong part, labels and you-are lines", () => {
+    expect(validateDraft("delivery", good)).toBeNull();
+    expect(validateDraft("interest", null)).toBeNull();
+    expect(validateDraft("interest", { ...good, line: "You are an extrovert" })).toBeNull();
+    expect(validateDraft("interest", { ...good, line: "INTJ who loves maps" })).toBeNull();
+    expect(validateDraft("interest", { ...good, line: "Single and ready to flirt" })).toBeNull();
+    expect(validateDraft("filter", { ...good, part: "filter", line: "No politics, please" })).toMatchObject({ part: "filter" });
+  });
+
+  it("trims long lines, caps people at three and falls back gentle", () => {
+    const long = validateDraft("interest", { ...good, line: "I love slow Sunday mornings with the papers and a pot of coffee for two" });
+    expect(long!.line.length).toBeLessThanOrEqual(60);
+    expect(validateDraft("interest", { ...good, line: "x" })).toBeNull();
+    expect(validateDraft("interest", { ...good, people: [{ role: "mum" }, { role: "Tom" }, "dad", "friend", "sister"] })!.people).toEqual([
+      "mum",
+      "dad",
+      "friend",
     ]);
+    expect(validateDraft("interest", { ...good, pace: "wild", topic: "books!", place_kind: "the park!!" })).toMatchObject({
+      pace: "gentle",
+      topic: null,
+      placeKind: null,
+    });
   });
 
-  it("drops lines whose source the person didn't tick (NOT ME)", () => {
-    const lines = [{ part: "interest", text: "Marathon running", source_url: "https://namesake.example/ana" }];
-    expect(cleanCompass(lines, TICKED, true)).toEqual([]);
-  });
-
-  it("drops personality, health, political, religious and sexuality labels", () => {
-    for (const text of ["Introvert who loves maps", "INTJ thinker", "Living with ADHD", "Conservative values", "Active in her church", "Proudly queer"]) {
-      expect(cleanCompass([{ part: "interest", text, source_url: null }], [], true)).toEqual([]);
-    }
-  });
-
-  it("lets a filter name a topic to avoid", () => {
-    expect(cleanCompass([{ part: "filter", text: "No politics, please", source_url: null }], [], true)).toHaveLength(1);
-  });
-
-  it("refuses unknown parts, empty or long text, repeats, and more than 8 lines", () => {
-    expect(cleanCompass([{ part: "secret", text: "x y", source_url: null }], [], true)).toEqual([]);
-    expect(cleanCompass([{ part: "interest", text: "a".repeat(81), source_url: null }], [], true)).toEqual([]);
-    const many = Array.from({ length: 12 }, (_, i) => ({ part: "interest", text: `Topic number ${i}`, source_url: null }));
-    expect(cleanCompass([...many, many[0]], [], true)).toHaveLength(8);
+  it("falls back to the trimmed answer with keyword roles", () => {
+    expect(fallbackDraft("intention", "I started swimming with my sister")).toEqual({
+      part: "intention",
+      line: "I started swimming with my sister",
+      topic: null,
+      placeKind: null,
+      pace: "gentle",
+      people: ["sister"],
+    });
+    expect(trimDraft("x".repeat(70))).toBe("x".repeat(60));
   });
 });
 
-describe("questions and FITS YOU", () => {
-  it("turns three answers into 'you said' lines", () => {
-    expect(compassFromAnswers({ talk: "chess, cycling", more: "board games", avoid: "work talk" })).toEqual([
-      { part: "interest", text: "chess", sourceUrl: null },
-      { part: "interest", text: "cycling", sourceUrl: null },
-      { part: "intention", text: "board games", sourceUrl: null },
-      { part: "filter", text: "work talk", sourceUrl: null },
-    ]);
-  });
-
+describe("FITS YOU and banned labels", () => {
   it("marks a topic that shares a word with your interests", () => {
     expect(fitsYou("Chess at the big table?", ["Chess, especially endgames"])).toBe(true);
     expect(fitsYou("Coffee break now", ["Chess, especially endgames"])).toBe(false);

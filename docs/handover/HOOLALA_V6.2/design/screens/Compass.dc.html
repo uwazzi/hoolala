@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! your compass</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}
+@keyframes hl-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes hl-rise{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes hl-spin{0%{transform:rotate(0deg)}70%{transform:rotate(1000deg)}85%{transform:rotate(1090deg)}100%{transform:rotate(1080deg)}}
+.hl-cursor{display:inline-block;width:8px;height:1em;background:#182513;vertical-align:-2px;margin-left:2px;animation:hl-blink 0.9s steps(1) infinite}
+.hl-rise{animation:hl-rise 0.3s ease-out both}
+.hl-key{cursor:pointer;user-select:none}
+.hl-key:hover{outline:2px solid #182513;outline-offset:2px}
+.hl-key:active{transform:translateY(2px)}
+.hl-scroll::-webkit-scrollbar{width:6px}.hl-scroll::-webkit-scrollbar-thumb{background:#304327}
+input:focus{outline:2px solid #182513;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; overflow: hidden">
+  <header style="flex-shrink: 0; margin: 0 24px; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px dashed #304327">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 11px; line-height: 1.3; color: #304327; text-align: right">You never know until you go.</div>
+  </header>
+
+  <div style="margin: 14px 24px 0 24px; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 22px; line-height: 1.15">{{ title }}</div>
+    <div style="font-size: 12px; line-height: 1.4; color: #304327">What you’re curious about right now. Only you see this.</div>
+  </div>
+
+  <div style="margin: 10px auto 0 auto; position: relative; width: 236px; height: 200px; flex-shrink: 0">
+    <div style="position: absolute; left: 50%; top: 50%; width: 132px; height: 132px; transform: translate(-50%, -50%); border: 2px solid #182513; border-radius: 50%; background: #DDE7C6"></div>
+    <div style="position: absolute; left: 50%; top: 50%; width: 100px; height: 100px; transform: translate(-50%, -50%); border: 2px dashed #AEC58A; border-radius: 50%"></div>
+    <sc-for list="{{ ticks }}" as="t" hint-placeholder-count="8"><div style="{{ t.style }}"></div></sc-for>
+    <div style="{{ needleWrap }}">
+      <div style="position: absolute; left: 50%; top: 10px; width: 8px; height: 48px; margin-left: -4px; background: #182513; clip-path: polygon(50% 0, 100% 100%, 0 100%)"></div>
+      <div style="position: absolute; left: 50%; bottom: 10px; width: 8px; height: 48px; margin-left: -4px; background: #AEC58A; border: 0; clip-path: polygon(0 0, 100% 0, 50% 100%)"></div>
+    </div>
+    <div style="position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); background: #182513; border: 2px solid #DDE7C6"></div>
+    <sc-for list="{{ dirs }}" as="d" hint-placeholder-count="4">
+      <div class="hl-key" onClick="{{ d.pick }}" style="{{ d.style }}">{{ d.label }}</div>
+    </sc-for>
+  </div>
+
+  <div class="hl-scroll" style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 8px 24px 12px 24px; display: flex; flex-direction: column; gap: 10px">
+    <div style="border-left: 4px solid #182513; padding: 2px 0 2px 10px; font-size: 13px; line-height: 1.45; min-height: 38px">{{ leadShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></div>
+
+    <sc-if value="{{ showLines }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <sc-for list="{{ lines }}" as="l" hint-placeholder-count="3">
+          <div class="hl-rise" style="{{ l.box }}">
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="font-size: 14px; line-height: 1.35">{{ l.text }}</span>
+              <span style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #304327">{{ l.source }}</span>
+            </div>
+            <div class="hl-key" onClick="{{ l.remove }}" style="flex-shrink: 0; font-family: 'Silkscreen', monospace; font-size: 10px; padding: 4px 6px; border: 2px solid #182513; border-radius: 2px">REMOVE</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasProposal }}" hint-placeholder-val="{{ false }}">
+      <div class="hl-rise" style="border: 2px dashed #182513; border-radius: 2px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">AI · SAVE THIS CHANGE?</span>
+        <div style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.4">
+          <span><b style="font-family: 'Silkscreen', monospace; font-size: 10px">BEFORE </b>{{ propBefore }}</span>
+          <span><b style="font-family: 'Silkscreen', monospace; font-size: 10px">AFTER </b>{{ propAfter }}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+          <div class="hl-key" onClick="{{ saveProp }}" style="display: flex; align-items: center; justify-content: center; min-height: 40px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">SAVE</div>
+          <div class="hl-key" onClick="{{ dropProp }}" style="display: flex; align-items: center; justify-content: center; min-height: 40px; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">NOT NOW</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">SAY IT YOUR WAY</span>
+        <div style="display: flex; gap: 6px">
+          <input value="{{ draft }}" onChange="{{ onDraft }}" placeholder="Less loud bars. More mornings." style="flex-grow: 1; min-width: 0; font-family: 'Space Mono', monospace; font-size: 13px; padding: 8px; border: 2px solid #182513; border-radius: 2px; background: #DDE7C6; color: #182513">
+          <div class="hl-key" onClick="{{ propose }}" style="{{ sendStyle }}">SEND</div>
+        </div>
+      </div>
+      <sc-if value="{{ hasChanges }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">CHANGES</span>
+          <sc-for list="{{ changes }}" as="ch" hint-placeholder-count="1">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px">
+              <span>{{ ch.text }}</span>
+              <span class="hl-key" onClick="{{ ch.undo }}" style="font-family: 'Silkscreen', monospace; font-size: 10px; text-decoration: underline">UNDO</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px; border-top: 2px dashed #AEC58A">
+        <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">WHERE IT’S USED</span>
+        <span style="font-size: 12px; line-height: 1.45">{{ usedFor }}</span>
+        <span style="font-size: 11px; color: #304327">Never shown to anyone. Never used to match or rank people.</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ revealing }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px">
+        <span style="font-family: 'Silkscreen', monospace; font-size: 11px">SOUND ABOUT RIGHT?</span>
+        <div class="hl-key" onClick="{{ looksRight }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px"><span>LOOKS RIGHT</span><span>&gt;</span></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <div class="hl-key" onClick="{{ looksRight }}" style="display: flex; align-items: center; justify-content: center; min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">CHANGE SOMETHING</div>
+          <a href="Compass.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px; text-decoration: none">START AGAIN</a>
+        </div>
+        <span style="font-size: 11px; color: #304327">Nothing is saved until LOOKS RIGHT.</span>
+      </div>
+    </sc-if>
+  </div>
+
+  <nav aria-label="Softkeys" style="display: flex; border-top: 2px solid #182513; flex-shrink: 0">
+    <a href="Flow.dc.html" style="flex: 1; display: flex; align-items: center; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; text-decoration: none">TODAY</a>
+    <a href="Around.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; text-decoration: none">AROUND</a>
+    <a href="Friends.dc.html" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 13px; text-decoration: none">FRIENDS</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844},"startWithReveal":{"editor":"boolean","default":true,"section":"Demo"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.meta = {
+      N: { label: 'MORE OF', deg: 0, pos: 'left:50%;top:0;transform:translateX(-50%)',
+        lead: 'Where you’re heading. Your game of tiny tries leans this way.', used: 'your game of tiny tries' },
+      E: { label: 'TALK ABOUT', deg: 90, pos: 'right:0;top:50%;transform:translateY(-50%)',
+        lead: 'What you could talk about for an hour. Topics that match say FITS YOU, to you only.', used: 'Signals here (FITS YOU) and Around me' },
+      S: { label: 'LESS OF', deg: 180, pos: 'left:50%;bottom:0;transform:translateX(-50%)',
+        lead: 'What Hoolala! leaves alone. Never suggested, never shown.', used: 'every suggestion, as a filter' },
+      W: { label: 'HOW I GO', deg: 270, pos: 'left:0;top:50%;transform:translateY(-50%)',
+        lead: 'When and how you like to go out. Tries and places respect it.', used: 'Around me and today’s tiny try' }
+    };
+    this.state = {
+      mode: null, dir: 'N', typed: 0, spun: false, draft: '', proposal: null, changes: [], nextId: 20,
+      lines: [
+        { id: 1, dir: 'N', text: 'Chats that start by accident', source: 'FROM: SURPRISE ME' },
+        { id: 2, dir: 'N', text: 'Getting out before 10:00', source: 'YOU SAID' },
+        { id: 11, dir: 'N', text: 'Tries like “say hello to the barista”', source: 'FROM: YOUR FEEDBACK' },
+        { id: 3, dir: 'E', text: 'Board games, the nerdier the better', source: 'FROM: SURPRISE ME' },
+        { id: 4, dir: 'E', text: 'Cooking for far too many people', source: 'YOU SAID' },
+        { id: 5, dir: 'E', text: 'Swimming in the lake, all year', source: 'YOU SAID' },
+        { id: 6, dir: 'S', text: 'Loud bars after 22:00', source: 'YOU SAID' },
+        { id: 7, dir: 'S', text: 'Anything that feels like networking', source: 'FROM: SURPRISE ME' },
+        { id: 8, dir: 'W', text: 'Mornings and lunchtimes', source: 'FROM: SURPRISE ME' },
+        { id: 9, dir: 'W', text: 'One person at a time, not groups', source: 'YOU SAID' },
+        { id: 10, dir: 'W', text: 'Within a 15-minute walk', source: 'YOU SAID' }
+      ]
+    };
+  }
+  componentDidMount() { this.type(); }
+  componentWillUnmount() { clearInterval(this.timer); }
+  mode() { return this.state.mode ?? (this.props.startWithReveal === false ? 'view' : 'reveal'); }
+  lead() {
+    if (this.mode() === 'reveal' && !this.state.spun) return 'From your answers: you want more chats that happen by accident, mornings, one person at a time. Tap a direction to check each part.';
+    return this.meta[this.state.dir].lead;
+  }
+  type() {
+    clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      if (this.state.typed >= this.lead().length) { clearInterval(this.timer); return; }
+      this.setState({ typed: this.state.typed + 1 });
+    }, 20);
+  }
+  pick(d) { this.setState({ dir: d, typed: 0, spun: true }, () => this.type()); }
+  partFor(text) {
+    const t = text.toLowerCase();
+    if (/\b(less|no|not|never|avoid|stop)\b/.test(t)) return 'S';
+    if (/\b(more|want)\b/.test(t)) return 'N';
+    if (/\b(morning|evening|lunch|walk|near|only|alone|group|weekend)\b/.test(t)) return 'W';
+    return 'E';
+  }
+  renderVals() {
+    const m = this.mode(), st = this.state, dir = st.dir;
+    const lead = this.lead();
+    const deg = this.meta[dir].deg;
+    const ticks = [0, 45, 90, 135, 180, 225, 270, 315].map((a) => ({
+      style: 'position:absolute;left:50%;top:50%;width:' + (a % 90 ? 4 : 6) + 'px;height:' + (a % 90 ? 4 : 6) + 'px;background:#182513;transform:translate(-50%,-50%) rotate(' + a + 'deg) translateY(-58px)'
+    }));
+    const needleWrap = 'position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;' +
+      (m === 'reveal' && !st.spun ? 'animation:hl-spin 2.2s cubic-bezier(.2,.7,.2,1) both' : 'transform:rotate(' + deg + 'deg);transition:transform 0.6s cubic-bezier(.3,1.4,.5,1)');
+    const counts = { N: 0, E: 0, S: 0, W: 0 };
+    st.lines.forEach((l) => counts[l.dir]++);
+    const dirs = Object.keys(this.meta).map((k) => ({
+      label: this.meta[k].label + ' ' + counts[k],
+      pick: () => this.pick(k),
+      style: 'position:absolute;' + this.meta[k].pos + ';padding:4px 6px;border:2px solid #182513;border-radius:2px;font-family:Silkscreen,monospace;font-size:10px;white-space:nowrap;' +
+        (dir === k && (st.spun || m === 'view') ? 'background:#182513;color:#DDE7C6' : 'background:#DDE7C6')
+    }));
+    const showDir = st.spun || m === 'view';
+    const lines = st.lines.filter((l) => showDir ? l.dir === dir : l.dir === 'N' || l.id === 8 || l.id === 9).map((l) => ({
+      text: l.text, source: l.source,
+      box: 'display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:#DDE7C6;border:2px solid #182513;border-radius:2px',
+      remove: () => {
+        this.setState({ lines: this.state.lines.filter((x) => x.id !== l.id),
+          changes: [{ id: this.state.nextId, text: 'Removed “' + l.text + '”', undo: { kind: 'restore', line: l } }].concat(this.state.changes).slice(0, 3),
+          nextId: this.state.nextId + 1 });
+      }
+    }));
+    const p = st.proposal;
+    const used = st.spun || m === 'view' ? 'This part shapes ' + this.meta[dir].used + '.' : '';
+    return {
+      title: m === 'reveal' ? 'YOUR WORLD, ACCORDING TO YOU.' : 'YOUR COMPASS',
+      ticks: ticks, needleWrap: needleWrap, dirs: dirs,
+      leadShown: lead.slice(0, st.typed), typing: st.typed < lead.length,
+      showLines: true, lines: lines,
+      revealing: m === 'reveal', viewing: m === 'view',
+      looksRight: () => this.setState({ mode: 'view', spun: true, typed: 0 }, () => this.type()),
+      usedFor: used,
+      draft: st.draft, onDraft: (e) => this.setState({ draft: e.target.value }),
+      sendStyle: 'display:flex;align-items:center;padding:0 12px;border-radius:2px;font-family:Silkscreen,monospace;font-size:12px;' + (st.draft.trim() ? 'background:#182513;color:#DDE7C6' : 'border:2px solid #182513;opacity:0.4;pointer-events:none'),
+      propose: () => {
+        const text = st.draft.trim();
+        if (!text) return;
+        const d = this.partFor(text);
+        const clean = text.replace(/^(more|less|no|not|never|only)\s+/i, '').replace(/[.!]+$/, '');
+        const nice = clean.charAt(0).toUpperCase() + clean.slice(1);
+        this.setState({ proposal: { dir: d, text: nice, before: this.meta[d].label + ': ' + (this.state.lines.filter((l) => l.dir === d).map((l) => l.text).slice(0, 2).join(', ') || 'nothing yet') }, draft: '', dir: d, typed: 0, spun: true }, () => this.type());
+      },
+      hasProposal: !!p,
+      propBefore: p ? p.before : '',
+      propAfter: p ? this.meta[p.dir].label + ': + ' + p.text + ' (you said)' : '',
+      saveProp: () => {
+        const line = { id: st.nextId, dir: p.dir, text: p.text, source: 'YOU SAID · JUST NOW' };
+        this.setState({ lines: this.state.lines.concat(line), proposal: null,
+          changes: [{ id: st.nextId + 1, text: 'Added “' + p.text + '”', undo: { kind: 'drop', id: line.id } }].concat(this.state.changes).slice(0, 3),
+          nextId: st.nextId + 2 });
+      },
+      dropProp: () => this.setState({ proposal: null }),
+      hasChanges: st.changes.length > 0,
+      changes: st.changes.map((c) => ({ text: c.text, undo: () => {
+        const u = c.undo;
+        const lines = u.kind === 'drop' ? this.state.lines.filter((l) => l.id !== u.id) : this.state.lines.concat(u.line);
+        this.setState({ lines: lines, changes: this.state.changes.filter((x) => x.id !== c.id) });
+      } }))
+    };
+  }
+}
+</script>
+</body>
+</html>

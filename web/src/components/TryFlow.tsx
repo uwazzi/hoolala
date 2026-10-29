@@ -1,9 +1,8 @@
-// WP28: the one-screen tiny-try flow: GET A TRY > GO > TELL ME > NEXT TIME.
-// States and copy from docs/design/v6/Flow.dc.html. The server assigns the
-// step, counts the leaves and suggests the next move; the person's taps
-// decide everything. NO REPLY only (no GHOSTED) until the owner decides.
-
-import { useEffect, useState } from "preact/hooks";
+// WP38: the tiny-try flow after LET'S GO: OUT > ASK > DEBRIEF, plus LATER.
+// The offer screen moved to Home (the try is on the home screen itself);
+// the place chips, the friend-dare link and the signals link are gone.
+// Game tries record through the game branch; ANOTHER ONE draws from it.
+import { useState } from "preact/hooks";
 import { api } from "../api";
 import { Plant } from "./Plant";
 import { Typewriter } from "./Typewriter";
@@ -14,14 +13,14 @@ export interface PlantState {
   step: number;
 }
 
-interface LibraryTryView {
+export interface HeroTry {
   id: string | null;
   step: number;
   place: string;
   title: string;
   hint: string;
   meta: string;
-  source: "library" | "try_it";
+  source: "library" | "try_it" | "game";
   why: string | null;
   minutes?: number;
   words_max?: number;
@@ -37,69 +36,62 @@ const OUTCOMES: { kind: OutcomeKind; label: string; note: string; lead: string; 
   { kind: "didnt_happen", label: "Didn't happen", note: "No problem", lead: "That’s fine. Some days are like that.", title: "The plant doesn’t mind.", past: "Last one didn’t happen. Fine." },
 ];
 
-const PLACES = [
-  { id: "anywhere", label: "Anywhere" },
-  { id: "cafe", label: "Café" },
-  { id: "work", label: "Work" },
-];
-
 const NEXTS: { move: -1 | 0 | 1; label: string }[] = [
   { move: -1, label: "Gentler" },
   { move: 0, label: "Same step" },
   { move: 1, label: "Braver" },
 ];
 
-export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: PlantState) => void }) {
-  const [screen, setScreen] = useState<"offer" | "out" | "ask" | "debrief" | "later">("offer");
-  const [place, setPlace] = useState("anywhere");
-  const [pick, setPick] = useState(0);
-  const [current, setCurrent] = useState<LibraryTryView | null>(null);
+export function TryFlow({
+  plant,
+  onPlant,
+  heroTry,
+  initial,
+  onAnother,
+  onExit,
+}: {
+  plant: PlantState;
+  onPlant: (p: PlantState) => void;
+  heroTry: HeroTry;
+  initial: "go" | "later";
+  onAnother: (next: HeroTry) => void;
+  onExit: () => void;
+}) {
+  const [screen, setScreen] = useState<"out" | "ask" | "debrief" | "later">(initial === "later" ? "later" : "out");
   const [note, setNote] = useState("");
   const [debrief, setDebrief] = useState<{ kind: OutcomeKind; suggestion: -1 | 0 | 1; grew: number; tryId: string | null } | null>(null);
-  const [lastOutcome, setLastOutcome] = useState<OutcomeKind | null>(null);
-  const [moved, setMoved] = useState(0);
   const [next, setNext] = useState<-1 | 0 | 1>(0);
   const [grew, setGrew] = useState(-1);
+  const [busy, setBusy] = useState(false);
   const step = plant.step;
 
-  useEffect(() => {
-    if (screen !== "offer") return;
-    setCurrent(null);
-    setNote("");
-    api<{ try: LibraryTryView; step: number }>("GET", `/api/tries/today?place=${place}&skip=${pick}`).then((res) => {
-      if (res.status !== 200) {
-        setNote("No try right now. Try again in a bit.");
-        return;
-      }
-      setCurrent(res.data.try);
-    });
-  }, [screen, place, pick]);
-
   async function tell(kind: OutcomeKind) {
-    if (!current) return;
     setNote("");
-    const res = await api<{ try_id: string; step: number; leaves: number; grew: number; suggestion: -1 | 0 | 1 }>(
-      "POST",
-      "/api/tries",
-      current.source === "try_it"
-        ? {
-            source: "try_it",
-            draft: {
-              title: current.title,
-              hint: current.hint,
-              step: current.step,
-              words_max: current.words_max,
-              minutes: current.minutes,
-              asks_of_other: current.asks_of_other,
-              place_kind: place,
-              why: current.why,
-            },
-            placeKind: place,
-            outcome: kind,
-          }
-        : { libraryId: current.id, placeKind: place, outcome: kind },
-    );
+    setBusy(true);
+    const telling =
+      heroTry.source === "game"
+        ? { source: "game", gameId: heroTry.id, placeKind: "anywhere", outcome: kind }
+        : heroTry.source === "try_it"
+          ? {
+              source: "try_it",
+              draft: {
+                title: heroTry.title,
+                hint: heroTry.hint,
+                step: heroTry.step,
+                words_max: heroTry.words_max,
+                minutes: heroTry.minutes,
+                asks_of_other: heroTry.asks_of_other,
+                place_kind: heroTry.place,
+                why: heroTry.why,
+              },
+              placeKind: heroTry.place,
+              outcome: kind,
+            }
+          : { libraryId: heroTry.id, placeKind: heroTry.place, outcome: kind };
+    const res = await api<{ try_id: string; step: number; leaves: number; grew: number; suggestion: -1 | 0 | 1 }>("POST", "/api/tries", telling);
+    setBusy(false);
     if (res.status !== 200) {
+      if (res.status === 401) return void (location.href = "/signin");
       setNote("That didn't save. Try again?");
       return;
     }
@@ -108,38 +100,43 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
     setDebrief({ kind, suggestion: res.data.suggestion, grew: res.data.grew, tryId: res.data.try_id ?? null });
     setGrew(res.data.grew);
     setNext(res.data.suggestion);
-    setLastOutcome(kind);
     setScreen("debrief");
   }
 
   async function another() {
-    const res = await api<{ step: number }>("POST", "/api/tries/step", { choice: next });
-    const nl = res.status === 200 ? res.data.step : step;
+    if (busy) return;
+    setBusy(true);
+    setNote("");
+    const stepped = await api<{ step: number }>("POST", "/api/tries/step", { choice: next });
+    const nl = stepped.status === 200 ? stepped.data.step : step;
     onPlant({ ...plant, step: nl });
-    setMoved(nl - step);
-    setGrew(-1);
-    if (nl === step) setPick((p) => p + 1);
-    else setPick(0);
-    setScreen("offer");
+    if (heroTry.source === "game" && heroTry.id) {
+      const res = await api<{ try: HeroTry }>("POST", "/api/game/another", { id: heroTry.id });
+      setBusy(false);
+      if (res.status === 401) return void (location.href = "/signin");
+      if (res.status !== 200) return setNote("That didn't work. Try again?");
+      onAnother({ ...res.data.try, hint: "", meta: `${(res.data.try as { minutes?: number }).minutes ?? 1} MIN · FROM YOUR GAME`, place: "anywhere" });
+      return;
+    }
+    const res = await api<{ try: HeroTry }>("GET", `/api/tries/today?skip=${nl === step ? 1 : 0}`);
+    setBusy(false);
+    if (res.status !== 200) return setNote("No try right now. Try again in a bit.");
+    onAnother(res.data.try);
   }
 
-  const outcome = OUTCOMES.find((o) => o.kind === (debrief?.kind ?? lastOutcome));
-  const past = lastOutcome ? OUTCOMES.find((o) => o.kind === lastOutcome)!.past : "";
-  const why = moved > 0 ? "One step braver, as you chose." : moved < 0 ? "A gentler one, as you chose." : "Same step, a fresh try.";
+  const outcome = OUTCOMES.find((o) => o.kind === debrief?.kind);
   const texts =
-    screen === "offer" && current
-      ? { lead: lastOutcome ? `${past} ${why}` : "Today’s tiny try. Optional, always.", title: current.title, meta: `Step ${step} of 5 · ${current.meta}` }
-      : screen === "later"
-        ? { lead: "No problem. Your plant waits.", title: "See you whenever.", meta: null }
-        : screen === "out" && current
-          ? { lead: "Off you go. Phone in pocket.", title: current.hint, meta: null }
-          : screen === "ask"
-            ? { lead: "Welcome back.", title: "How did it go?", meta: null }
-            : screen === "debrief" && outcome
-              ? { lead: outcome.lead, title: outcome.title, meta: null }
-              : null;
+    screen === "later"
+      ? { lead: "No problem. Your plant waits.", title: "See you whenever.", meta: null }
+      : screen === "out"
+        ? { lead: "Off you go. Phone in pocket.", title: heroTry.hint || heroTry.title, meta: null }
+        : screen === "ask"
+          ? { lead: "Welcome back.", title: "How did it go?", meta: null }
+          : screen === "debrief" && outcome
+            ? { lead: outcome.lead, title: outcome.title, meta: null }
+            : null;
 
-  const stepNow = screen === "offer" || screen === "later" ? 0 : screen === "out" ? 1 : 2;
+  const stepNow = screen === "later" ? 0 : screen === "out" ? 1 : 2;
   const path = ["Get a try", "Go", "Tell me"];
 
   return (
@@ -170,35 +167,17 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
       <div class="says" aria-live="polite">
         <div class="lcd-kicker">Hoolala! says</div>
         {!texts ? (
-          <p class="lcd-kicker" role="status">Finding today’s try...</p>
+          <p class="lcd-kicker" role="status">Finding today's try...</p>
         ) : (
-          <Typewriter key={`${screen}:${current?.id ?? ""}:${pick}:${debrief?.kind ?? ""}`} lead={texts.lead} title={texts.title} meta={texts.meta} why={screen === "offer" ? current?.why ?? null : null}>
+          <Typewriter key={`${screen}:${heroTry.id ?? ""}:${debrief?.kind ?? ""}`} lead={texts.lead} title={texts.title} meta={texts.meta}>
             <div class="try-keys keys-rise">
-              {screen === "offer" && (
-                <>
-                  <div class="chip-row" role="radiogroup" aria-label="Where?">
-                    <span class="chip-row-label">Where?</span>
-                    {PLACES.map((p) => (
-                      <label class="chip" key={p.id}>
-                        <input type="radio" name="where" checked={place === p.id} onChange={() => { setPlace(p.id); setPick(0); }} />
-                        <span>{p.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <button class="lcd-key lcd-key--primary" type="button" onClick={() => setScreen("out")}>I’m in. Off I go</button>
-                  <div class="key-row">
-                    <button class="lcd-key" type="button" onClick={() => setPick((p) => p + 1)}>Another one</button>
-                    <button class="lcd-key" type="button" onClick={() => setScreen("later")}>Not today</button>
-                  </div>
-                </>
-              )}
               {screen === "out" && (
                 <button class="lcd-key lcd-key--primary" type="button" onClick={() => setScreen("ask")}>I’m back</button>
               )}
               {screen === "ask" && (
                 <>
                   {OUTCOMES.map((o, i) => (
-                    <button key={o.kind} class={`lcd-key${i === 0 ? " lcd-key--primary" : ""}`} type="button" onClick={() => tell(o.kind)}>
+                    <button key={o.kind} class={`lcd-key${i === 0 ? " lcd-key--primary" : ""}`} type="button" onClick={() => tell(o.kind)} disabled={busy}>
                       <span>{o.label}</span>
                       <span class="key-note">{o.note}</span>
                     </button>
@@ -225,14 +204,8 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
                       </label>
                     ))}
                   </div>
-                  <button class="lcd-key lcd-key--primary" type="button" onClick={another}>Another tiny try</button>
+                  <button class="lcd-key lcd-key--primary" type="button" onClick={another} disabled={busy}>Another tiny try</button>
                   <button class="lcd-key" type="button" onClick={() => { setGrew(-1); setScreen("later"); }}>Enough for today</button>
-                  {debrief.kind !== "didnt_happen" && (
-                    <a class="dashed-link" href="/friends">
-                      <span>Tell my friends what happened</span>
-                      <span aria-hidden="true">&gt;</span>
-                    </a>
-                  )}
                   {debrief.tryId && (
                     <a class="dashed-link" href={`/compass?fix=${debrief.tryId}`}>
                       <span>Compass? That try felt off</span>
@@ -242,7 +215,7 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
                 </>
               )}
               {screen === "later" && (
-                <button class="lcd-key lcd-key--primary" type="button" onClick={() => setScreen("offer")}>Changed my mind</button>
+                <button class="lcd-key lcd-key--primary" type="button" onClick={onExit}>Changed my mind</button>
               )}
             </div>
           </Typewriter>
@@ -253,10 +226,6 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
           {note}
         </p>
       )}
-      <a class="dashed-link" href="/here">
-        <span>At a café or coworking? See who here would like to talk</span>
-        <span aria-hidden="true">&gt;</span>
-      </a>
     </>
   );
 }

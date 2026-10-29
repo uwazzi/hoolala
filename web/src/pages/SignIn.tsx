@@ -1,11 +1,13 @@
 // WP2 sign-in, moved to Preact in WP27. Steps: email > sent, then on the
 // way back from the link: first name > signed in (sign out, delete).
+// The signed-in menu replays the onboarding story ("About Hoolala").
 import { useLocation } from "preact-iso";
 import { useEffect, useState } from "preact/hooks";
 import { api, type MeResponse } from "../api";
 import { Screen } from "../components/Screen";
+import { Story } from "../components/Story";
 
-type Step = "loading" | "email" | "sent" | "name" | "signed-in" | "delete";
+type Step = "loading" | "email" | "sent" | "name" | "signed-in" | "delete" | "story";
 
 const TITLES: Record<Step, string> = {
   loading: "Sign in",
@@ -14,6 +16,7 @@ const TITLES: Record<Step, string> = {
   name: "Your name",
   "signed-in": "Signed in",
   delete: "Delete account",
+  story: "About Hoolala",
 };
 
 const ERRORS: Record<string, string> = {
@@ -85,6 +88,14 @@ export function SignIn() {
     go("email", "Your account is gone. Thanks for trying Hoolala!");
   }
 
+  if (step === "story") {
+    return (
+      <Screen title="About Hoolala" bare>
+        <Story onDone={() => go("signed-in")} />
+      </Screen>
+    );
+  }
+
   return (
     <Screen title={TITLES[step]}>
       <h1 class="screen-title">{TITLES[step]}</h1>
@@ -137,8 +148,8 @@ export function SignIn() {
         <>
           <p class="lcd-block">Hello, {me.firstName}. You're signed in.</p>
           <ul class="key-list">
-            <li><a class="lcd-key lcd-key--primary" href="/arrive">Where are you?</a></li>
-            <li><a class="lcd-key" href="/start">Want a head start?</a></li>
+            <li><a class="lcd-key lcd-key--primary" href="/surprise">Let's get personal</a></li>
+            <li><button class="lcd-key" type="button" onClick={() => go("story")}>About Hoolala</button></li>
             <li><button class="lcd-key" type="button" onClick={signOut}>Sign out</button></li>
             <li><button class="lcd-key" type="button" onClick={() => go("delete")}>Delete my account</button></li>
           </ul>

@@ -190,6 +190,20 @@ describe("tiny tries", () => {
     });
   });
 
+  it("records a picked game try with its words, yours only", async () => {
+    const env = testEnv();
+    const ana = await person(env, "ana");
+    const bob = await person(env, "bob");
+    const gid = crypto.randomUUID();
+    env.DB.sqlite.prepare("INSERT INTO game_tries (id, user_id, game_id, level, step, kind, who_role, title, source, created_at) VALUES (?, ?, ?, 'soft', 1, 'talk', 'brother', 'Say hello to your brother.', 'ai', ?)").run("gt1", ana.id, gid, NOW);
+    const res = await call(env, "POST", "/api/tries", ana, { source: "game", gameId: "gt1", placeKind: "anywhere", outcome: "went_well" });
+    expect(res.status).toBe(200);
+    const row = env.DB.sqlite.prepare("SELECT step, source, title FROM tries WHERE user_id = ?").get(ana.id) as { step: number; source: string; title: string };
+    expect(row).toEqual({ step: 1, source: "game", title: "Say hello to your brother." });
+    expect((await call(env, "POST", "/api/tries", bob, { source: "game", gameId: "gt1", outcome: "went_well" })).status).toBe(404);
+    expect((await call(env, "POST", "/api/tries", ana, { source: "game", gameId: "missing", outcome: "went_well" })).status).toBe(404);
+  });
+
   it("returns the try id on record, and the try with its title for its owner", async () => {
     const env = testEnv();
     const ana = await person(env, "Ana");

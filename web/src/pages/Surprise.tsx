@@ -1,17 +1,19 @@
-// WP34 SURPRISE ME voice: five quick questions, answered by holding the mic
-// in the thumb zone or by typing. Every answer shows what was heard and the
-// compass line it would make; KEEP saves exactly that line, SAY AGAIN drops
-// it, SKIP moves on. Heard, then forgotten: audio is never kept; nothing is
-// saved before KEEP.
+// WP36 LET'S GET PERSONAL: three spoken questions about real moments on the
+// Surprise me voice UI. Every answer drafts one compass line; NEXT confirms
+// it in memory; after the third, the compass check shows the sketch and the
+// people in your days. LOOKS RIGHT saves everything at once. Heard, then
+// forgotten: audio is never kept; nothing is saved before LOOKS RIGHT.
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useLocation } from "preact-iso";
 import { api } from "../api";
 import { type BallMode, PixelBall } from "../components/PixelBall";
 import { Screen } from "../components/Screen";
+import { Stages } from "../components/Stages";
 import { Typed } from "../components/Typed";
-import { proposePlan } from "../surprise";
+import { checkCells, checkHeadline, checkPeople, savePayload } from "../personal";
 import { canRecord, holdRelease, isMuted, type Level, type Recording, record, setMuted, speak } from "../voice";
 
-type Phase = "intro" | "ask" | "done" | "help";
+type Phase = "intro" | "ask" | "check" | "help";
 type Mic = "speaking" | "ready" | "listening" | "thinking" | "confirm" | "typing";
 
 interface Turn {
@@ -20,7 +22,10 @@ interface Turn {
 }
 interface Draft {
   part: string;
-  words: string;
+  line: string;
+  people: string[];
+  viaTyped: boolean;
+  fallback: boolean;
 }
 
 const PART_LABEL: Record<string, string> = {
@@ -30,7 +35,8 @@ const PART_LABEL: Record<string, string> = {
   delivery: "HOW I GO",
   action: "NEXT TIME",
 };
-const MAX_TURNS = 5;
+const MAX_TURNS = 3;
+
 
 const BALL: Record<Mic, BallMode> = {
   speaking: "speaking",
@@ -68,6 +74,7 @@ const ERRORS: Record<string, string> = {
 };
 
 export function Surprise() {
+  const { route } = useLocation();
   const level = useRef<Level>({ current: 0 }).current;
   const [phase, setPhase] = useState<Phase>("intro");
   const [mic, setMic] = useState<Mic>("speaking");
@@ -80,7 +87,8 @@ export function Surprise() {
   const [typedAnswer, setTypedAnswer] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [draftWhy, setDraftWhy] = useState("");
-  const [kept, setKept] = useState(0);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [droppedPeople, setDroppedPeople] = useState<string[]>([]);
   const [text, setText] = useState("");
   const [help, setHelp] = useState("");
   const [note, setNote] = useState("");
@@ -137,6 +145,19 @@ export function Surprise() {
     setPhase("help");
   }
 
+  // One tap, one action: the ref guards faster than a re-render.
+  function takeBusy() {
+    if (acting.current) return false;
+    acting.current = true;
+    setBusy(true);
+    return true;
+  }
+
+  function freeBusy() {
+    acting.current = false;
+    setBusy(false);
+  }
+
   async function fetchNext(sofar: Turn[]) {
     const my = ++seq.current;
     setNote("");
@@ -173,26 +194,25 @@ export function Surprise() {
     setNote("Something went wrong.");
   }
 
-  // One tap, one action: the ref guards faster than a re-render.
-  function takeBusy() {
-    if (acting.current) return false;
-    acting.current = true;
-    setBusy(true);
-    return true;
-  }
-
-  function freeBusy() {
-    acting.current = false;
-    setBusy(false);
-  }
-
   async function begin() {
     const sofar: Turn[] = [];
     setTurns(sofar);
-    setKept(0);
+    setDrafts([]);
+    setDroppedPeople([]);
     setNote("");
     setPhase("ask");
     await fetchNext(sofar);
+  }
+
+  function restart() {
+    setTurns([]);
+    setDrafts([]);
+    setDroppedPeople([]);
+    setNote("");
+    setFailed(false);
+    setPhase("ask");
+    setMic("thinking");
+    void fetchNext([]);
   }
 
   async function holdStart(event: Event) {
@@ -259,48 +279,76 @@ export function Surprise() {
     }
     const heardText = data.text.trim();
     setHeard(heardText);
-    await proposeAnswer(heardText, false);
+    await draftLine(heardText, false);
   }
 
-  async function proposeAnswer(answer: string, viaTyping: boolean) {
+  async function draftLine(answer: string, viaTyping: boolean) {
     setMic("thinking");
-    let why = "That didn't work. Try again?";
-    for (const attempt of proposePlan(answer, qpart)) {
-      let res;
-      try {
-        res = await api<{ proposed?: Draft; error?: string; why?: string }>("POST", "/api/me/compass/propose", attempt);
-      } catch {
-        break;
-      }
-      if (res.status === 401) return void (location.href = "/signin");
-      if (res.status === 200 && res.data.proposed) {
-        setTypedAnswer(viaTyping);
-        setDraft(res.data.proposed);
-        setDraftWhy("");
-        setNote("");
-        setMic("confirm");
-        return;
-      }
-      if (res.data.error === "crisis") return stop(typeof res.data.why === "string" ? res.data.why : "Let's pause. Call 143 any time, day or night.");
-      if (res.status === 429) {
-        why = "Slow down a little, then try again.";
-        break;
-      }
-      if (typeof res.data.why === "string") why = res.data.why;
+    let res;
+    try {
+      res = await api<{ draft?: { part: string; line: string; people: string[] }; fallback?: boolean; error?: string; why?: string }>(
+        "POST",
+        "/api/me/compass/draft-line",
+        { questionId: `q${qi + 1}`, answer },
+      );
+    } catch {
+      res = null;
+    }
+    if (!res) {
+      setTypedAnswer(viaTyping);
+      setDraft(null);
+      setDraftWhy("That didn't work. Try again?");
+      setNote("");
+      return setMic("confirm");
+    }
+    if (res.status === 401) return void (location.href = "/signin");
+    if (res.data.error === "crisis") return stop(typeof res.data.why === "string" ? res.data.why : "Let's pause. Call 143 any time, day or night.");
+    if (res.status === 200 && res.data.draft) {
+      setTypedAnswer(viaTyping);
+      setDraft({ part: res.data.draft.part, line: res.data.draft.line, people: res.data.draft.people ?? [], viaTyped: viaTyping, fallback: res.data.fallback === true });
+      setDraftWhy("");
+      setNote("");
+      return setMic("confirm");
+    }
+    if (res.status === 429) {
+      setTypedAnswer(viaTyping);
+      setDraft(null);
+      setDraftWhy("Slow down a little, then try again.");
+      setNote("");
+      return setMic("confirm");
     }
     setTypedAnswer(viaTyping);
     setDraft(null);
-    setDraftWhy(why);
+    setDraftWhy(typeof res.data.why === "string" ? res.data.why : "That didn't work. Try again?");
     setNote("");
     setMic("confirm");
   }
 
-  async function keep() {
+  function next() {
     if (!draft || !takeBusy()) return;
+    const kept = [...drafts, draft];
+    const sofar = [...turns, { q: question, a: heard }];
+    setDrafts(kept);
+    setTurns(sofar);
+    setDraft(null);
+    setHeard("");
+    freeBusy();
+    if (sofar.length >= MAX_TURNS) {
+      window.speechSynthesis?.cancel();
+      setMic("ready");
+      setPhase("check");
+      return;
+    }
+    setMic("thinking");
+    void fetchNext(sofar).then(freeBusy);
+  }
+
+  async function save() {
+    if (!takeBusy()) return;
     setNote("");
     let res;
     try {
-      res = await api<{ why?: string }>("POST", "/api/me/compass/keep", { part: draft.part, words: draft.words });
+      res = await api("POST", "/api/me/compass/save", savePayload(drafts, droppedPeople));
     } catch {
       freeBusy();
       return setNote("That didn't save. Try again?");
@@ -308,22 +356,11 @@ export function Surprise() {
     if (res.status === 401) return void (location.href = "/signin");
     if (res.status !== 200) {
       freeBusy();
-      return setNote(typeof res.data.why === "string" ? res.data.why : "That didn't save. Try again?");
+      const why = (res.data as { why?: unknown }).why;
+      return setNote(typeof why === "string" ? why : "That didn't save. Try again?");
     }
-    const next = [...turns, { q: question, a: heard }];
-    setTurns(next);
-    setKept((k) => k + 1);
-    setDraft(null);
-    setHeard("");
-    if (next.length >= MAX_TURNS) {
-      window.speechSynthesis?.cancel();
-      setPhase("done");
-      freeBusy();
-      return;
-    }
-    setMic("thinking");
-    await fetchNext(next);
     freeBusy();
+    route("/game");
   }
 
   function again() {
@@ -356,7 +393,7 @@ export function Surprise() {
     }
     setNote("");
     setHeard(t);
-    await proposeAnswer(t, true);
+    await draftLine(t, true);
     freeBusy();
   }
 
@@ -366,16 +403,18 @@ export function Surprise() {
     holding.current = false;
     recording.current?.cancel();
     recording.current = null;
-    const next = [...turns, { q: question, a: "" }];
-    setTurns(next);
+    const sofar = [...turns, { q: question, a: "" }];
+    setTurns(sofar);
     setHeard("");
-    if (next.length >= MAX_TURNS) {
-      setPhase("done");
+    if (sofar.length >= MAX_TURNS) {
+      window.speechSynthesis?.cancel();
+      setMic("ready");
+      setPhase("check");
       freeBusy();
       return;
     }
     setMic("thinking");
-    await fetchNext(next);
+    await fetchNext(sofar);
     freeBusy();
   }
 
@@ -394,10 +433,14 @@ export function Surprise() {
   }
 
   const soundLabel = sound ? "SOUND ON" : "SOUND OFF";
-  const inQuestions = phase === "ask";
-  const showMicRow = voice && inQuestions && mic !== "typing" && !failed;
-  const fills = qpart ? `Q${qi + 1} · FILLS ${PART_LABEL[qpart] ?? qpart}` : `Q${qi + 1} · ANYTHING ELSE`;
+  const inVoice = phase === "intro" || phase === "ask";
+  const showMicRow = voice && phase === "ask" && mic !== "typing" && !failed;
+  const fills = qpart ? `Q${qi + 1} OF 3 · FILLS ${PART_LABEL[qpart] ?? qpart}` : `Q${qi + 1} OF 3 · ANYTHING ELSE`;
   const showTranscript = mic === "listening" || ((mic === "thinking" || mic === "confirm") && heard !== "");
+  const stage = phase === "check" ? 1 : 0;
+  const cells = checkCells(drafts);
+  const people = checkPeople(drafts, droppedPeople);
+  const checkHead = checkHeadline(drafts.length);
 
   const soundToggle = (
     <button type="button" class="sm-sound" onClick={toggleSound} aria-pressed={sound} aria-label={soundLabel}>
@@ -411,7 +454,7 @@ export function Surprise() {
 
   return (
     <Screen
-      title="Surprise me"
+      title="Let's get personal"
       softkeys={
         <>
           <a class="lcd-softkey" href="/">
@@ -424,8 +467,9 @@ export function Surprise() {
       }
     >
       <div class="sm-flow">
+        {(inVoice || phase === "check") && <Stages now={stage} />}
         <div class="sm-progress">
-          {inQuestions && question ? (
+          {phase === "ask" && question ? (
             <div class="sm-dots" role="status">
               {Array.from({ length: MAX_TURNS }, (_, i) => (
                 <span key={i} class={`sm-dot${i < qi ? " is-done" : i === qi ? " is-now" : ""}`} aria-hidden="true" />
@@ -438,7 +482,7 @@ export function Surprise() {
           {soundToggle}
         </div>
 
-        {(phase === "intro" || inQuestions) && (
+        {inVoice && (
           <div class="sm-stage">
             {mic === "listening" && bars.length > 0 && (
               <svg class="sm-bars" width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
@@ -449,16 +493,16 @@ export function Surprise() {
                 ))}
               </svg>
             )}
-            {inQuestions && mic === "listening" && <span class="sm-ping" aria-hidden="true" />}
-            <div class={`sm-ball${inQuestions && mic === "speaking" ? " is-talking" : inQuestions && mic === "listening" ? " is-squashed" : ""}`}>
-              <PixelBall mode={inQuestions ? BALL[mic] : "idle"} level={level} />
+            {phase === "ask" && mic === "listening" && <span class="sm-ping" aria-hidden="true" />}
+            <div class={`sm-ball${phase === "ask" && mic === "speaking" ? " is-talking" : phase === "ask" && mic === "listening" ? " is-squashed" : ""}`}>
+              <PixelBall mode={phase === "ask" ? BALL[mic] : "idle"} level={level} />
             </div>
           </div>
         )}
 
-        {inQuestions && <p class="sm-hint">{HINTS[mic]}</p>}
+        {phase === "ask" && <p class="sm-hint">{HINTS[mic]}</p>}
 
-        {inQuestions && question && (
+        {phase === "ask" && question && (
           <p class="sm-caption" aria-live="polite">
             {mic === "speaking" ? <Typed key={qi} text={question} msPerChar={45} onDone={() => setShown(true)} /> : question}
           </p>
@@ -466,8 +510,8 @@ export function Surprise() {
 
         {phase === "intro" && (
           <>
-            <h1 class="sm-head">Five quick questions. Then a little surprise.</h1>
-            <p class="sm-center">Hold the mic at the bottom and answer out loud, or type.</p>
+            <h1 class="sm-head">Let's get personal.</h1>
+            <p class="sm-center">Three questions about real moments you've had, so your tiny tries fit you. No right answers. Hold the mic at the bottom and answer out loud, or type. About a minute.</p>
             <ul class="key-list">
               <li>
                 <button class="lcd-key lcd-key--primary" type="button" onClick={begin}>
@@ -479,7 +523,7 @@ export function Surprise() {
           </>
         )}
 
-        {inQuestions && showTranscript && (
+        {phase === "ask" && showTranscript && (
           <div class="sm-said keys-rise">
             <span class="sm-said-label">{mic === "confirm" ? (typedAnswer ? "YOU TYPED" : "I HEARD") : "HEARING..."}</span>
             <span class="sm-said-text">
@@ -489,17 +533,14 @@ export function Surprise() {
           </div>
         )}
 
-        {inQuestions && mic === "confirm" && (
+        {phase === "ask" && mic === "confirm" && (
           <div class="keys-rise">
             <div class="sm-draft">
-              <span class="lcd-kicker">For your compass</span>
+              <span class="lcd-kicker">{draft && !draft.fallback ? "AI · For your compass" : "For your compass"}</span>
               {draft ? (
-                <>
-                  <p class="sm-draft-line">
-                    <span class="sm-draft-part">{PART_LABEL[draft.part] ?? draft.part}:</span> {draft.words}
-                  </p>
-                  <p class="sm-src">you said</p>
-                </>
+                <p class="sm-draft-line">
+                  <span class="sm-draft-part">{PART_LABEL[draft.part] ?? draft.part}:</span> {draft.line}
+                </p>
               ) : (
                 <p class="sm-draft-line">{draftWhy}</p>
               )}
@@ -507,8 +548,8 @@ export function Surprise() {
             <ul class="key-list">
               {draft && (
                 <li>
-                  <button class="lcd-key lcd-key--primary" type="button" onClick={keep} disabled={busy}>
-                    Keep
+                  <button class="lcd-key lcd-key--primary" type="button" onClick={next} disabled={busy}>
+                    Next
                   </button>
                 </li>
               )}
@@ -526,7 +567,7 @@ export function Surprise() {
           </div>
         )}
 
-        {inQuestions && mic === "typing" && (
+        {phase === "ask" && mic === "typing" && (
           <form class="keys-rise" onSubmit={sendTyped} noValidate>
             <label class="lcd-label" for="sm-answer">
               Your answer
@@ -559,7 +600,7 @@ export function Surprise() {
           </form>
         )}
 
-        {inQuestions && failed && (
+        {phase === "ask" && failed && (
           <ul class="key-list">
             <li>
               <button class="lcd-key" type="button" onClick={() => fetchNext(turns)}>
@@ -615,18 +656,59 @@ export function Surprise() {
           </div>
         )}
 
-        {phase === "done" && (
-          <>
-            <h1 class="sm-head">{kept > 0 ? `That's you, in ${kept} ${kept === 1 ? "answer" : "answers"}.` : "Nothing kept this time."}</h1>
-            <p class="sm-center">{kept > 0 ? "Your surprise is ready: your compass, drawn from your own words." : "Your compass is still empty. You can try again any time."}</p>
+        {phase === "check" && (
+          <div class="sm-check">
+            <h1 class="sm-checkhead" aria-live="polite">
+              <Typed text={checkHead} msPerChar={35} onDone={() => {}} />
+            </h1>
+            <div class="sm-grid">
+              {cells.map((cell) => (
+                <div class={`sm-cell${cell.line ? "" : " is-empty"}`} key={cell.pole}>
+                  <span class="sm-cellhead">
+                    {cell.pole} · {PART_LABEL[cell.part]}
+                  </span>
+                  <span class="sm-celltext">{cell.line ?? "Add later, if you like"}</span>
+                  <span class="sm-cellsrc">{cell.line ? (cell.viaTyped ? "FROM: YOU TYPED" : "FROM: SURPRISE ME") : "EMPTY FOR NOW"}</span>
+                </div>
+              ))}
+            </div>
+            <div class={`sm-people${people.length > 0 ? "" : " is-empty"}`}>
+              <span class="sm-cellhead">PEOPLE IN YOUR DAYS</span>
+              {people.length > 0 ? (
+                <>
+                  <ul class="sm-roles">
+                    {people.map((role) => (
+                      <li key={role}>
+                        <span class="sm-celltext">{role.toUpperCase()}</span>
+                        <button type="button" class="link-button" onClick={() => setDroppedPeople((d) => [...d, role])} aria-label={`Remove ${role}`}>
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <span class="sm-cellsrc">FROM: YOUR ANSWERS · ROLES ONLY, NEVER NAMES</span>
+                </>
+              ) : (
+                <>
+                  <span class="sm-celltext">Nobody named yet. Tries will say someone.</span>
+                  <span class="sm-cellsrc">EMPTY FOR NOW</span>
+                </>
+              )}
+            </div>
+            <p class="sm-note">Nothing is saved until you say it looks right. Change or undo any line later in MY COMPASS.</p>
             <ul class="key-list">
               <li>
-                <a class="lcd-key lcd-key--primary" href="/compass?fresh=1">
-                  Show me
-                </a>
+                <button class="lcd-key lcd-key--primary" type="button" onClick={save} disabled={busy}>
+                  Looks right. Make my game
+                </button>
+              </li>
+              <li>
+                <button class="lcd-key" type="button" onClick={restart}>
+                  Change something
+                </button>
               </li>
             </ul>
-          </>
+          </div>
         )}
 
         {phase === "help" && (

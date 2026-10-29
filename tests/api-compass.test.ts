@@ -12,51 +12,23 @@ const AI = { LLM_ENABLED: "true", META_API_KEY: "test-meta-key", META_API_BASE: 
 type Env = ReturnType<typeof testEnv>;
 type Person = { id: string; cookie: string };
 
-/** Fake Meta API shaped like the real FIND ME call: site-only citations, specific returned pages. */
-let findings: unknown[] = [];
-let draft: unknown[] | "fail" = [];
+/** Fake Meta API: queued structured drafts, in order; an empty queue fails. */
+let drafts: unknown[] = [];
 let calls: { url: string; body: string }[] = [];
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(NOW));
   calls = [];
-  findings = [
-    { text: "Writes a food blog about Lausanne cafés", url: "https://ana-lopes.example" },
-    { text: "Plays in a Lausanne chess club", url: "https://www.chess-lausanne.ch" },
-    { text: "Ana Lopes, marathon runner in Porto", url: "https://namesake-runner.example" },
-    { text: "Invented award winner", url: "https://made-up.example" },
-  ];
-  draft = [
-    { part: "interest", text: "Lausanne cafés and food writing", source_url: "https://ana-lopes.example/blog" },
-    { part: "interest", text: "Chess, especially endgames", source_url: "https://www.chess-lausanne.ch/members/ana" },
-    { part: "interest", text: "Marathon running", source_url: "https://namesake-runner.example/ana" },
-    { part: "intention", text: "Board game evenings", source_url: null },
-  ];
+  drafts = [];
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init: RequestInit) => {
       if (!String(url).includes("api.meta.test")) return Response.json({ elements: [] });
       calls.push({ url: String(url), body: String(init.body) });
-      if (String(url).endsWith("/responses")) {
-        return Response.json({
-          output: [
-            { type: "message", content: [{ type: "output_text", text: "Searching for this person." }] },
-            {
-              type: "web_search_call",
-              results: [
-                { url: "https://ana-lopes.example/blog", title: "Ana's food blog", snippet: "Lausanne cafés, reviews and food writing" },
-                { url: "https://www.chess-lausanne.ch/members/ana", title: "Members", snippet: "Ana Lopes, chess club Lausanne" },
-                { url: "https://namesake-runner.example/ana", title: "Ana Lopes runner", snippet: "Marathon runner in Porto" },
-              ],
-            },
-            { type: "message", content: [{ type: "output_text", text: JSON.stringify({ findings }) }] },
-          ],
-          usage: { input_tokens: 14000, output_tokens: 1200 },
-        });
-      }
-      if (draft === "fail") return new Response("{}", { status: 500 });
-      return Response.json({ choices: [{ message: { content: JSON.stringify({ compass: draft }) } }], usage: { prompt_tokens: 300, completion_tokens: 150 } });
+      const next = drafts.length ? drafts.shift() : "fail";
+      if (next === "fail") return new Response("{}", { status: 500 });
+      return Response.json({ choices: [{ message: { content: JSON.stringify(next) } }], usage: { prompt_tokens: 300, completion_tokens: 150 } });
     }),
   );
 });
@@ -84,90 +56,102 @@ async function person(env: Env, firstName: string | null): Promise<Person> {
 }
 
 const rows = (env: Env, sql: string) => env.DB.sqlite.prepare(sql).all() as Record<string, unknown>[];
-const find = (env: Env, who: Person, body: Record<string, unknown> = {}) =>
-  call(env, "POST", "/api/me/find", who, { consent: true, name: "Ana Lopes", town: "Lausanne", links: ["https://ana-lopes.example/blog"], ...body });
 
-describe("FIND ME", () => {
-  it("needs consent and looks up only the person", async () => {
+const DRAFT = {
+  part: "interest",
+  line: "Long chats about books",
+  topic: "books",
+  place_kind: "park",
+  pace: "social",
+  people: [{ role: "friend" }],
+};
+
+describe("GET PERSONAL drafting", () => {
+  it("needs a signed-in person and a real question and answer", async () => {
     const env = testEnv(AI);
+    expect((await call(env, "POST", "/api/me/compass/draft-line", undefined, { questionId: "q1", answer: "chess" })).status).toBe(401);
     const ana = await person(env, "Ana");
-    expect((await find(env, ana, { consent: false })).status).toBe(400);
-    const other = await find(env, ana, { name: "Linus Torvalds" });
-    expect(other.status).toBe(403);
-    expect(await other.json()).toEqual({ error: "not_you" });
-    expect((await find(env, await person(env, null))).status).toBe(400);
+    const draft = (body: unknown) => call(env, "POST", "/api/me/compass/draft-line", ana, body);
+    expect((await draft({ questionId: "q9", answer: "chess" })).status).toBe(400);
+    expect((await draft({ questionId: "q1", answer: "  " })).status).toBe(400);
+    expect((await draft({ questionId: "q1", answer: "x".repeat(301) })).status).toBe(400);
     expect(calls).toHaveLength(0);
   });
 
-  it("returns grounded findings with their real pages, and stores none of them", async () => {
+  it("drafts a line with topic, place, pace and people, and saves nothing", async () => {
     const env = testEnv(AI);
     const ana = await person(env, "Ana");
-    const res = await (await find(env, ana)).json();
-    expect(res.findings).toEqual([
-      { text: "Writes a food blog about Lausanne cafés", url: "https://ana-lopes.example/blog", source: "ana-lopes.example" },
-      { text: "Plays in a Lausanne chess club", url: "https://www.chess-lausanne.ch/members/ana", source: "chess-lausanne.ch" },
-      { text: "Ana Lopes, marathon runner in Porto", url: "https://namesake-runner.example/ana", source: "namesake-runner.example" },
-    ]);
-    // Nothing about the person is written anywhere.
-    const everything = JSON.stringify([
-      rows(env, "SELECT * FROM compass_items"),
-      rows(env, "SELECT * FROM llm_calls"),
-      rows(env, "SELECT * FROM workings"),
-      [...env.SESSIONS.store.values()],
-    ]);
-    for (const leak of ["food blog", "chess", "marathon", "ana-lopes.example", "Lopes"]) expect(everything).not.toContain(leak);
-    expect(rows(env, "SELECT function, tools_json, grounded_count, total_count FROM workings")).toEqual([
-      { function: "findme", tools_json: '["web_search"]', grounded_count: 3, total_count: 4 },
-    ]);
-    expect(JSON.parse(calls[0].body)).toMatchObject({ max_tool_calls: 3 });
+    drafts = [DRAFT];
+    const res = await (await call(env, "POST", "/api/me/compass/draft-line", ana, { questionId: "q1", answer: "Long chats about books" })).json();
+    expect(res).toEqual({
+      draft: { part: "interest", line: "Long chats about books", topic: "books", placeKind: "park", pace: "social", people: ["friend"] },
+      fallback: false,
+    });
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_people")[0].n).toBe(0);
+    expect(rows(env, "SELECT function, verdict FROM workings")).toEqual([{ function: "compassdraft", verdict: "approved" }]);
   });
 
-  it("says the AI is off rather than pretending", async () => {
+  it("screens answers before the model ever sees them", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    drafts = [DRAFT];
+    expect(await (await call(env, "POST", "/api/me/compass/draft-line", ana, { questionId: "q1", answer: "nothing, I want to die" })).json()).toMatchObject({
+      error: "crisis",
+    });
+    expect(await (await call(env, "POST", "/api/me/compass/draft-line", ana, { questionId: "q1", answer: "Single and ready to flirt" })).json()).toMatchObject({
+      error: "not_allowed",
+    });
+    expect(calls).toHaveLength(0);
+  });
+
+  it("retries a bad draft once, then falls back to the trimmed answer", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    drafts = [{ ...DRAFT, part: "delivery" }, "fail"];
+    const res = await (
+      await call(env, "POST", "/api/me/compass/draft-line", ana, { questionId: "q1", answer: "Long talks about football with my brother Tom" })
+    ).json();
+    expect(res).toEqual({
+      draft: {
+        part: "interest",
+        line: "Long talks about football with my brother Tom",
+        topic: null,
+        placeKind: null,
+        pace: "gentle",
+        people: ["brother"],
+      },
+      fallback: true,
+    });
+    expect(calls).toHaveLength(2);
+  });
+
+  it("works with the model off and stores no transcripts", async () => {
     const env = testEnv({ ...AI, LLM_ENABLED: "false" });
     const ana = await person(env, "Ana");
-    expect((await find(env, ana)).status).toBe(503);
+    const said = "bananas about ballroom zebras with my sister";
+    const res = await (await call(env, "POST", "/api/me/compass/draft-line", ana, { questionId: "q2", answer: said })).json();
+    expect(res.fallback).toBe(true);
+    expect(res.draft).toMatchObject({ part: "intention", people: ["sister"] });
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    for (const table of ["compass_items", "compass_people", "llm_calls", "workings"]) {
+      expect(JSON.stringify(rows(env, `SELECT * FROM ${table}`))).not.toMatch(/zebras/);
+    }
   });
 });
 
 describe("the compass", () => {
-  const kept = [
-    { text: "Writes a food blog about Lausanne cafés", url: "https://ana-lopes.example/blog" },
-    { text: "Plays in a Lausanne chess club", url: "https://www.chess-lausanne.ch/members/ana" },
-  ];
-
-  it("drafts only from ticked findings: a NOT ME source never makes it in, and nothing is saved", async () => {
-    const env = testEnv(AI);
-    const ana = await person(env, "Ana");
-    const res = await (await call(env, "POST", "/api/me/compass/draft", ana, { kept, answers: { more: "board games" } })).json();
-    expect(res.lines.map((l: { text: string; source: string }) => `${l.text} (${l.source})`)).toEqual([
-      "Lausanne cafés and food writing (ana-lopes.example)",
-      "Chess, especially endgames (chess-lausanne.ch)",
-      "Board game evenings (you said)",
-    ]);
-    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
-  });
-
-  it("drafts without the model too, and from three answers alone", async () => {
-    const env = testEnv({ ...AI, LLM_ENABLED: "false" });
-    const ana = await person(env, "Ana");
-    const fromFindings = await (await call(env, "POST", "/api/me/compass/draft", ana, { kept })).json();
-    expect(fromFindings.source).toBe("rules");
-    expect(fromFindings.lines).toHaveLength(2);
-    const fromAnswers = await (await call(env, "POST", "/api/me/compass/draft", ana, { answers: { talk: "chess, cycling", avoid: "work talk" } })).json();
-    expect(fromAnswers.lines.map((l: { part: string; text: string }) => `${l.part}:${l.text}`)).toEqual(["interest:chess", "interest:cycling", "filter:work talk"]);
-  });
-
   it("saves only on LOOKS RIGHT, and only for the person", async () => {
     const env = testEnv(AI);
     const ana = await person(env, "Ana");
     const ben = await person(env, "Ben");
     const lines = [
-      { part: "interest", text: "Chess, especially endgames", sourceUrl: "https://www.chess-lausanne.ch/members/ana" },
-      { part: "intention", text: "Board game evenings", sourceUrl: null },
-      { part: "interest", text: "Introvert at heart", sourceUrl: null },
+      { part: "interest", words: "Chess, especially endgames" },
+      { part: "intention", words: "Board game evenings" },
     ];
-    const saved = await (await call(env, "POST", "/api/me/compass/confirm", ana, { lines })).json();
+    const saved = await (await call(env, "POST", "/api/me/compass/save", ana, { lines, people: [{ role: "friend" }, "mum"] })).json();
     expect(saved.compass.map((l: { text: string }) => l.text)).toEqual(["Chess, especially endgames", "Board game evenings"]);
+    expect(saved.people).toEqual([{ role: "friend" }, { role: "mum" }]);
     expect((await (await call(env, "GET", "/api/me/compass", ben)).json()).compass).toEqual([]);
     expect((await call(env, "GET", "/api/me/compass")).status).toBe(401);
   });
@@ -178,9 +162,8 @@ describe("the compass", () => {
     const ana = await person(env, "Ana");
     const ben = await person(env, "Ben");
     const cleo = await person(env, "Cleo");
-    await call(env, "POST", "/api/me/compass/confirm", ana, { lines: [{ part: "interest", text: "Chess, especially endgames", sourceUrl: null }] });
+    await call(env, "POST", "/api/me/compass/save", ana, { lines: [{ part: "interest", words: "Chess, especially endgames" }], people: [] });
     for (const p of [ana, ben, cleo]) await call(env, "POST", "/api/checkin", p, { placeId: "cafe", lat: 46.5222, lng: 6.63442 });
-    draft = "fail";
     await call(env, "POST", "/api/here/signals", ben, { topic: "Coffee break now?", when: "now", spot: "The big table", capacity: 1 });
     await call(env, "POST", "/api/here/signals", cleo, { topic: "Chess at the big table?", when: "now", spot: "The big table", capacity: 1 });
 
@@ -200,17 +183,19 @@ describe("the compass", () => {
     const env = testEnv(AI);
     const ana = await person(env, "Ana");
     const saved = await (
-      await call(env, "POST", "/api/me/compass/confirm", ana, {
+      await call(env, "POST", "/api/me/compass/save", ana, {
         lines: [
-          { part: "interest", text: "Chess", sourceUrl: null },
-          { part: "intention", text: "Board games", sourceUrl: null },
+          { part: "interest", words: "Chess" },
+          { part: "intention", words: "Board games" },
         ],
+        people: [{ role: "friend" }],
       })
     ).json();
     const after = await (await call(env, "DELETE", `/api/me/compass/${saved.compass[0].id}`, ana)).json();
     expect(after.compass.map((l: { text: string }) => l.text)).toEqual(["Board games"]);
     await call(env, "DELETE", "/api/me", ana);
     expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_people")[0].n).toBe(0);
   });
 });
 
@@ -218,11 +203,12 @@ describe("SAY IT YOUR WAY", () => {
   async function savedCompass(env: Env, ana: Person) {
     return (
       await (
-        await call(env, "POST", "/api/me/compass/confirm", ana, {
+        await call(env, "POST", "/api/me/compass/save", ana, {
           lines: [
-            { part: "interest", text: "Chess", sourceUrl: null },
-            { part: "delivery", text: "Busy evenings", sourceUrl: null },
+            { part: "interest", words: "Chess" },
+            { part: "delivery", words: "Busy evenings" },
           ],
+          people: [],
         })
       ).json()
     ).compass as { id: string; part: string; text: string }[];
@@ -259,7 +245,7 @@ describe("SAY IT YOUR WAY", () => {
     ).json();
     expect(res.saw).toEqual([{ part: "delivery", words: "Busy evenings" }]);
     expect(rows(env, `SELECT origin FROM compass_items WHERE id = '${compass[1].id}'`)).toEqual([{ origin: "delivery" }]);
-    expect(rows(env, `SELECT origin FROM compass_items WHERE id = '${compass[0].id}'`)).toEqual([{ origin: "find_me" }]);
+    expect(rows(env, `SELECT origin FROM compass_items WHERE id = '${compass[0].id}'`)).toEqual([{ origin: "questions" }]);
   });
 
   it("turns feedback names into starter words", async () => {
@@ -337,65 +323,75 @@ describe("SAY IT YOUR WAY", () => {
     const compass = await savedCompass(env, ana);
     await call(env, "POST", "/api/me/compass/confirm_line", ana, { lineId: compass[0].id, part: "interest", words: "Chess club" });
     expect((await call(env, "POST", "/api/me/compass/undo", ben)).status).toBe(404);
-    await call(env, "POST", "/api/me/compass/confirm", ana, { lines: [{ part: "interest", text: "Chess", sourceUrl: null }] });
+    await call(env, "POST", "/api/me/compass/save", ana, { lines: [{ part: "interest", words: "Chess" }], people: [] });
     expect(rows(env, "SELECT COUNT(*) AS n FROM compass_changes")[0].n).toBe(0);
     expect((await call(env, "POST", "/api/me/compass/undo", ana)).status).toBe(404);
   });
 });
 
-describe("SURPRISE ME keeps", () => {
-  it("needs a signed-in person", async () => {
+describe("LOOKS RIGHT validation", () => {
+  it("needs a signed-in person and well-formed lines and roles", async () => {
     const env = testEnv(AI);
-    expect((await call(env, "POST", "/api/me/compass/keep", undefined, { part: "interest", words: "Chess" })).status).toBe(401);
-  });
-
-  it("saves one line as 'you said', and nothing before the KEEP tap", async () => {
-    const env = testEnv(AI);
+    expect((await call(env, "POST", "/api/me/compass/save", undefined, { lines: [], people: [] })).status).toBe(401);
     const ana = await person(env, "Ana");
-    const proposed = await (await call(env, "POST", "/api/me/compass/propose", ana, { part: "interest", words: "Chess, the slower the better" })).json();
-    expect(proposed.proposed).toEqual({ part: "interest", words: "Chess, the slower the better", change: { before: null, after: "Chess, the slower the better" } });
-    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
-    const kept = await call(env, "POST", "/api/me/compass/keep", ana, { part: proposed.proposed.part, words: proposed.proposed.words });
-    expect(kept.status).toBe(200);
-    expect(await kept.json()).toEqual({
-      compass: [{ id: expect.any(String), part: "interest", text: "Chess, the slower the better", sourceUrl: null, source: "you said", origin: "questions" }],
-    });
-  });
-
-  it("refuses invalid lines with the validator's reason, and saves nothing", async () => {
-    const env = testEnv(AI);
-    const ana = await person(env, "Ana");
-    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "  " })).json()).toMatchObject({ error: "missing_words" });
-    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "x".repeat(61) })).json()).toMatchObject({ error: "too_long" });
-    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "filter", words: "I love football" })).json()).toMatchObject({ error: "bad_fit" });
-    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "Single and ready to flirt" })).json()).toMatchObject({
+    const save = (body: unknown) => call(env, "POST", "/api/me/compass/save", ana, body);
+    expect((await save({ lines: "nope", people: [] })).status).toBe(400);
+    expect((await save({ lines: [], people: "nope" })).status).toBe(400);
+    expect(await (await save({ lines: [{ part: "interest", words: "  " }], people: [] })).json()).toMatchObject({ error: "missing_words" });
+    expect(await (await save({ lines: [{ part: "interest", words: "x".repeat(61) }], people: [] })).json()).toMatchObject({ error: "too_long" });
+    expect(await (await save({ lines: [{ part: "interest", words: "Single and ready to flirt" }], people: [] })).json()).toMatchObject({
       error: "not_allowed",
     });
-    expect(await (await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "nothing, I want to die" })).json()).toMatchObject({
-      error: "crisis",
-    });
+    expect(await (await save({ lines: [{ part: "interest", words: "Chess" }], people: ["Tom"] })).json()).toMatchObject({ error: "bad_role" });
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
+    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_people")[0].n).toBe(0);
+  });
+
+  it("drops the name but keeps the role, and replaces on a second save", async () => {
+    const env = testEnv(AI);
+    const ana = await person(env, "Ana");
+    const first = await (
+      await call(env, "POST", "/api/me/compass/save", ana, { lines: [{ part: "interest", words: "Chess" }], people: ["brother Tom", "friend"] })
+    ).json();
+    expect(first.people).toEqual([{ role: "brother" }, { role: "friend" }]);
+    expect(JSON.stringify(rows(env, "SELECT * FROM compass_people"))).not.toContain("Tom");
+    const second = await (await call(env, "POST", "/api/me/compass/save", ana, { lines: [], people: [] })).json();
+    expect(second.compass).toEqual([]);
+    expect(second.people).toEqual([]);
     expect(rows(env, "SELECT COUNT(*) AS n FROM compass_items")[0].n).toBe(0);
   });
 
-  it("keeps one person's lines from another, with no model and no undo log", async () => {
+  it("works with the model off and touches no model", async () => {
+    const env = testEnv({ ...AI, LLM_ENABLED: "false" });
+    const ana = await person(env, "Ana");
+    const saved = await call(env, "POST", "/api/me/compass/save", ana, { lines: [{ part: "delivery", words: "quiet mornings" }], people: [] });
+    expect(saved.status).toBe(200);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    expect(rows(env, "SELECT COUNT(*) AS n FROM llm_calls")[0].n).toBe(0);
+  });
+});
+
+describe("people in your days", () => {
+  it("lists only the owner's roles", async () => {
     const env = testEnv(AI);
     const ana = await person(env, "Ana");
     const ben = await person(env, "Ben");
-    await call(env, "POST", "/api/me/compass/keep", ana, { part: "interest", words: "Chess" });
-    await call(env, "POST", "/api/me/compass/keep", ben, { part: "filter", words: "loud bars" });
-    expect(await (await call(env, "GET", "/api/me/compass", ana)).json()).toEqual({
-      compass: [{ id: expect.any(String), part: "interest", text: "Chess", sourceUrl: null, source: "you said", origin: "questions" }],
-    });
-    expect(rows(env, "SELECT COUNT(*) AS n FROM llm_calls")[0].n).toBe(0);
-    expect(rows(env, "SELECT COUNT(*) AS n FROM compass_changes")[0].n).toBe(0);
-    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    expect((await call(env, "GET", "/api/me/compass/people")).status).toBe(401);
+    await call(env, "POST", "/api/me/compass/save", ana, { lines: [], people: ["mum", "barista"] });
+    expect(await (await call(env, "GET", "/api/me/compass/people", ana)).json()).toEqual({ people: [{ role: "mum" }, { role: "barista" }] });
+    expect(await (await call(env, "GET", "/api/me/compass/people", ben)).json()).toEqual({ people: [] });
   });
 
-  it("works with the model off", async () => {
-    const env = testEnv({ ...AI, LLM_ENABLED: "false" });
+  it("removes one role at a time, and only the owner's", async () => {
+    const env = testEnv(AI);
     const ana = await person(env, "Ana");
-    const kept = await call(env, "POST", "/api/me/compass/keep", ana, { part: "delivery", words: "quiet mornings" });
-    expect(kept.status).toBe(200);
-    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    const ben = await person(env, "Ben");
+    await call(env, "POST", "/api/me/compass/save", ana, { lines: [], people: ["mum", "barista"] });
+    expect((await call(env, "DELETE", "/api/me/compass/people/mum")).status).toBe(401);
+    expect((await call(env, "DELETE", "/api/me/compass/people/mum", ben)).status).toBe(404);
+    expect((await call(env, "DELETE", "/api/me/compass/people/dog", ana)).status).toBe(400);
+    const after = await (await call(env, "DELETE", "/api/me/compass/people/mum", ana)).json();
+    expect(after).toEqual({ people: [{ role: "barista" }] });
+    expect((await call(env, "DELETE", "/api/me/compass/people/mum", ana)).status).toBe(404);
   });
 });

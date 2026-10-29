@@ -2,7 +2,7 @@
 
 Product: `docs/SIGNALS-HERE.md` (the hackathon hero, wins on product scope) and `docs/MUSE-SPARK-BY-FUNCTION.md` (wins on model use). Hackathon rules and judging: `docs/HACKATHON-RULES.md`. Research behind the choice: `docs/COMPETITOR-REVIEWS.md`.
 
-**Goal for the submission.** Hoolala! turns "we should talk sometime" into "we did". In any real café or coworking space, people get a head start from their public footprint (FIND ME: web search with citations, the Personal Compass), check in without friction (ARRIVE), see the place's details fetched and kept right by people (PLACE IT: parallel tools, place points), discover and post small invitations to talk (Signals here), with Muse Spark suggesting topics (SUGGEST IT: web search with citations), screening and translating them (SCREEN IT: structured output) and proposing where to meet (PLAN IT: parallel tools), every AI answer explained (CHECK IT). Then the model steps out: MEET IT (mutual QR, Live page with the connection rate), STAY IN TOUCH and GO LIVE.
+**Goal for the submission.** Hoolala! turns "we should talk sometime" into "we did". In any real café or coworking space, people answer three questions about real moments for a private Personal Compass, check in without friction (ARRIVE), see the place's details fetched and kept right by people (PLACE IT: parallel tools, place points), discover and post small invitations to talk (Signals here), with Muse Spark suggesting topics (SUGGEST IT: web search with citations), screening and translating them (SCREEN IT: structured output) and proposing where to meet (PLAN IT: parallel tools), every AI answer explained (CHECK IT). Then the model steps out: MEET IT (mutual QR, Live page with the connection rate), STAY IN TOUCH and GO LIVE.
 
 **North-star metric:** real-world connection rate (accepted signals that end in a QR-confirmed meet-up).
 
@@ -38,23 +38,25 @@ Decisions (29 Oct, v6): tiny tries lead (GET OUTSIDE. MEET PEOPLE. GROW INSIDE.)
 
 ## Cuts and order of cutting
 
-Moved to after 4 Nov (designs stay in the design system as ROADMAP; not built, not in the demo): briefings (FIND IT), Telegram bot briefings, SAY IT, small talk missions, Sounds familiar?, Find a plan, Unplug, Outside picks, NFC, Muse Spark Open. The Personal Compass is back in scope through FIND ME, without briefings.
+Moved to after 4 Nov (designs stay in the design system as ROADMAP; not built, not in the demo): briefings (FIND IT), Telegram bot briefings, SAY IT, small talk missions, Sounds familiar?, Find a plan, Unplug, Outside picks, NFC, Muse Spark Open. The Personal Compass is back in scope through spoken answers, without briefings.
 
 If time after Sun 1 (in this order): WP7 share card image, SNAP IT for menu boards, friends' Little Signals and Anyone around?, quick notes and invitations to friends.
 
 If late, cut in this order: PLAN IT (keep the poster's own spot and time), Google Maps in PLACE IT (keep web search and people's facts), translation in SCREEN IT, SUGGEST IT web search, compass editing in plain words (keep EDIT and REMOVE), Live page animation. Cut order from 29 Oct (v6): WP30 timeline (keep the invite link), then TRY IT generation (keep the validator, the library and the "why" line), then WP31 extras.
 
-Never cut: ARRIVE with location, add place and search by name, email sign-in, FIND ME consent and IS THIS YOU?, the place card with sources and private points, Signals here with server-side audience, anonymity and expiry, I'M CURIOUS and mutual accept, quick replies, block and report, SCREEN IT (at least the code rules), CHECK IT and the eval set, mutual QR, the Live page with the connection rate, crisis message, the prior-work declaration.
+Never cut: ARRIVE with location, add place and search by name, email sign-in, get personal with LOOKS RIGHT, the place card with sources and private points, Signals here with server-side audience, anonymity and expiry, I'M CURIOUS and mutual accept, quick replies, block and report, SCREEN IT (at least the code rules), CHECK IT and the eval set, mutual QR, the Live page with the connection rate, crisis message, the prior-work declaration.
 
 ## Data model (D1)
 
 | Table | Key fields |
 |---|---|
-| `users` | id, email (unique, nullable), telegram_user_id (unique, nullable), first_name, is_adult (bool), created_at, deleted_at |
+| `users` | id, email (unique, nullable), telegram_user_id (unique, nullable), first_name, is_adult (bool), created_at, deleted_at, intro_seen_at (nullable) |
 | `sessions` | id, user_id, expires_at (also cached in KV) |
 | `login_tokens` | token_hash, email, expires_at, used_at |
 | `compass_items` | id, user_id, part (interest, talk_about, more_of, filter), text, source_url (nullable; null means "you said"), origin (find_me, questions, edit), active, created_at |
 | `compass_changes` | id, user_id, before, after, words, confirmed_at, undone_at |
+| `compass_people` | user_id, role (fixed allow-list), role_class (close, service), source (surprise), created_at. Roles only, never names; deleted with the account. |
+| `game_tries` | id, user_id, game_id, level (soft, brave, bold), step, kind (talk, kind), who_role (nullable), title, source (ai, library), created_at, picked_at. Games older than 7 days deleted. |
 | `places` | id, slug, name, kind (cafe, bar, coworking, library, other), city, lat, lng (from the person who added it, or the poster setup; never copied from Google), radius_m (default 150), google_place_id (nullable), spots_json, code (nullable, partner places), poster_key_hash (nullable), added_by, status (new, active, hidden), first_other_checkin_at, created_at |
 | `place_facts` | id, place_id, field (hours, menu_item, price, spot, wifi, sockets, quiet, rule), value, source (people, google, web, snap), source_url, state (found, confirmed, disputed), added_by (nullable), confirmations, updated_at. Google-sourced rows are never stored: they are fetched live; `found` rows from the web expire after 30 days. |
 | `place_contributions` | id, user_id, place_id, fact_id (nullable), action (add_place, add_fact, fix_fact, confirm_fact), points, state (pending, counted, rejected), created_at, counted_at. UNIQUE(user_id, fact_id, action, month) for confirms. |
@@ -71,16 +73,16 @@ Never cut: ARRIVE with location, add place and search by name, email sign-in, FI
 | `stay_in_touch` | user_id, other_id, signal_id, chosen_at; when both rows exist a `friendships` row is created |
 | `friendships` | user_a, user_b, created_at, status (active, blocked) |
 | `moments` | id, user_id, interaction_id, label (private) |
-| `workings` | id, user_id, function (findme, place, suggest, screen, plan, snap), tools_json (names only), citations_json, verdict, grounded_count, total_count, reasoning_effort, created_at; purged after 7 days |
+| `workings` | id, user_id, function (findme, compassdraft, place, suggest, screen, plan, snap, try_it, why_go, read_it), tools_json (names only), citations_json, verdict, grounded_count, total_count, reasoning_effort, created_at; purged after 7 days |
 | `llm_calls` | id, purpose, model, latency_ms, tool_calls, validated, fallback_used, created_at. No prompt or user text. |
 | `metrics_daily` | place_id, day, checkin_attempts, checkin_ok_first_try, places_added, facts_found, facts_confirmed, facts_fixed, signals, signals_with_response, responses, accepted, confirmed_meets, stay_in_touch (anonymous counts only) |
 
-`interactions` is the only table behind the public Live number. Coordinates sent for a location check-in are used for the nearby lookup and discarded; the only coordinates written are a new place's, from the person who added it. Raw FIND ME findings are never written; only confirmed compass lines are.
+`interactions` is the only table behind the public Live number. Coordinates sent for a location check-in are used for the nearby lookup and discarded; the only coordinates written are a new place's, from the person who added it. Voice transcripts are never written; only confirmed compass lines and roles are.
 
 ## API (JSON, session cookie unless noted)
 
 Auth: `POST /api/auth/start` · `GET /auth/verify` · `POST /api/auth/telegram {initData}` (HMAC checked with the bot token) · `POST /api/auth/logout` · `GET /api/me` · `PATCH /api/me {firstName}` · `DELETE /api/me`
-Get started: `POST /api/me/find {consent: true, name, city, links[]}` (FIND ME: findings with sources) · `POST /api/me/compass/draft {kept[], answers}` · `POST /api/me/compass/confirm` · `GET /api/me/compass` · `POST /api/me/compass/propose {text}` · `POST /api/me/compass/changes/:id/undo` · `DELETE /api/me/compass`
+Get started: `POST /api/me/surprise/next {turns}` (three questions) · `POST /api/me/surprise/hear` (audio, transcribed and dropped) · `POST /api/me/compass/draft-line {questionId, answer}` · `POST /api/me/compass/save {lines, people}` · `GET /api/me/compass` · `GET /api/me/compass/people` · `DELETE /api/me/compass/people/:role` · `POST /api/me/compass/propose {text}` · `POST /api/me/compass/changes/:id/undo` · `DELETE /api/me/compass`
 Places and check-in: `POST /api/places/nearby {lat, lng}` (Hoolala! places, then Google nearby; coordinates discarded after the lookup) · `GET /api/places/search?q=` · `POST /api/places {name, kind, lat, lng}` (ADD THIS PLACE, screened) · `GET /api/places/:slug/peek` (public: name and up to 3 open topics) · `POST /api/checkin {place, method, key? | code?}` · `POST /api/checkin/leave` · `GET /api/checkin`
 Place card: `GET /api/places/:id/card` (people's facts plus PLACE IT fetch) · `POST /api/places/:id/facts {field, value}` · `POST /api/places/facts/:id/confirm` · `POST /api/places/facts/:id/dispute` · `GET /api/me/points` (private)
 Signals here: `GET /api/here/signals?limit=3` · `POST /api/here/signals` (runs SCREEN IT) · `PATCH /api/here/signals/:id` · `POST /api/here/signals/:id/cancel` · `POST /api/here/signals/:id/curious {line?}` · `POST /api/here/responses/:id/accept` · `POST /api/here/responses/:id/decline` · `POST /api/here/signals/:id/quick {kind}` · `POST /api/here/suggest` (SUGGEST IT) · `POST /api/here/signals/:id/plan` (PLAN IT draft) · `POST /api/here/signals/:id/meeting-point {spot, time, confirmationToken}`
@@ -132,6 +134,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] Staging acceptance at a real café: nearby list shows OpenStreetMap places, check in, leave, repeat with location denied (search). Not testable from the agent's sandbox, which can't reach Overpass.
 
 ### WP24 FIND ME and the Personal Compass (Fri 30, afternoon)
+> Removed in v6.2 (WP36, owner-confirmed): no public-profile search; the compass comes from three spoken questions. Only this section remains.
 - [x] Consent screen first; NO goes to three scripted questions. Inputs: name used online, city, optional links (max 3).
 - [x] `src/llm/findme.ts`: at most 3 `web_search` calls about this person only; schema `{findings[{text, url}]}`; IS THIS YOU? with THAT'S ME / NOT ME.
 - [x] Compass draft from ticked findings and answers: schema `{compass[{part, text, source_url}]}`; `src/rules/compass.ts` drops lines without a ticked source or "you said", and any personality, health, political, religious or sexuality label. LOOKS RIGHT / CHANGE SOMETHING / START AGAIN; nothing saved before LOOKS RIGHT.
@@ -202,6 +205,32 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 ### WP31 Staging fixes (Fri 30)
 - [x] Tagline under the name (not "Hello, name"); accepted signal card shows only the next step (PLAN > ON MY WAY > MEET; the rest behind MORE); empty state "QUIET IN HERE. FOR NOW." + POST THE FIRST ONE; softkeys TODAY / FRIENDS on the home.
 
+### WP35 Onboarding story (v6.2, Fri 30)
+- [x] Story on first open: six beats per `specs/onboarding-story.md` (copy final, sources shown); typed headline at 35 ms a character, stepped pixel animations, tap advances, SKIP/BACK · dots · NEXT/REPLAY row, LET'S GO on the last beat; `intro_seen_at` on the account plus a local flag. The health beat stays out.
+- [x] Reduced motion: headline whole, pictures end state, no auto-advance; aria-live headline, decorative pictures, 44 px controls.
+- [x] Full references in the README and `docs/RESEARCH.md` (Abdalla and Lanser details still open with the owner).
+- [x] Tests first: first open shows beat 1; LET'S GO and SKIP set the seen flag and open WP36; tap completes then advances; six beats in order, no invented numbers.
+
+### WP36 Let's get personal (v6.2, Sat 31)
+- [x] Reuse the WP34 voice component (no duplicate): new intro, three Mom Test questions, three dots (`Qn OF 3 · FILLS ...`), NEXT saves the draft; progress strip SURPRISE ME · COMPASS · GAME · AROUND?; entry after the story and from Around me's SET IT UP.
+- [x] COMPASS DRAFT (Muse Spark): one structured call per answer `{part, line, topic, place_kind, pace, people}`; code validator (part matches the question, roles from the allow-list, names stripped, banned labels, what happened never who); fallback trims to 60, keyword roles, gentle pace. Transcripts never stored.
+- [x] Compass check: typed count headline, 2×2 grid with sources, PEOPLE IN YOUR DAYS box (roles only); LOOKS RIGHT. MAKE MY GAME saves lines and roles (`compass_people`); CHANGE SOMETHING clears the drafts.
+- [x] FIND ME removed: consent, IS THIS YOU?, find and draft paths gone; footprint sources gone from the compass; roles removable via REMOVE.
+- [x] Tests first: shared voice component; names become roles only; off-list roles dropped; labels rejected to fallback; nothing saved before LOOKS RIGHT; full flow with `LLM_ENABLED=false`; no transcripts in logs.
+
+### WP37 Your game of tiny tries (v6.2, Sat 31 to Sun 1)
+- [x] Library fallback first: 24 hand-written tries filled with topic, place and roles; a full game of 9 renders with `LLM_ENABLED=false`, 3 per level, talk and kind in each.
+- [x] TRY IT game generation: one call for 9 tries `{title, level, kind, who_role, place_kind, why}`; code assigns step and minutes; validator (talk and kind per level, compass roles only, service roles light, no buying, looks, contact details or LESS OF, words_max, UK English, no em dashes); rejected twice swaps in a library try.
+- [x] Screens: WRITING YOUR GAME checklist; tabs with START HERE on the pace tab; try cards with info line and NEW ONE (never repeats in the game); NEW GAME FROM SCRATCH; safety footnote; pick stores today's try, then Around me or skip. `game_tries` rows, games purged after 7 days; 20 NEW ONE and 3 NEW GAME a day, then the library.
+- [x] 15 eval cases (5 pass, 10 reject).
+- [x] Tests first: library game shape; model step ignored; NEW ONE never repeats; every validator rule rejects; limits fall back to library; pick stores today's try.
+
+### WP38 Today, simplified (v6.2, Fri 30)
+- [x] Home per spec: compact plant row, TODAY'S TRY · STEP n typed with hint and FROM YOUR COMPASS >, LET'S GO with ANOTHER ONE and NOT TODAY; motto, big plant card, MY COMPASS box, DARE A FRIEND, WHERE? chips, Around link and TELL MY FRIENDS removed.
+- [x] Today's try is the picked game try (v6 library fallback for old accounts); ANOTHER ONE draws the next unpicked try at the level (a new game in the background when used up); NOT TODAY is the later state, no reminder.
+- [x] Off you go, I'M BACK, outcomes, NEXT TIME, plant growth and the COMPASS? row unchanged.
+- [x] Tests first: one primary key and two text links; try equals the pick; ANOTHER ONE keeps the level without repeats; removed items gone.
+
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 > Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. The `wp21/telegram` work branch was deleted the same day; only this section remains.
 - [ ] Location inside the Mini App: Telegram's location API where available, browser geolocation otherwise.
@@ -250,7 +279,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [ ] After a confirmed meet: "I went live." / "One of N real-life hellos on Hoolala!" / "You never know until you go." No names, no place unless the person ticks it. Web Share with the image, fallback links, COPY LINK.
 
 ### WP9 Safety, pilot and submission (Sun 1 to Wed 4)
-- [ ] Safety pass: 18+ gate, block and report both ways, house rules on the poster and the first screen, rate limits on every model endpoint and on posting, replying, adding places and points, crisis message everywhere, privacy page in plain English (FIND ME consent and what is kept, place-level check-in, the person's coordinates discarded, Google attribution, check-ins deleted after 24 h, anonymity until both accept, what the model sees).
+- [ ] Safety pass: 18+ gate, block and report both ways, house rules on the poster and the first screen, rate limits on every model endpoint and on posting, replying, adding places and points, crisis message everywhere, privacy page in plain English (compass draft consent and what is kept, place-level check-in, the person's coordinates discarded, Google attribution, check-ins deleted after 24 h, anonymity until both accept, what the model sees).
   - [x] Privacy page in plain English at `/privacy` (28 Oct), describing what the code does.
 - [x] Demo place for judges: a clearly labelled SAMPLE place with a sample signal from "Sample Sophie" who accepts automatically, so a judge alone can do the whole loop. Never counted on the Live page.
 - [ ] Dry run (Sat 31, café, friends) and pilot (Mon 2, place, 15 to 20 people). Measure the four metrics; observe whether people post or reply without help; ask "How comfortable was replying?" (1 to 5) and "What made you curious, uncomfortable or reluctant?"

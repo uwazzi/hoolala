@@ -1,6 +1,5 @@
-// Reading pages people point us at: their own links (FIND ME) and a place's
-// own page (READ IT). Pure. Only public https pages; anything behind a login
-// (LinkedIn, Instagram...) is left to the web search.
+// Reading pages people point us at: a place's own page (READ IT). Pure. Only
+// public https pages; anything behind a login is left to the web search.
 
 export const MAX_PAGE_TEXT = 5000;
 

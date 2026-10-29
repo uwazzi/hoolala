@@ -1,6 +1,6 @@
 import { handleAuthStart, handleAuthVerify, handleLogout } from "./api/auth";
 import { handleCheckin, handleGetCheckin, handleLeave } from "./api/checkin";
-import { handleChanges, handleCompass, handleConfirm, handleConfirmLine, handleDeleteCompass, handleDraft, handleFind, handleKeep, handlePropose, handleRemoveLine, handleUndo } from "./api/compass";
+import { handleChanges, handleCompass, handleConfirmLine, handleDeleteCompass, handleDraftLine, handlePeople, handlePropose, handleRemoveLine, handleRemovePerson, handleSave, handleUndo } from "./api/compass";
 import { handleHealth, json } from "./api/health";
 import { ensureSample } from "./db/sample";
 import {
@@ -15,13 +15,14 @@ import {
   handleReport,
   handleSuggest,
 } from "./api/here";
-import { handleMe } from "./api/me";
+import { handleIntroSeen, handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
 import { handleMeetingPoint, handlePlan } from "./api/plan";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
+import { handleAnother, handleNewGame, handleNewOne, handlePick } from "./api/game";
 import { handleRate, handleScan } from "./api/around";
 import {
   handleCreateCrew,
@@ -88,11 +89,8 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/me") {
     return handleMe(request, env);
   }
-  if (url.pathname === "/api/me/find" && method === "POST") {
-    return handleFind(request, env);
-  }
-  if (url.pathname === "/api/me/compass/draft" && method === "POST") {
-    return handleDraft(request, env);
+  if (url.pathname === "/api/me/intro-seen" && method === "POST") {
+    return handleIntroSeen(request, env);
   }
   if (url.pathname === "/api/me/surprise/hear" && method === "POST") {
     return handleHear(request, env);
@@ -100,8 +98,11 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/me/surprise/next" && method === "POST") {
     return handleNext(request, env);
   }
-  if (url.pathname === "/api/me/compass/confirm" && method === "POST") {
-    return handleConfirm(request, env);
+  if (url.pathname === "/api/me/compass/draft-line" && method === "POST") {
+    return handleDraftLine(request, env);
+  }
+  if (url.pathname === "/api/me/compass/save" && method === "POST") {
+    return handleSave(request, env);
   }
   if (url.pathname === "/api/me/compass/propose" && method === "POST") {
     return handlePropose(request, env);
@@ -109,8 +110,8 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/me/compass/confirm_line" && method === "POST") {
     return handleConfirmLine(request, env);
   }
-  if (url.pathname === "/api/me/compass/keep" && method === "POST") {
-    return handleKeep(request, env);
+  if (url.pathname === "/api/me/compass/people" && method === "GET") {
+    return handlePeople(request, env);
   }
   if (url.pathname === "/api/me/compass/undo" && method === "POST") {
     return handleUndo(request, env);
@@ -125,6 +126,10 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   const compassLine = /^\/api\/me\/compass\/([0-9a-f-]{36})$/.exec(url.pathname);
   if (compassLine && method === "DELETE") {
     return handleRemoveLine(compassLine[1], request, env);
+  }
+  const compassPerson = /^\/api\/me\/compass\/people\/([a-z]+)$/.exec(url.pathname);
+  if (compassPerson && method === "DELETE") {
+    return handleRemovePerson(compassPerson[1], request, env);
   }
   if (url.pathname === "/api/places/nearby" && method === "POST") {
     return handleNearby(request, env);
@@ -162,6 +167,18 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/tries/step" && method === "POST") {
     return handleStep(request, env);
+  }
+  if (url.pathname === "/api/game" && method === "POST") {
+    return handleNewGame(request, env);
+  }
+  if (url.pathname === "/api/game/new-one" && method === "POST") {
+    return handleNewOne(request, env);
+  }
+  if (url.pathname === "/api/game/pick" && method === "POST") {
+    return handlePick(request, env);
+  }
+  if (url.pathname === "/api/game/another" && method === "POST") {
+    return handleAnother(request, env);
   }
   if (url.pathname === "/api/me/plant" && method === "GET") {
     return handlePlant(request, env);
@@ -279,6 +296,9 @@ export async function runScheduled(env: Env, now: Date = new Date()): Promise<vo
     .bind(nowIso)
     .run();
   await env.DB.prepare("DELETE FROM checkins WHERE started_at < ?").bind(dayAgoIso).run();
+  await env.DB.prepare("DELETE FROM game_tries WHERE created_at < ?")
+    .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .run();
   await env.DB.prepare("DELETE FROM workings WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .run();

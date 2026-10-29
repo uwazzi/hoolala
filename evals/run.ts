@@ -6,19 +6,18 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { planMeeting } from "../src/llm/agent";
 import { placeIt } from "../src/llm/place";
-import { findMe } from "../src/llm/findme";
 import { validateReadIt } from "../src/llm/readit";
 import { screenWithModel } from "../src/llm/screen";
 import { suggestFor } from "../src/llm/suggest";
 import { validateWhyGo } from "../src/llm/whygo";
-import { cleanCompass, hasBannedLabel, isOwnName } from "../src/rules/compass";
+import { cleanRole, validateDraft } from "../src/rules/compass";
 import { ground, resolveCitation } from "../src/rules/grounding";
 import { checkDraft, claimsAction } from "../src/rules/plan";
 import { confirmProblem, underCap } from "../src/rules/places";
 import { screenText } from "../src/rules/screening";
-import { validateTry } from "../src/rules/tries";
+import { validateGameMix, validateGameTry, validateTry, type GameCtx } from "../src/rules/tries";
 import type { Env } from "../src/types";
-import { FINDME_PUBLIC, READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
+import { READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
 
 interface Result {
   suite: string;
@@ -78,14 +77,19 @@ record({
   pass: ground([{ topic: "Jazz Onze+ tonight?", why: "Jazz festival", kind: "event", citation_url: "https://www.lausanne-tourisme.ch/agenda/jazz" }], pages).ideas[0]?.citationUrl === pages[1].url,
 });
 
-record({ suite: "findme", name: "Refuses to look up someone else's name", live: false, pass: !isOwnName("Linus Torvalds", "Ana") });
-record({ suite: "findme", name: "Looks up the person's own name", live: false, pass: isOwnName("Ana Lopes", "Ana") });
-record({ suite: "findme", name: "Refuses without a first name on file", live: false, pass: !isOwnName("Ana Lopes", null) });
+record({ suite: "compassdraft", name: "Roles only: brother Tom becomes brother", live: false, pass: cleanRole("brother Tom") === "brother" });
+record({ suite: "compassdraft", name: "Roles only: a bare name is dropped", live: false, pass: cleanRole("Tom") === null });
 record({
-  suite: "compass",
-  name: "Never keeps an unticked finding",
+  suite: "compassdraft",
+  name: "The part matches the question",
   live: false,
-  pass: cleanCompass([{ part: "interest", text: "Marathons", source_url: "https://namesake.example" }], ["https://ana.example"], true).length === 0,
+  pass: validateDraft("interest", { part: "delivery", line: "Slow evenings" }) === null,
+});
+record({
+  suite: "compassdraft",
+  name: "What happened, never who the person is",
+  live: false,
+  pass: validateDraft("interest", { part: "interest", line: "You are an extrovert" }) === null,
 });
 for (const [label, text] of [
   ["personality", "Introvert at heart"],
@@ -93,13 +97,53 @@ for (const [label, text] of [
   ["political", "Conservative values"],
   ["religious", "Catholique pratiquante"],
 ] as const) {
-  record({ suite: "compass", name: `Never keeps a ${label} label`, live: false, pass: cleanCompass([{ part: "interest", text, source_url: null }], [], true).length === 0 });
+  record({ suite: "compassdraft", name: `Never keeps a ${label} label`, live: false, pass: validateDraft("interest", { part: "interest", line: text }) === null });
+}
+
+const gameCtx: GameCtx = {
+  roles: [
+    { role: "brother", roleClass: "close" },
+    { role: "barista", roleClass: "service" },
+  ],
+  lessOf: ["crowded bars"],
+};
+for (const [name, t] of [
+  ["Soft talk with a role", { title: "Say good morning to your brother.", level: "soft", kind: "talk", who_role: "brother" }],
+  ["Soft kind, no role", { title: "Hold the door for someone at the café.", level: "soft", kind: "kind", who_role: null }],
+  ["Brave talk with a light service role", { title: "Ask the barista what they would pick today.", level: "brave", kind: "talk", who_role: "barista" }],
+  ["Brave kind with a role", { title: "Tell your brother one thing they do that helps you.", level: "brave", kind: "kind", who_role: "brother" }],
+  ["Bold talk with a role", { title: "Ask your brother to show you something they are good at.", level: "bold", kind: "talk", who_role: "brother" }],
+] as const) {
+  record({ suite: "game", name: `Passes: ${name}`, live: false, pass: validateGameTry({ ...t, place_kind: null }, gameCtx) === "ok" });
+}
+for (const [name, t, verdict] of [
+  ["Buying", { title: "Buy a coffee for the person behind you.", level: "soft", kind: "kind", who_role: null }, "buying"],
+  ["A service role asked about their family", { title: "Ask the barista about their family.", level: "brave", kind: "talk", who_role: "barista" }, "service_heavy"],
+  ["A BOLD try at home with a stranger", { title: "Visit someone at their home this week.", level: "bold", kind: "talk", who_role: null }, "off_limits"],
+  ["A name", { title: "Ask Tom to show you his board games.", level: "brave", kind: "talk", who_role: "brother" }, "off_limits"],
+  ["A looks compliment", { title: "Tell your neighbour she looks beautiful.", level: "soft", kind: "kind", who_role: null }, "off_limits"],
+  ["A phone-number ask", { title: "Ask your brother for their phone number.", level: "brave", kind: "talk", who_role: "brother" }, "off_limits"],
+  ["A LESS OF item", { title: "Ask someone at a crowded bar for a tip.", level: "soft", kind: "talk", who_role: null }, "less_of"],
+  ["A step set by the model", { title: "Smile and nod at the park.", level: "soft", kind: "talk", who_role: null, step: 5 }, "model_step"],
+  ["An em dash", { title: "Ask your brother — gently — about board games.", level: "brave", kind: "talk", who_role: "brother" }, "off_limits"],
+] as const) {
+  record({ suite: "game", name: `Rejects: ${name}`, live: false, pass: validateGameTry({ ...t, place_kind: null }, gameCtx) === verdict });
 }
 record({
-  suite: "compass",
-  name: "Every line has a ticked source or 'you said'",
+  suite: "game",
+  name: "Rejects: a level with only talk",
   live: false,
-  pass: cleanCompass([{ part: "interest", text: "Chess", source_url: null }], [], false).length === 0,
+  pass: validateGameMix([
+    { level: "soft", kind: "talk" },
+    { level: "soft", kind: "talk" },
+    { level: "soft", kind: "talk" },
+    { level: "brave", kind: "talk" },
+    { level: "brave", kind: "kind" },
+    { level: "brave", kind: "talk" },
+    { level: "bold", kind: "talk" },
+    { level: "bold", kind: "kind" },
+    { level: "bold", kind: "talk" },
+  ]) === false,
 });
 
 const planCtx = { spots: ["Terrace", "The big table"], now: new Date("2026-10-28T14:00:00.000Z"), expiresAt: "2026-10-28T15:00:00.000Z" };
@@ -225,12 +269,6 @@ if (live) {
     });
   }
 
-  {
-    const started = Date.now();
-    const f = await findMe(env, FINDME_PUBLIC);
-    const ok = f !== null && f.findings.length > 0 && f.findings.every((x) => x.url.startsWith("https://") && !hasBannedLabel(x.text)) && f.searches <= 3;
-    record({ suite: "findme", name: "Public figure: sourced findings, no labels, at most 3 searches", live: true, ms: Date.now() - started, fallback: f === null, pass: ok, detail: f ? `${f.findings.length} kept of ${f.total}, ${f.droppedNoSource} without a returned source, ${f.droppedLabel} with a label, ${f.searches} searches` : "no answer" });
-  }
 }
 
 // --- Summary --------------------------------------------------------------------
