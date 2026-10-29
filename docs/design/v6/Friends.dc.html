@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! friends: shared try and timeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}
+@keyframes hl-rise{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+.hl-rise{animation:hl-rise 0.3s ease-out both}
+.hl-key{cursor:pointer;user-select:none}
+.hl-key:hover{outline:2px solid #182513;outline-offset:2px}
+.hl-key:active{transform:translateY(2px)}
+.hl-scroll::-webkit-scrollbar{width:6px}.hl-scroll::-webkit-scrollbar-thumb{background:#304327}
+textarea:focus{outline:2px solid #182513;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; overflow: hidden; position: relative">
+  <div style="padding: 16px 24px 0 24px; display: flex; flex-direction: column; gap: 2px">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 28px; line-height: 1.1; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 13px; line-height: 1.4; color: #304327">You never know until you go.</div>
+  </div>
+
+  <div style="margin: 14px 24px 0 24px; display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 20px">MORNING CREW</div>
+      <div style="font-size: 12px; color: #304327">{{ members }} friends · only you see this</div>
+    </div>
+    <div class="hl-key" onClick="{{ openInvite }}" style="display: flex; align-items: center; min-height: 40px; padding: 0 12px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">+ ADD A FRIEND</div>
+  </div>
+
+  <div style="margin: 12px 24px 0 24px; background: #182513; color: #DDE7C6; border-radius: 2px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+    <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #AEC58A">THIS WEEK’S SHARED TRY</div>
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; line-height: 1.2">SAY GOOD MORNING TO SOMEONE NEW.</div>
+    <div style="font-size: 12px; line-height: 1.4">Same try, each at your own pace. No scores, no race.</div>
+  </div>
+
+  <sc-if value="{{ notComposing }}" hint-placeholder-val="{{ true }}">
+    <div class="hl-key" onClick="{{ compose }}" style="margin: 12px 24px 0 24px; display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px">
+      <span>TELL THE CREW WHAT HAPPENED</span><span>&gt;</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ composing }}" hint-placeholder-val="{{ false }}">
+    <div class="hl-rise" style="margin: 12px 24px 0 24px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">HOW DID IT GO?</div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{ outcomes }}" as="o" hint-placeholder-count="4"><div class="hl-key" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</div></sc-for>
+      </div>
+      <textarea value="{{ draft }}" onChange="{{ onDraft }}" rows="2" placeholder="What happened? One or two lines is plenty." style="font-family: 'Space Mono', monospace; font-size: 14px; line-height: 1.4; padding: 8px; border: 2px solid #182513; border-radius: 2px; background: #BED39C; color: #182513; resize: none"></textarea>
+      <div style="font-size: 11px; color: #304327">No names, faces or photos of strangers. They didn’t sign up.</div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+        <div class="hl-key" onClick="{{ cancel }}" style="display: flex; align-items: center; justify-content: center; min-height: 44px; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 13px">CANCEL</div>
+        <div class="hl-key" onClick="{{ post }}" style="{{ postStyle }}">POST TO CREW</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="margin: 14px 24px 0 24px; font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">WHAT HAPPENED THIS WEEK</div>
+  <div class="hl-scroll" style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 8px 24px 16px 24px; display: flex; flex-direction: column; gap: 10px">
+    <sc-for list="{{ posts }}" as="p" hint-placeholder-count="3">
+      <div class="{{ p.cls }}" style="display: flex; gap: 10px; padding-bottom: 10px; border-bottom: 2px dashed #AEC58A">
+        <div style="width: 32px; height: 32px; flex-shrink: 0; background: {{ p.avatarBg }}; color: #DDE7C6; display: flex; align-items: center; justify-content: center; font-family: 'Silkscreen', monospace; font-size: 12px; border-radius: 2px">{{ p.initials }}</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap">
+            <span style="font-family: 'Silkscreen', monospace; font-size: 13px">{{ p.name }}</span>
+            <span style="font-size: 11px; color: #304327">{{ p.when }}</span>
+            <span style="font-family: 'Silkscreen', monospace; font-size: 10px; padding: 1px 6px; border: 2px solid #182513; border-radius: 2px">{{ p.tag }}</span>
+          </div>
+          <div style="font-size: 14px; line-height: 1.45">{{ p.text }}</div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+            <div class="hl-key" onClick="{{ p.cheer }}" style="{{ p.cheerStyle }}">{{ p.cheerLabel }}</div>
+            <span style="font-size: 11px; color: #304327">{{ p.cheeredBy }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <nav aria-label="Softkeys" style="display: flex; border-top: 2px solid #182513; flex-shrink: 0">
+    <a href="Flow.dc.html" style="flex: 1; display: flex; align-items: center; padding: 0 24px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 14px; text-decoration: none">TODAY</a>
+    <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 24px; min-height: 52px; font-family: 'Silkscreen', monospace; font-size: 14px; background: #182513; color: #DDE7C6">FRIENDS</div>
+  </nav>
+
+  <sc-if value="{{ inviteOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; background: rgba(24, 37, 19, 0.55); display: flex; align-items: flex-end">
+      <div class="hl-rise" style="width: 100%; background: #BED39C; border-top: 2px solid #182513; padding: 20px 24px 24px 24px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 20px">DARE A FRIEND</div>
+        <div style="background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; padding: 12px; font-size: 14px; line-height: 1.5">Huguinho dared you: say good morning to someone new this week. Hoolala! gives you one tiny try a day, then you swap what happened. You never know until you go.</div>
+        <div style="font-size: 11px; color: #304327">The link adds them to Morning Crew only. It expires in 7 days. You can remove anyone, any time.</div>
+        <div class="hl-key" onClick="{{ sendWhatsApp }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px"><span>SEND ON WHATSAPP</span><span>&gt;</span></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <div class="hl-key" onClick="{{ sendMessenger }}" style="display: flex; align-items: center; justify-content: center; min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">MESSENGER</div>
+          <div class="hl-key" onClick="{{ copy }}" style="display: flex; align-items: center; justify-content: center; min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">{{ copyLabel }}</div>
+        </div>
+        <sc-if value="{{ sentNote }}" hint-placeholder-val="{{ false }}"><div class="hl-rise" style="font-size: 13px">{{ sentText }}</div></sc-if>
+        <div class="hl-key" onClick="{{ closeInvite }}" style="text-align: center; font-family: 'Silkscreen', monospace; font-size: 12px; padding: 8px">CLOSE</div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.tags = { well: 'WENT WELL', ghost: 'NO REPLY', awkward: 'AWKWARD BUT DONE', skip: 'DIDN’T HAPPEN' };
+    this.state = {
+      composing: false, draft: '', outcome: 'well', inviteOpen: false, copied: false, sent: '', members: 4, nextId: 4,
+      posts: [
+        { id: 1, name: 'ANA', initials: 'AN', bg: '#304327', when: '2h ago', outcome: 'well', text: 'Said morning to the baker. She gave me the crusty end of the baguette for free.', cheers: ['Tom'], fresh: false },
+        { id: 2, name: 'TOM', initials: 'TO', bg: '#182513', when: 'yesterday', outcome: 'ghost', text: 'Bus stop man looked straight through me. Tried again on the tram, got a nod.', cheers: ['Ana', 'Lea'], fresh: false },
+        { id: 3, name: 'LEA', initials: 'LE', bg: '#304327', when: 'Tue', outcome: 'skip', text: 'Too wiped out this week. Reading yours is nice though.', cheers: ['Ana'], fresh: false }
+      ]
+    };
+  }
+  renderVals() {
+    const st = this.state;
+    const chip = (on) => 'display:flex;align-items:center;justify-content:center;min-height:34px;padding:2px 4px;border:2px solid #182513;border-radius:2px;font-family:Silkscreen,monospace;font-size:10px;text-align:center;' + (on ? 'background:#182513;color:#DDE7C6' : 'background:transparent');
+    const canPost = st.draft.trim().length > 0;
+    return {
+      members: st.members,
+      composing: st.composing, notComposing: !st.composing,
+      compose: () => this.setState({ composing: true }),
+      cancel: () => this.setState({ composing: false, draft: '' }),
+      draft: st.draft,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      outcomes: Object.keys(this.tags).map((k) => ({ label: this.tags[k], style: chip(st.outcome === k), pick: () => this.setState({ outcome: k }) })),
+      postStyle: 'display:flex;align-items:center;justify-content:center;min-height:44px;border:2px solid #182513;border-radius:2px;font-family:Silkscreen,monospace;font-size:13px;' + (canPost ? 'background:#182513;color:#DDE7C6' : 'opacity:0.4;pointer-events:none'),
+      post: () => {
+        if (!canPost) return;
+        const p = { id: st.nextId, name: 'YOU', initials: 'ME', bg: '#2E8B3E', when: 'just now', outcome: st.outcome, text: st.draft.trim(), cheers: [], fresh: true };
+        this.setState({ posts: [p].concat(st.posts.map((x) => Object.assign({}, x, { fresh: false }))), draft: '', composing: false, nextId: st.nextId + 1 });
+        setTimeout(() => {
+          this.setState({ posts: this.state.posts.map((x) => x.id === p.id ? Object.assign({}, x, { cheers: ['Ana'] }) : x) });
+        }, 1800);
+      },
+      posts: st.posts.map((p) => {
+        const mine = p.cheers.indexOf('You') >= 0;
+        return {
+          name: p.name, initials: p.initials, avatarBg: p.bg, when: p.when, tag: this.tags[p.outcome], text: p.text,
+          cls: p.fresh ? 'hl-rise' : '',
+          cheerLabel: mine ? 'NICE ONE ✓' : 'NICE ONE',
+          cheerStyle: 'font-family:Silkscreen,monospace;font-size:10px;padding:4px 8px;border:2px solid #182513;border-radius:2px;' + (mine ? 'background:#182513;color:#DDE7C6' : 'background:#DDE7C6'),
+          cheeredBy: p.cheers.length ? p.cheers.join(', ') + ' said nice one' : '',
+          cheer: () => this.setState({ posts: this.state.posts.map((x) => x.id !== p.id ? x : Object.assign({}, x, { cheers: mine ? x.cheers.filter((n) => n !== 'You') : x.cheers.concat('You') })) })
+        };
+      }),
+      inviteOpen: st.inviteOpen,
+      openInvite: () => this.setState({ inviteOpen: true, sent: '', copied: false }),
+      closeInvite: () => this.setState({ inviteOpen: false }),
+      sendWhatsApp: () => this.setState({ sent: 'Opening WhatsApp with your dare. They join when they tap the link.' }),
+      sendMessenger: () => this.setState({ sent: 'Opening Messenger with your dare. They join when they tap the link.' }),
+      copy: () => this.setState({ copied: true, sent: 'Link copied. Paste it anywhere you like.' }),
+      copyLabel: st.copied ? 'COPIED ✓' : 'COPY LINK',
+      sentNote: st.sent.length > 0, sentText: st.sent
+    };
+  }
+}
+</script>
+</body>
+</html>
