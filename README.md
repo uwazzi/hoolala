@@ -125,6 +125,10 @@ Building started 27 Oct 2026. Before that: brainstorming, the design system and 
 
 **How it was built.** With coding agents, each commit marked with an `Agent:` trailer: 30 by Claude Code, 2 by Muse Code at the time of writing. Rules every agent follows: [AGENTS.md](AGENTS.md).
 
+## Research behind the story
+
+The onboarding story states six sourced findings: WHO 2025 (1 in 6), Kardas, Kumar and Epley 2022 (expected awkwardness), Tissera et al. 2025 (the liking gap), Wild et al. 2025 and Drebing et al. 2025 (one hello lifts you for hours), Lanser and Eisenberger 2022 and Lee et al. 2025 (kindness). Full list: [docs/RESEARCH.md](docs/RESEARCH.md).
+
 ## Limitations, honestly
 
 - Translation covers English and French; other languages are detected but shown as written.

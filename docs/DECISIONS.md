@@ -99,6 +99,8 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP33): the reveal rises the lines one by one instead of typing them letter by letter: WP28 rule 43 reserves letter-by-letter typing for Hoolala!'s own voice, so only the direction explanations and the reveal title use the Typewriter. The reveal is post-confirm (the LOOKS RIGHT gate stays on the FIND ME and Surprise draft screens, where nothing is saved before it), not the pre-confirm gate of the early mock.
 - 2026-10-29 (WP33): Surprise me's scripted second question becomes the spec's HOW I GO question ("When do you like to be out, and alone or with others?"), so the no-model five cover all four directions; the model still asks about making and working on things, and model-asked how-questions fall back to HOW I GO by their wording. The COMPASS? debrief row links `/compass?fix=TRYID` with THE TRY plus starter words from the outcome (kickoff contract), not the MORE / LESS LIKE THIS inline row of the early spec.
 
+- 2026-10-29 (WP35, types): `UserRow` gains `intro_seen_at` (migration 0014, nullable); `MeResponse` gains `introSeen`. `POST /api/me/intro-seen` marks the story watched or skipped (idempotent, keeps the first timestamp).
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.

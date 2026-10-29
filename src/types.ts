@@ -74,6 +74,7 @@ export interface UserRow {
   deleted_at: IsoDateTime | null;
   is_sample?: number; // migration 0005
   current_step: number; // migration 0006: tiny-try ladder, 1 to 5
+  intro_seen_at: IsoDateTime | null; // migration 0014: onboarding story seen
 }
 
 export interface TryRow {
@@ -460,4 +461,5 @@ export interface MeResponse {
   id: string;
   firstName: string | null;
   isAdult: boolean;
+  introSeen: boolean;
 }
