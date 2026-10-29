@@ -63,6 +63,9 @@ One line per decision: date, decision, why. Newest at the bottom.
 
 - 2026-10-29 (v6): WP21 Telegram Mini App moved to ROADMAP (owner-confirmed); the web app is the demo. Work kept on branch `wp21/telegram`.
 
+- 2026-10-29 (WP28): Home v6 with the one-screen try flow (GET A TRY > GO > TELL ME > NEXT TIME), the 15-try library in `src/content/tries.ts`, `tries` table plus `users.current_step` (migration 0006, `src/types.ts` gains `TryRow`), API (`GET /api/tries/today`, `POST /api/tries`, `POST /api/tries/step`, `GET /api/me/plant`), the 14x18 plant and typed HOOLALA! SAYS (rule 43). The NEXT TIME suggestion is the one-line rule-14 mapping inline in the API; WP29 moves it into `src/rules/tries.ts`. Deviations from the handoff: the plant card has no link (no My moments page is scheduled); the intro keeps a small menu (check-in, compass, account have no other route); outcomes say NO REPLY without GHOSTED (owner call pending).
+- 2026-10-29 (WP28, types): `UserRow.current_step` (ladder 1 to 5, default 1, reset on delete) and `TryRow` added to the contract; outcome/step stay plain string/number until WP29's strict unions.
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.

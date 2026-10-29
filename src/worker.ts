@@ -20,6 +20,7 @@ import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMee
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
 import { handleMeetingPoint, handlePlan } from "./api/plan";
+import { handlePlant, handleRecordTry, handleStep, handleTodayTry } from "./api/tries";
 import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -114,6 +115,18 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/me/points" && method === "GET") {
     return handlePoints(request, env);
+  }
+  if (url.pathname === "/api/tries/today" && method === "GET") {
+    return handleTodayTry(request, env);
+  }
+  if (url.pathname === "/api/tries" && method === "POST") {
+    return handleRecordTry(request, env);
+  }
+  if (url.pathname === "/api/tries/step" && method === "POST") {
+    return handleStep(request, env);
+  }
+  if (url.pathname === "/api/me/plant" && method === "GET") {
+    return handlePlant(request, env);
   }
   const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
   if (peek && method === "GET") {

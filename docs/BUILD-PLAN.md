@@ -147,7 +147,7 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests: no self-confirm, cap, not checked in refused, Google rows never stored, points never public.
 
 ### WP28 Home v6 and tiny tries (Fri 30)
-- [ ] Home per DESIGN v6 (rule 14, 42, 43, home spec); one-screen flow GET A TRY > GO > TELL ME > NEXT TIME; library of 15 tries (`src/content/tries.ts`, from `docs/design/v6/Flow.dc.html`); `tries` table and API (`POST /tries`, `GET /me/plant`); plant renderer (14 x 18 pixel grid, leaves and flowers by count); reduced motion.
+- [x] Home per DESIGN v6 (rule 14, 42, 43, home spec); one-screen flow GET A TRY > GO > TELL ME > NEXT TIME; library of 15 tries (`src/content/tries.ts`, from `docs/design/v6/Flow.dc.html`); `tries` table and API (`POST /tries`, `GET /me/plant`); plant renderer (14 x 18 pixel grid, leaves and flowers by count); reduced motion.
 - [ ] Acceptance: on a real phone, a new person understands the goal without help and completes one try in under a minute of screen time; works with LLM_ENABLED=false.
 
 ### WP29 TRY IT, adaptive tries with guardrails (Sat 31, morning)

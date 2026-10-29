@@ -63,6 +63,7 @@ export async function createEmailUser(
     is_adult: 1,
     created_at: nowIso,
     deleted_at: null,
+    current_step: 1,
   };
 }
 
@@ -112,6 +113,7 @@ export async function deleteAccount(db: D1Database, userId: string, email: strin
     `UPDATE reports SET signal_id = NULL WHERE signal_id IN (${own})`,
     `UPDATE interactions SET signal_id = NULL WHERE signal_id IN (${own})`,
     "DELETE FROM moments WHERE user_id = ?1",
+    "DELETE FROM tries WHERE user_id = ?1",
     "DELETE FROM signals WHERE owner_id = ?1",
     "DELETE FROM friendships WHERE user_a = ?1 OR user_b = ?1",
     "DELETE FROM blocks WHERE blocker_id = ?1 OR blocked_id = ?1",
@@ -130,7 +132,7 @@ export async function deleteAccount(db: D1Database, userId: string, email: strin
   statements.push(
     db
       .prepare(
-        "UPDATE users SET email = NULL, telegram_user_id = NULL, first_name = NULL, deleted_at = ? WHERE id = ?",
+        "UPDATE users SET email = NULL, telegram_user_id = NULL, first_name = NULL, current_step = 1, deleted_at = ? WHERE id = ?",
       )
       .bind(nowIso, userId),
   );
