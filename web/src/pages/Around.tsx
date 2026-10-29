@@ -23,7 +23,7 @@ type Phase = "ask" | "signed-out" | "refused" | "scanning" | "done";
 
 const RADII = [500, 1000, 2000];
 const FIT_BADGE: Record<Place["fit"], string> = { GOOD: "GOOD FIT", OK: "OK FIT", LOW: "LOW FIT" };
-const KIND: Record<string, string> = { cafe: "CAFÉ", bar: "BAR · 18+", coworking: "COWORKING", library: "LIBRARY", other: "PLACE" };
+const KIND: Record<string, string> = { cafe: "CAFÉ", bar: "BAR · 18+", coworking: "COWORKING", library: "LIBRARY", food: "FOOD", shop: "SHOPS", outdoors: "OUTDOORS", other: "PLACE" };
 const READ_TITLE: Record<string, string> = { menu: "TODAY, FROM THEIR WEBSITE", event: "LATEST, FROM THEIR PAGE", hours: "OPENING HOURS" };
 
 const radiusLabel = (m: number) => (m >= 1000 ? `${m / 1000} KM` : `${m} M`);

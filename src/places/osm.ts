@@ -17,11 +17,18 @@ interface OverpassElement {
   tags?: Record<string, string>;
 }
 
+const FOOD = ["restaurant", "fast_food", "food_court", "ice_cream"];
+const SHOPS = ["supermarket", "convenience", "bakery", "books", "gift", "coffee"];
+const OUTDOORS = ["park", "garden"];
+
 export function osmKind(tags: Record<string, string>): PlaceKind | null {
   if (tags.amenity === "cafe") return "cafe";
   if (tags.amenity === "bar" || tags.amenity === "pub") return "bar";
   if (tags.amenity === "library") return "library";
   if (tags.amenity === "coworking_space" || tags.office === "coworking") return "coworking";
+  if (tags.amenity && FOOD.includes(tags.amenity)) return "food";
+  if (tags.shop && SHOPS.includes(tags.shop)) return "shop";
+  if (tags.leisure && OUTDOORS.includes(tags.leisure)) return "outdoors";
   return null;
 }
 
@@ -57,8 +64,10 @@ async function overpass(query: string): Promise<OverpassElement[]> {
 export async function osmNearby(point: Point, radiusM: number): Promise<MapPlace[]> {
   const around = `around:${Math.round(radiusM)},${point.lat.toFixed(6)},${point.lng.toFixed(6)}`;
   const query = `[out:json][timeout:5];(
-    nwr(${around})[amenity~"^(cafe|bar|pub|library|coworking_space)$"][name];
+    nwr(${around})[amenity~"^(${["cafe", "bar", "pub", "library", "coworking_space", ...FOOD].join("|")})$"][name];
     nwr(${around})[office=coworking][name];
+    nwr(${around})[shop~"^(${SHOPS.join("|")})$"][name];
+    nwr(${around})[leisure~"^(${OUTDOORS.join("|")})$"][name];
   );out center 20;`;
   return (await overpass(query)).map(toMapPlace).filter((p): p is MapPlace => p !== null);
 }
