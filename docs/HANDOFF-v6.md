@@ -9,7 +9,7 @@ Date: Thu 29 Oct 2026. Source: the canvas "Hoolala! today: get a try, go, tell m
 ```markdown
 ## 2026-10-29: Tiny tries lead (v6)
 
-- **Decision:** the first screen says why Hoolala! exists: GET OUTSIDE. MEET PEOPLE. The daily **tiny try** is the hero; Signals here becomes the second path ("At a café or coworking? See who here would like to talk"). Reverses the 27 Oct decision. Reason: first user test (Sylvie) did not know what to do on opening the app.
+- **Decision:** the first screen says why Hoolala! exists: GET OUTSIDE. MEET PEOPLE. GROW INSIDE. The daily **tiny try** is the hero; Signals here becomes the second path ("At a café or coworking? See who here would like to talk"). Reverses the 27 Oct decision. Reason: first user test (Sylvie) did not know what to do on opening the app.
 - **Small talk (rule 14) moves from ROADMAP into the build**, simplified: GET A TRY > GO > TELL ME on one screen. Four honest answers: WENT WELL, NO REPLY, AWKWARD BUT DONE, DIDN'T HAPPEN. Then NEXT TIME: GENTLER / SAME STEP / BRAVER, with a suggestion the person can ignore. The guess and plot twist move to ROADMAP.
 - **The plant (private):** one leaf per try (went well, no reply, awkward); nothing for didn't happen; every third leaf flowers. Never wilts, no streaks, no reminders. Colour appears only in the plant (rule 42).
 - **Hoolala! types:** prompts appear letter by letter; keys rise in after (rule 43).
@@ -25,7 +25,7 @@ Date: Thu 29 Oct 2026. Source: the canvas "Hoolala! today: get a try, go, tell m
 ### 2a. Version note (top of file, above Version 5)
 
 ```markdown
-> Version 6 (29 Oct 2026): the first screen says GET OUTSIDE. MEET PEOPLE. and offers today's **tiny try**; small talk (rule 14) is in the build, adapted by TRY IT within code-set bounds; the private plant; Friends (dare and crew timeline). Signals here stays, as the second path. New rules 42 to 45.
+> Version 6 (29 Oct 2026): the first screen says GET OUTSIDE. MEET PEOPLE. GROW INSIDE. and offers today's **tiny try**; small talk (rule 14) is in the build, adapted by TRY IT within code-set bounds; the private plant; Friends (dare and crew timeline). Signals here stays, as the second path. New rules 42 to 45.
 ```
 
 ### 2b. Replace rule 14
@@ -49,7 +49,7 @@ Date: Thu 29 Oct 2026. Source: the canvas "Hoolala! today: get a try, go, tell m
 ### 2d. Home spec (replace the current home block)
 
 ```markdown
-**Home (TODAY):** HOOLALA! and the tagline. GET OUTSIDE. MEET PEOPLE. (display, 40 px). One line: "One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always." The plant card (pixel plant, N TINY TRIES, links to My moments). GIVE ME TODAY'S TRY > (primary). DARE A FRIEND TOO > (secondary). Softkeys TODAY / FRIENDS. After GIVE ME TODAY'S TRY, the one-screen flow of rule 14 with the goal bar, the plant and step meter, the three-step path (current solid, done shaded, next dashed) and the typed HOOLALA! SAYS block. Signals here is a dashed link at the bottom of the flow.
+**Home (TODAY):** HOOLALA! and the tagline. GET OUTSIDE. MEET PEOPLE. GROW INSIDE. (display, 40 px). One line: "One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always." The plant card (pixel plant, N TINY TRIES, links to My moments). GIVE ME TODAY'S TRY > (primary). DARE A FRIEND TOO > (secondary). Softkeys TODAY / FRIENDS. After GIVE ME TODAY'S TRY, the one-screen flow of rule 14 with the goal bar, the plant and step meter, the three-step path (current solid, done shaded, next dashed) and the typed HOOLALA! SAYS block. Signals here is a dashed link at the bottom of the flow.
 ```
 
 ---
@@ -60,7 +60,7 @@ Date: Thu 29 Oct 2026. Source: the canvas "Hoolala! today: get a try, go, tell m
 | 2b | **TRY IT** | "Last one got no reply. Happens. Same step, a fresh try." The next tiny try, written for this person, place and time | Structured output, short creative drafting | Schema `{title, hint, step, words_max, minutes, asks_of_other, place_kind, why}`, `reasoning_effort: low`; inputs: step (from code), place kind, time of day, last 3 outcomes, compass interests | `src/rules/tries.ts`: step must equal the requested step; every field inside that step's bounds; always-on limits; then SCREEN IT; stored with the code-assigned step | The hand-written library (15 tries, 3 per step) |
 ```
 
-Beat sheet: replace the 0:00 to 0:30 opening with the home (GET OUTSIDE. MEET PEOPLE.), one try typed out, a real try filmed at the place, NO REPLY answered kindly, the plant gaining a coloured leaf, then NEXT TIME: SAME STEP and TRY IT's "why this one". Signals here follows as "and when you're somewhere with others".
+Beat sheet: replace the 0:00 to 0:30 opening with the home (GET OUTSIDE. MEET PEOPLE. GROW INSIDE.), one try typed out, a real try filmed at the place, NO REPLY answered kindly, the plant gaining a coloured leaf, then NEXT TIME: SAME STEP and TRY IT's "why this one". Signals here follows as "and when you're somewhere with others".
 
 ---
 
@@ -173,7 +173,6 @@ Calibration (CHECK IT, no personal text): per step and source, the share of didn
 ### Still open and real
 
 - **#15 WP9 Safety, pilot, submission:** SAMPLE place and privacy/README done (#26, #35). Left: safety pass check (18+ gate, rate limits incl. TRY IT, crisis message), dry run Sat 31, pilot Mon 2, video, submit.
-- **#8 WP21 Telegram Mini App:** no PR yet. Proposal: move to ROADMAP; the web app is the demo. Keep only if the pilot place needs it.
 - **#14 WP7 Share card:** fold into WP30 (the dare card is the share card).
 
 ### New issues (milestone Submission (4 Nov), label work-package)
