@@ -113,6 +113,8 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP37, types): `game_tries` (migration 0017, purged after 7 days by cron); pick sets `picked_at`, and the latest picked try is today's try (old accounts keep the v6 path). Limits degrade, never error: after 20 NEW ONE or 3 NEW GAME a day the library serves. The progress strip is a shared `Stages` component (this also fixed WP36 using the unstyled `sm-stages` classes). The browser-game skill does not apply: the game is a list screen, not a playable game.
 - 2026-10-29 (WP38): Today shows the picked game try on the home screen; the offer screen moves into Home and TryFlow keeps out/ask/debrief/later. The plant row is static (no plant screen exists in the build, so the mock's ">" has no destination yet). Recording accepts game tries (`source: game` with the game id, owner-checked). ANOTHER ONE draws the next unpicked try at the level via `POST /api/game/another`, writing a new game when the level is used up.
 - 2026-10-29 (WP38, types): `users.current_game_try_id` (migration 0018) points at today's try: two picks can share a millisecond, so `picked_at` ordering alone cannot say which is current. `picked_at` keeps used-up tracking.
+- 2026-10-29 (onboarding): FIND A PLACE AROUND ME is removed from the game (owner call): after a pick, "Saved as today's try." leads straight to Today. The AROUND? progress-strip item stays as a label.
+- 2026-10-29 (Today): the prominent MY COMPASS box is back on the hero (owner call, replaces the small v6.2 link), plus a small ACCOUNT link; signed-in users had no path to account at all.
 
 ## Open (confirm at kickoff)
 
