@@ -1,6 +1,6 @@
 // WP35 onboarding story: six beats about why small contacts matter, played
 // once on first open. LET'S GO and SKIP mark it seen and open the
-// get-personal voice flow.
+// get-personal voice flow, or call onDone when replayed from elsewhere.
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
@@ -168,7 +168,7 @@ function Picture({ pic, done, show }: { pic: BeatPic; done: boolean; show: (ms: 
   );
 }
 
-export function Story() {
+export function Story({ onDone }: { onDone?: () => void }) {
   const { route } = useLocation();
   const [s, setS] = useState(startStory);
   const still = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
@@ -185,6 +185,7 @@ export function Story() {
   function finish() {
     setLocalSeen();
     void api("POST", "/api/me/intro-seen").catch(() => {});
+    if (onDone) return onDone();
     route(PERSONAL_PATH);
   }
 
