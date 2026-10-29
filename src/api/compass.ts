@@ -1,8 +1,9 @@
-// WP24 FIND ME and the Personal Compass. WP33 SAY IT YOUR WAY.
+// WP24 FIND ME and the Personal Compass. WP33 SAY IT YOUR WAY. WP34 Surprise Me keeps.
 // POST /api/me/find {consent, name, town, links} · POST /api/me/compass/draft {kept, answers} ·
 // POST /api/me/compass/confirm {lines, origin} · GET /api/me/compass ·
 // POST /api/me/compass/propose {lineId?, part?, words?, feedback?, reviewed?, fix?} (dry run, never saves) ·
 // POST /api/me/compass/confirm_line {lineId, part, words, source?, tryId?} ·
+// POST /api/me/compass/keep {part, words} (one new line, Surprise Me) ·
 // POST /api/me/compass/undo · GET /api/me/compass/changes · DELETE /api/me/compass/:id · DELETE /api/me/compass
 // FIND ME needs consent and looks up only the person: the name must contain
 // their own first name. Findings are returned, never stored; nothing is saved
@@ -12,6 +13,7 @@
 // confirm and REMOVE is recorded for one UNDO.
 
 import {
+  addCompassLine,
   deleteCompass,
   getCompass,
   getCompassLine,
@@ -51,6 +53,7 @@ import { getSessionUser } from "./session";
 const FIND_LIMIT = { max: 5, windowS: 24 * 60 * 60 };
 const DRAFT_LIMIT = { max: 20, windowS: 60 * 60 };
 const PROPOSE_LIMIT = { max: 30, windowS: 60 * 60 };
+const KEEP_LIMIT = { max: 30, windowS: 60 * 60 };
 
 const FEEDBACKS: readonly TryFeedback[] = ["went_well", "awkward", "no_reply", "didnt_happen"];
 
@@ -242,6 +245,23 @@ export async function handleConfirmLine(request: Request, env: Env, now = new Da
   const tryId = typeof body.tryId === "string" && body.tryId ? body.tryId : null;
   await recordChange(env.DB, user.id, "line", line.id, snapshot(line), after, check.line!.words, tryId, now.toISOString());
   await updateCompassLine(env.DB, user.id, line.id, check.line!.part, check.line!.words, origin);
+  return json({ compass: view(await getCompass(env.DB, user.id)) });
+}
+
+/**
+ * SURPRISE ME, the KEEP tap. Saves one new line from the person's own
+ * words, through the same validator the proposal used. Nothing is saved
+ * before this tap. Kept lines are removed on the compass screen; they
+ * never enter the UNDO log.
+ */
+export async function handleKeep(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const body = await readJson(request);
+  if (await overLimit(env, `rl:keep:${user.id}`, KEEP_LIMIT)) return json({ error: "too_many" }, 429);
+  const check = validateProposal(body.part, body.words);
+  if (!check.ok) return json({ error: check.error, why: check.why }, 422);
+  await addCompassLine(env.DB, user.id, check.line!.part, check.line!.words, "questions", now.toISOString());
   return json({ compass: view(await getCompass(env.DB, user.id)) });
 }
 
