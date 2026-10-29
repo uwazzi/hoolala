@@ -142,7 +142,7 @@ export function Around() {
     if (res.status !== 200) {
       setPhase("ask");
       setSpot(null);
-      return setNote(res.data.error === "rate_limited" ? "That's enough looking for one hour. Go and see one of them?" : "Something went wrong. Try again.");
+      return setNote(res.data.error === "rate_limited" ? "That's enough looking for one hour. Subscribe to Pro for more scans." : "Something went wrong. Try again.");
     }
     setWiden(atWiden);
     setPlaces(res.data.places);

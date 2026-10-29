@@ -86,6 +86,7 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP32, types): `WorkingsFunction` gains `why_go` and `read_it`.
 
 - 2026-10-29 (WP32, limit): scans go from 10 to 12 an hour (owner call 29 Oct, testing kept hitting the guard).
+- 2026-10-29 (WP32, limit): scans go to 20 an hour TEMPORARILY for testing, revert to 10 after (owner call 29 Oct). The limit message upsells Pro ("Subscribe to Pro for more scans"); no subscription flow exists yet.
 - 2026-10-29 (WP32, types): `PlaceKind` gains `food`, `shop` and `outdoors` (migration 0011 rebuilds the kind CHECK); the map query asks for restaurants, fast food, everyday shops and parks, with an explicit shop allowlist so adult shops can never come through.
 - 2026-10-29 (WP32, types): `PlaceKind` gains `culture` and `sport` (migration 0012); the map query adds theatres, cinemas, museums, pools, gyms and the rest.
 - 2026-10-29 (WP32, open): the scan shows open-now, opening-within-the-hour and unknown-hours places; known-closed stays out. Hours come from the listing's opening_hours tag parsed by `src/rules/hours.ts` (common shapes only, fails open to unknown); people's free-text hours facts are shown, never parsed. Local time comes from the phone's time zone with a Europe/Zurich fallback (pilot call). Cards show today's hours, the public phone and site from the listing; business contact details are public directory data, not screened user content.
