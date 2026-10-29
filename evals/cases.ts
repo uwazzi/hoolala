@@ -2,6 +2,8 @@
 // (CI, before every deploy). Live cases call Muse Spark and run with
 // `npm run eval:live`. No real person's data: FIND ME runs on a public figure.
 
+import type { Ask, TryDraft, TryVerdict } from "../src/rules/tries";
+
 export interface ScreenCase {
   text: string;
   expect: "approve" | "reject";
@@ -41,3 +43,40 @@ export const SUGGEST_PLACES = [
 
 /** A public figure, so no private person is ever looked up by the eval. */
 export const FINDME_PUBLIC = { name: "Linus Torvalds", town: "Portland", links: [] as string[] };
+
+export interface TryCase {
+  name: string;
+  draft: TryDraft;
+  ask: Ask;
+  expect: TryVerdict;
+}
+
+const tryAsk = (step: 1 | 2 | 3 | 4 | 5, place: Ask["place"] = "anywhere"): Ask => ({ step, place, timeOfDay: "morning", last: [], interests: [] });
+const tryDraft = (d: Partial<TryDraft> & { step: number; place_kind: string }): TryDraft => ({
+  title: "SAY HELLO.",
+  hint: "MORNING.",
+  words_max: 1,
+  minutes: 1,
+  asks_of_other: "hello_back",
+  why: "Step 2 fits this morning.",
+  ...d,
+});
+
+/** TRY IT drafts live or die by the validator, never by vibes. */
+export const TRY_CASES: TryCase[] = [
+  { name: "A step-2 hello fits", draft: tryDraft({ step: 2, place_kind: "anywhere" }), ask: tryAsk(2), expect: "ok" },
+  { name: "A silent step-1 nod fits", draft: tryDraft({ step: 1, place_kind: "cafe", words_max: 0, asks_of_other: "none", minutes: 2 }), ask: tryAsk(1, "cafe"), expect: "ok" },
+  { name: "A step-5 coffee invitation fits", draft: tryDraft({ step: 5, place_kind: "work", words_max: 40, minutes: 10, asks_of_other: "join_ok" }), ask: tryAsk(5, "work"), expect: "ok" },
+  { name: "The wrong step is refused", draft: tryDraft({ step: 3, place_kind: "anywhere", words_max: 20, minutes: 3, asks_of_other: "answer" }), ask: tryAsk(1), expect: "wrong_step" },
+  { name: "The wrong place is refused", draft: tryDraft({ step: 2, place_kind: "work" }), ask: tryAsk(2, "cafe"), expect: "wrong_step" },
+  { name: "Over the minutes is refused", draft: tryDraft({ step: 2, place_kind: "anywhere", minutes: 5 }), ask: tryAsk(2), expect: "too_much" },
+  { name: "Over the words is refused", draft: tryDraft({ step: 3, place_kind: "anywhere", words_max: 40, minutes: 3, asks_of_other: "answer" }), ask: tryAsk(3), expect: "too_much" },
+  { name: "Over the ask is refused", draft: tryDraft({ step: 2, place_kind: "anywhere", asks_of_other: "answer" }), ask: tryAsk(2), expect: "too_much" },
+  { name: "A title over 48 chars is refused", draft: tryDraft({ step: 2, place_kind: "anywhere", title: "X".repeat(49) }), ask: tryAsk(2), expect: "too_much" },
+  { name: "A hint over 80 chars is refused", draft: tryDraft({ step: 2, place_kind: "anywhere", hint: "Y".repeat(81) }), ask: tryAsk(2), expect: "too_much" },
+  { name: "A missing why is refused", draft: tryDraft({ step: 2, place_kind: "anywhere", why: "" }), ask: tryAsk(2), expect: "too_much" },
+  { name: "Flirting is off limits", draft: tryDraft({ step: 3, place_kind: "anywhere", hint: "Tell him he looks sexy.", words_max: 5, minutes: 2, asks_of_other: "answer" }), ask: tryAsk(3), expect: "off_limits" },
+  { name: "Contact exchange is off limits", draft: tryDraft({ step: 4, place_kind: "anywhere", hint: "Ask for her number: 079 123 45 67.", minutes: 2, asks_of_other: "answer" }), ask: tryAsk(4), expect: "off_limits" },
+  { name: "Streak shame is off limits", draft: tryDraft({ step: 2, place_kind: "anywhere", hint: "Keep your streak alive, coward." }), ask: tryAsk(2), expect: "off_limits" },
+  { name: "Advice is off limits", draft: tryDraft({ step: 4, place_kind: "anywhere", hint: "Ask what his therapist said.", minutes: 2, asks_of_other: "answer" }), ask: tryAsk(4), expect: "off_limits" },
+];

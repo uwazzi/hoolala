@@ -15,12 +15,17 @@ export interface PlantState {
 }
 
 interface LibraryTryView {
-  id: string;
+  id: string | null;
   step: number;
   place: string;
   title: string;
   hint: string;
   meta: string;
+  source: "library" | "try_it";
+  why: string | null;
+  minutes?: number;
+  words_max?: number;
+  asks_of_other?: string;
 }
 
 type OutcomeKind = "went_well" | "no_reply" | "awkward" | "didnt_happen";
@@ -73,11 +78,27 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
   async function tell(kind: OutcomeKind) {
     if (!current) return;
     setNote("");
-    const res = await api<{ step: number; leaves: number; grew: number; suggestion: -1 | 0 | 1 }>("POST", "/api/tries", {
-      libraryId: current.id,
-      placeKind: place,
-      outcome: kind,
-    });
+    const res = await api<{ step: number; leaves: number; grew: number; suggestion: -1 | 0 | 1 }>(
+      "POST",
+      "/api/tries",
+      current.source === "try_it"
+        ? {
+            source: "try_it",
+            draft: {
+              title: current.title,
+              hint: current.hint,
+              step: current.step,
+              words_max: current.words_max,
+              minutes: current.minutes,
+              asks_of_other: current.asks_of_other,
+              place_kind: place,
+              why: current.why,
+            },
+            placeKind: place,
+            outcome: kind,
+          }
+        : { libraryId: current.id, placeKind: place, outcome: kind },
+    );
     if (res.status !== 200) {
       setNote("That didn't save. Try again?");
       return;
@@ -151,7 +172,7 @@ export function TryFlow({ plant, onPlant }: { plant: PlantState; onPlant: (p: Pl
         {!texts ? (
           <p class="lcd-kicker" role="status">Finding today’s try...</p>
         ) : (
-          <Typewriter key={`${screen}:${current?.id ?? ""}:${pick}:${debrief?.kind ?? ""}`} lead={texts.lead} title={texts.title} meta={texts.meta}>
+          <Typewriter key={`${screen}:${current?.id ?? ""}:${pick}:${debrief?.kind ?? ""}`} lead={texts.lead} title={texts.title} meta={texts.meta} why={screen === "offer" ? current?.why ?? null : null}>
             <div class="try-keys keys-rise">
               {screen === "offer" && (
                 <>

@@ -370,7 +370,7 @@ export interface MomentRow {
   label: string;
 }
 
-export type WorkingsFunction = "findme" | "place" | "suggest" | "screen" | "plan" | "snap";
+export type WorkingsFunction = "findme" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it";
 
 export interface WorkingRow {
   id: string;
