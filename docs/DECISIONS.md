@@ -63,6 +63,8 @@ One line per decision: date, decision, why. Newest at the bottom.
 
 - 2026-10-29 (v6): WP21 Telegram Mini App moved to ROADMAP (owner-confirmed); the web app is the demo. Work kept on branch `wp21/telegram`.
 
+- 2026-10-29 (WP31): An accepted card shows one next step: PLAN until a meeting point is set, ON MY WAY (the quick replies) until you send it, then MEET; the other two sit behind MORE. FRIENDS softkey points at `/friends` (NotFound until WP30 lands).
+
 ## Open (confirm at kickoff)
 
 - ~~Meta Model API base URL, auth, exact Muse Spark model id, rate limits~~ (answered 28 Oct, see above); credit claim link still to confirm.
