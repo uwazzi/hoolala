@@ -4,6 +4,7 @@
 // GET /api/live (public)
 // No model, on purpose: two people confirm, not an AI.
 
+import { dashboardCounts } from "../db/dashboard";
 import { getActiveCheckin } from "../db/places";
 import { isSampleUser } from "../db/sample";
 import { blockedIds, getSignal, responsesFor } from "../db/here";
@@ -157,6 +158,7 @@ export async function handleStayInTouch(id: string, request: Request, env: Env, 
 
 export async function handleLive(env: Env, now = new Date()): Promise<Response> {
   const c = await liveCounts(env.DB, LIVE_SINCE, new Date(now.getTime() - 7 * 86_400_000).toISOString());
+  const d = await dashboardCounts(env.DB);
   const res = json({
     since: LIVE_SINCE,
     hellos: c.hellos,
@@ -164,8 +166,12 @@ export async function handleLive(env: Env, now = new Date()): Promise<Response> 
     checkins: { ok: c.checkinOk, of: c.checkinAttempts, percent: c.checkinAttempts ? Math.round((c.checkinOk / c.checkinAttempts) * 100) : null },
     factsConfirmedThisWeek: c.factsConfirmedWeek,
     places: c.places,
+    users: d.users,
+    interactions: d.interactions,
+    leaves: d.leaves,
+    sentiment: d.sentiment,
     updatedAt: now.toISOString(),
   });
-  res.headers.set("cache-control", "public, max-age=30");
+  res.headers.set("cache-control", "public, max-age=14400");
   return res;
 }

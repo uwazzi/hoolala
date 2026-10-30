@@ -31,7 +31,7 @@ export function Screen({ title, back = true, softkeys, bare = false, children }:
   return (
     <>
       <header class="brand-bar">
-        <span class="brand-bar-name">Hoolala!</span>
+        <a class="brand-bar-name" href="/">Hoolala!</a>
         <span class="brand-bar-tag">You never know until you go.</span>
       </header>
       <main>{children}</main>
@@ -53,6 +53,9 @@ export function Screen({ title, back = true, softkeys, bare = false, children }:
         )}
       </nav>
       )}
+      <footer class="brand-footer">
+        Powered by <a href="https://hg-labs.io" target="_blank" rel="noopener noreferrer">hg-labs.io</a>
+      </footer>
     </>
   );
 }
