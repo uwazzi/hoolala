@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   BEATS,
@@ -106,6 +107,21 @@ describe("showing the story", () => {
   it("always shows the story to signed-out guests", () => {
     expect(shouldShowStory("out", null, false)).toBe(true);
     expect(shouldShowStory("out", null, true)).toBe(true);
+  });
+});
+
+describe("the guest sign-in shortcut", () => {
+  const storyView = readFileSync("web/src/components/Story.tsx", "utf8");
+  const homeView = readFileSync("web/src/pages/Home.tsx", "utf8");
+
+  it("shows guests a sign-in key under the animation instead of the description", () => {
+    expect(storyView).toContain("guest");
+    expect(storyView).toContain('href="/signin"');
+    expect(storyView).toContain("Sign in");
+  });
+
+  it("marks only confirmed signed-out visitors as guests", () => {
+    expect(homeView).toContain('guest={auth === "out"}');
   });
 });
 

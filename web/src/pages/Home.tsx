@@ -69,7 +69,7 @@ export function Home() {
     <Screen back={false} bare={showStory}>
       {auth === "loading" || showStory ? (
         showStory ? (
-          <Story />
+          <Story guest={auth === "out"} />
         ) : null
       ) : !me ? null : inFlow && plant && current ? (
         <TryFlow
