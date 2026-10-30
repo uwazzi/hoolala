@@ -60,6 +60,7 @@ export interface Env {
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_WEBHOOK_SECRET?: string;
   TELEGRAM_BOT_USERNAME?: string;
+  OWNER_TOKEN?: string;
 }
 
 // --- D1 rows (one per table in docs/BUILD-PLAN.md) --------------------------

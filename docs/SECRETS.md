@@ -25,6 +25,7 @@ How every key for Hoolala! is kept, who may use it and what to do if one leaks. 
 | `CLOUDFLARE_API_TOKEN` (CI) | GitHub Actions secret | Deploy workflows, PM report | Workers deploy, D1 read | Reviewed 4 Nov |
 | Cloudflare agent token `hoolala-agent` | Keychain `cloudflare-api-token` | Agents and local wrangler | D1, Workers KV, Workers Scripts: Edit. **No DNS, no zone settings** | **5 Nov** |
 | GitHub login for agents | `~/.gh-hoolala` (token in the keychain) | `gh` for issues and PRs | `repo`, `read:org`, `gist` | Revoke at github.com/settings/applications after 4 Nov |
+| `OWNER_TOKEN` | Worker secret, separately for staging and production | `src/api/dashboard.ts` | Reads the owner dashboard only | Rotate if the bookmark leaks |
 
 **Not secret, fine in the public repo:** the Cloudflare account id, D1 database ids, KV namespace ids, domain names, `LLM_ENABLED`, `PLACES_PROVIDER`. They identify resources; they grant nothing without a token.
 

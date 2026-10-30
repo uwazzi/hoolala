@@ -10,6 +10,7 @@ import { Join } from "./pages/Join";
 import { Around } from "./pages/Around";
 import { Arrive } from "./pages/Arrive";
 import { Compass } from "./pages/Compass";
+import { Dashboard } from "./pages/Dashboard";
 import { Here } from "./pages/Here";
 import { Live } from "./pages/Live";
 import { Meet } from "./pages/Meet";
@@ -63,6 +64,7 @@ function App() {
       <Route path="/here" component={Here} />
       <Route path="/meet" component={Meet} />
       <Route path="/live" component={Live} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/place" component={Place} />
       <Route default component={NotFound} />

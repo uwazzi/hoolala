@@ -115,6 +115,7 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (WP38, types): `users.current_game_try_id` (migration 0018) points at today's try: two picks can share a millisecond, so `picked_at` ordering alone cannot say which is current. `picked_at` keeps used-up tracking.
 - 2026-10-29 (onboarding): FIND A PLACE AROUND ME is removed from the game (owner call): after a pick, "Saved as today's try." leads straight to Today. The AROUND? progress-strip item stays as a label.
 - 2026-10-29 (Today): the prominent MY COMPASS box is back on the hero (owner call, replaces the small v6.2 link), plus a small ACCOUNT link; signed-in users had no path to account at all.
+- 2026-10-30 (dashboard): owner-only product page at `/dashboard` behind `OWNER_TOKEN` (new `Env` field): total accounts, interactions logged, total leaves and the How-did-it-go breakdown, aggregates only, samples and deleted users excluded. The public Live page is untouched.
 
 ## Open (confirm at kickoff)
 
