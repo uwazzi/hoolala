@@ -9,7 +9,7 @@ import { Plant } from "../components/Plant";
 import { Screen } from "../components/Screen";
 import { Story } from "../components/Story";
 import { TryFlow, type HeroTry, type PlantState } from "../components/TryFlow";
-import { localSeen } from "../story";
+import { localSeen, shouldShowStory } from "../story";
 import { Typed } from "../components/Typed";
 
 export function Home() {
@@ -61,8 +61,9 @@ export function Home() {
     setSkip((s) => s + 1);
   }
 
-  // First open plays the story: the account flag rules once signed in, the local flag for visitors.
-  const showStory = auth === "in" ? !(me?.introSeen ?? true) : auth === "out" ? !seenLocal : false;
+  // First open plays the story from the first paint: the local flag decides
+  // while the sign-in check loads, so the animation starts straight away.
+  const showStory = shouldShowStory(auth, me?.introSeen ?? null, seenLocal);
 
   return (
     <Screen back={false} bare={showStory}>

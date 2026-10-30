@@ -20,6 +20,10 @@ describe("Today, simplified", () => {
     }
   });
 
+  it("shows the onboarding story from the first paint while auth loads", () => {
+    expect(home).toContain("shouldShowStory(auth, me?.introSeen ?? null, seenLocal)");
+  });
+
   it("keeps account reachable for signed-in users", () => {
     expect(home).toContain("ACCOUNT");
     expect(home).toContain('href="/signin">ACCOUNT');

@@ -5,6 +5,7 @@ import {
   localSeen,
   PERSONAL_PATH,
   setLocalSeen,
+  shouldShowStory,
   startStory,
   storyBack,
   storyDone,
@@ -29,8 +30,8 @@ describe("the story machine", () => {
     expect(storyDone(s)).toBe(false);
   });
 
-  it("holds 4.2 s after the headline, then moves on by itself, except on the last beat", () => {
-    expect(HOLD_MS).toBe(4200);
+  it("holds 6.2 s after the headline, then moves on by itself, except on the last beat", () => {
+    expect(HOLD_MS).toBe(6200);
     let s = { beat: 0, typed: BEATS[0].head.length, held: 0 };
     for (let i = 0; i < HOLD_MS / TYPING_MS - 1; i++) s = storyTick(s, { reduced: false, autoplay: true });
     expect(s.beat).toBe(0);
@@ -84,6 +85,27 @@ describe("the six beats", () => {
 
   it("ends on the get-personal flow", () => {
     expect(PERSONAL_PATH).toBe("/surprise");
+  });
+});
+
+describe("showing the story", () => {
+  it("starts straight away while the sign-in check loads", () => {
+    expect(shouldShowStory("loading", null, false)).toBe(true);
+  });
+
+  it("stays hidden while loading when already seen on this device", () => {
+    expect(shouldShowStory("loading", null, true)).toBe(false);
+  });
+
+  it("lets the account flag rule once signed in", () => {
+    expect(shouldShowStory("in", false, true)).toBe(true);
+    expect(shouldShowStory("in", true, false)).toBe(false);
+    expect(shouldShowStory("in", null, false)).toBe(false);
+  });
+
+  it("uses the local flag once signed out", () => {
+    expect(shouldShowStory("out", null, false)).toBe(true);
+    expect(shouldShowStory("out", null, true)).toBe(false);
   });
 });
 

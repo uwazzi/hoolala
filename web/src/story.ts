@@ -12,7 +12,7 @@ export interface Beat {
 }
 
 export const TYPING_MS = 35;
-export const HOLD_MS = 4200;
+export const HOLD_MS = 6200;
 
 export const BEATS: Beat[] = [
   {
@@ -90,6 +90,19 @@ export function storyNext(s: StoryState): StoryState {
 
 export function storyBack(s: StoryState): StoryState {
   return s.beat <= 0 ? s : { beat: s.beat - 1, typed: 0, held: 0 };
+}
+
+/** Whether the home screen shows the onboarding story. While the sign-in
+ * check loads, the local flag decides, so the animation starts straight
+ * away instead of waiting for /api/me. Once signed in, the account flag
+ * rules; once signed out, the local flag does. */
+export function shouldShowStory(
+  auth: "loading" | "in" | "out",
+  introSeen: boolean | null,
+  seenLocal: boolean,
+): boolean {
+  if (auth === "in") return introSeen === false;
+  return !seenLocal;
 }
 
 /** Where LET'S GO and SKIP open: the get-personal voice flow (WP36 reconfigures this route). */
