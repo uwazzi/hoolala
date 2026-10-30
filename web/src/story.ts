@@ -92,16 +92,17 @@ export function storyBack(s: StoryState): StoryState {
   return s.beat <= 0 ? s : { beat: s.beat - 1, typed: 0, held: 0 };
 }
 
-/** Whether the home screen shows the onboarding story. While the sign-in
- * check loads, the local flag decides, so the animation starts straight
- * away instead of waiting for /api/me. Once signed in, the account flag
- * rules; once signed out, the local flag does. */
+/** Whether the home screen shows the onboarding story. Guests always get
+ * the animation. While the sign-in check loads, the local flag decides, so
+ * the animation starts straight away without flashing the story at
+ * returning users. Once signed in, the account flag rules. */
 export function shouldShowStory(
   auth: "loading" | "in" | "out",
   introSeen: boolean | null,
   seenLocal: boolean,
 ): boolean {
   if (auth === "in") return introSeen === false;
+  if (auth === "out") return true;
   return !seenLocal;
 }
 

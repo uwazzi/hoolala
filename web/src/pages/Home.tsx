@@ -61,30 +61,17 @@ export function Home() {
     setSkip((s) => s + 1);
   }
 
-  // First open plays the story from the first paint: the local flag decides
-  // while the sign-in check loads, so the animation starts straight away.
+  // Guests always get the story; the local flag only decides while the
+  // sign-in check loads, so the animation starts straight away.
   const showStory = shouldShowStory(auth, me?.introSeen ?? null, seenLocal);
 
   return (
     <Screen back={false} bare={showStory}>
       {auth === "loading" || showStory ? (
         showStory ? (
-          <Story />
+          <Story guest={auth === "out"} />
         ) : null
-      ) : !me ? (
-        <>
-          <h1 class="today-title">Hoolala!</h1>
-          <p class="lcd-block">One tiny thing to try in real life each day. Small enough to do on the way to somewhere. You decide, always.</p>
-          <ul class="key-list">
-            <li>
-              <a class="lcd-key lcd-key--primary" href="/signin">Sign in</a>
-            </li>
-          </ul>
-          <p class="lcd-small">
-            Not a dating app. Anonymous until you both say yes. <a href="/privacy">Privacy</a>
-          </p>
-        </>
-      ) : inFlow && plant && current ? (
+      ) : !me ? null : inFlow && plant && current ? (
         <TryFlow
           plant={plant}
           onPlant={setPlant}

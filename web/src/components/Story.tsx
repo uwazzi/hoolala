@@ -1,6 +1,8 @@
 // WP35 onboarding story: six beats about why small contacts matter, played
 // once on first open. LET'S GO and SKIP mark it seen and open the
 // get-personal voice flow, or call onDone when replayed from elsewhere.
+// Guests get a Sign in key under the animation instead of the description,
+// so reaching sign-in never means waiting out the story.
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
@@ -168,7 +170,7 @@ function Picture({ pic, done, show }: { pic: BeatPic; done: boolean; show: (ms: 
   );
 }
 
-export function Story({ onDone }: { onDone?: () => void }) {
+export function Story({ onDone, guest = false }: { onDone?: () => void; guest?: boolean }) {
   const { route } = useLocation();
   const [s, setS] = useState(startStory);
   const still = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
@@ -201,11 +203,21 @@ export function Story({ onDone }: { onDone?: () => void }) {
           <Picture pic={beat.pic} done={done} show={show} />
         </div>
       </div>
-      {done && (
-        <div class="keys-rise">
-          <p class="story-body">{beat.body}</p>
-          <p class="story-src">{beat.source}</p>
-        </div>
+      {guest ? (
+        <ul class="key-list">
+          <li>
+            <a class="lcd-key" href="/signin">
+              Sign in
+            </a>
+          </li>
+        </ul>
+      ) : (
+        done && (
+          <div class="keys-rise">
+            <p class="story-body">{beat.body}</p>
+            <p class="story-src">{beat.source}</p>
+          </div>
+        )
       )}
       {last && done && (
         <div class="story-go keys-rise">

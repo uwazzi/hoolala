@@ -17,4 +17,9 @@ describe("the account menu", () => {
     expect(signin).not.toContain("Where are you?");
     expect(signin).not.toContain("Want a head start?");
   });
+
+  it("sends first-timers home to the story after they save a name", () => {
+    expect(signin).toContain("introSeen");
+    expect(signin).toContain('route("/")');
+  });
 });
