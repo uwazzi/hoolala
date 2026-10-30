@@ -9,8 +9,8 @@ describe("Today, simplified", () => {
     for (const copy of ["TODAY'S TRY", "LET'S GO", "ANOTHER ONE", "NOT TODAY", "My compass", "Your plant. It only grows."]) {
       expect(home).toContain(copy);
     }
-    // One primary per screen: Sign in (signed out) and LET'S GO (hero).
-    expect(home.match(/lcd-key--primary/g)?.length ?? 0).toBe(2);
+    // One primary on the hero: LET'S GO (guests get the story, not a sign-in screen).
+    expect(home.match(/lcd-key--primary/g)?.length ?? 0).toBe(1);
     expect(home.match(/link-button/g)?.length ?? 0).toBe(2);
   });
 

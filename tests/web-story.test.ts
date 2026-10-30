@@ -103,9 +103,9 @@ describe("showing the story", () => {
     expect(shouldShowStory("in", null, false)).toBe(false);
   });
 
-  it("uses the local flag once signed out", () => {
+  it("always shows the story to signed-out guests", () => {
     expect(shouldShowStory("out", null, false)).toBe(true);
-    expect(shouldShowStory("out", null, true)).toBe(false);
+    expect(shouldShowStory("out", null, true)).toBe(true);
   });
 });
 
