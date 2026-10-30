@@ -17,6 +17,7 @@ import { Meet } from "./pages/Meet";
 import { NotFound } from "./pages/Placeholders";
 import { Place } from "./pages/Place";
 import { Privacy } from "./pages/Privacy";
+import { SayHi } from "./pages/SayHi";
 import { SignIn } from "./pages/SignIn";
 import { Surprise } from "./pages/Surprise";
 import "./styles.css";
@@ -66,6 +67,7 @@ function App() {
       <Route path="/live" component={Live} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/say-hi" component={SayHi} />
       <Route path="/place" component={Place} />
       <Route default component={NotFound} />
     </Router>

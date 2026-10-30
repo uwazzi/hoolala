@@ -27,16 +27,26 @@ export function Dashboard() {
   const [view, setView] = useState<DashboardView | null>(null);
   const [denied, setDenied] = useState(false);
 
+  const [hellos, setHellos] = useState<{ id: string; firstName: string | null; screen: string; message: string; log: { t: number; line: string }[]; createdAt: string }[]>([]);
+
   useEffect(() => {
     if (!token) return;
     setDenied(false);
     setView(null);
-    fetch("/api/dashboard", { headers: { authorization: `Bearer ${token}` } })
+    setHellos([]);
+    const auth = { authorization: `Bearer ${token}` };
+    fetch("/api/dashboard", { headers: auth })
       .then(async (res) => {
         if (res.status !== 200) return setDenied(true);
         setView((await res.json()) as DashboardView);
       })
       .catch(() => setDenied(true));
+    fetch("/api/feedback", { headers: auth })
+      .then(async (res) => {
+        if (res.status !== 200) return;
+        setHellos(((await res.json()) as { feedback: typeof hellos }).feedback);
+      })
+      .catch(() => {});
   }, [token]);
 
   return (
@@ -113,6 +123,32 @@ export function Dashboard() {
                   </li>
                 ))}
               </ul>
+            </div>
+            <div class="lcd-block">
+              <p class="lcd-kicker">Latest hellos</p>
+              {hellos.length === 0 ? (
+                <p class="lcd-small">None yet.</p>
+              ) : (
+                <ul class="reply-list">
+                  {hellos.map((h) => (
+                    <li key={h.id}>
+                      <span>
+                        {h.firstName ?? "Someone"} · {h.screen} ·{" "}
+                        {new Date(h.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      {h.message && <span>{h.message}</span>}
+                      {h.log.length > 0 && (
+                        <details>
+                          <summary class="lcd-small">Log ({h.log.length})</summary>
+                          {h.log.map((l) => (
+                            <p class="lcd-small" key={`${l.t}-${l.line}`}>{l.line}</p>
+                          ))}
+                        </details>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <p class="lcd-small">Updated {new Date(view.updatedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}.</p>
           </>

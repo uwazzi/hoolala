@@ -36,6 +36,7 @@ import {
   handleRemoveMember,
 } from "./api/crew";
 import { handleDashboard } from "./api/dashboard";
+import { handleFeedback } from "./api/feedback";
 import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -280,6 +281,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/dashboard" && method === "GET") {
     return handleDashboard(request, env);
+  }
+  if (url.pathname === "/api/feedback" && (method === "GET" || method === "POST")) {
+    return handleFeedback(request, env);
   }
   if (url.pathname === "/api/block" && method === "POST") {
     return handleBlock(request, env);
