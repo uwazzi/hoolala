@@ -396,6 +396,7 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .brand-bar-tag { font: 11px/1.2 var(--font-body); color: var(--lcd-ink-secondary); text-align: right; }
 .lcd-softkey.softkey-tab { flex: 1; text-align: center; }
 .lcd-softkey.on { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.brand-footer { text-align: center; font-size: 12px; line-height: 1.4; color: var(--lcd-ink-secondary); margin: 12px 0 8px; }
 
 /* WP32 Around me (v6.1): radar panel, cards, thumb zone. */
 .around { display: flex; flex-direction: column; height: 100%; }

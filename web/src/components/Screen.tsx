@@ -53,6 +53,9 @@ export function Screen({ title, back = true, softkeys, bare = false, children }:
         )}
       </nav>
       )}
+      <footer class="brand-footer">
+        Powered by <a href="https://hg-labs.io" target="_blank" rel="noopener noreferrer">hg-labs.io</a>
+      </footer>
     </>
   );
 }
