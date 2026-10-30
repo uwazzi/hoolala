@@ -31,7 +31,7 @@ export function Screen({ title, back = true, softkeys, bare = false, children }:
   return (
     <>
       <header class="brand-bar">
-        <span class="brand-bar-name">Hoolala!</span>
+        <a class="brand-bar-name" href="/">Hoolala!</a>
         <span class="brand-bar-tag">You never know until you go.</span>
       </header>
       <main>{children}</main>
