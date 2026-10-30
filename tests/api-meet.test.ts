@@ -196,4 +196,26 @@ describe("GET /api/live", () => {
     expect(live.connection).toEqual({ met: 0, of: 1, percent: 0 });
     expect(live.hellos).toBe(0);
   });
+
+  it("publishes users, interactions, leaves and sentiment, refreshed every 4 hours", async () => {
+    const env = testEnv();
+    const db = env.DB.sqlite;
+    for (const id of ["u1", "u2"]) {
+      db.prepare("INSERT INTO users (id, email, first_name, is_adult, created_at) VALUES (?, ?, ?, 1, ?)").run(id, `${id}@example.com`, id, NOW);
+    }
+    db.prepare("INSERT INTO interactions (id, kind, user_a, user_b, place_id, signal_id, day, confirmed_at) VALUES ('m1', 'here', 'u1', 'u2', NULL, NULL, '2026-10-28', ?)").run(NOW);
+    const tried = (id: string, outcome: string) =>
+      db.prepare("INSERT INTO tries (id, user_id, step, outcome, created_at) VALUES (?, 'u1', 1, ?, ?)").run(id, outcome, NOW);
+    tried("t1", "went_well");
+    tried("t2", "awkward");
+    tried("t3", "didnt_happen");
+    const res = await call(env, "GET", "/api/live");
+    expect(res.headers.get("cache-control")).toBe("public, max-age=14400");
+    expect(await res.json()).toMatchObject({
+      users: 2,
+      interactions: 1,
+      leaves: 2,
+      sentiment: { went_well: 1, no_reply: 0, awkward: 1, didnt_happen: 1 },
+    });
+  });
 });
