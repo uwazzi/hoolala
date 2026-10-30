@@ -1,5 +1,6 @@
 // WP2 sign-in, moved to Preact in WP27. Steps: email > sent, then on the
-// way back from the link: first name > signed in (sign out, delete).
+// way back from the link: first name > home for the onboarding story when
+// the intro is unseen, else signed in (sign out, delete).
 // The signed-in menu replays the onboarding story ("About Hoolala").
 import { useLocation } from "preact-iso";
 import { useEffect, useState } from "preact/hooks";
@@ -31,7 +32,7 @@ const ERRORS: Record<string, string> = {
 const LINK_ERROR = "That link has expired or was already used. Send yourself a new one.";
 
 export function SignIn() {
-  const { query } = useLocation();
+  const { query, route } = useLocation();
   const [step, setStep] = useState<Step>("loading");
   const [note, setNote] = useState("");
   const [me, setMe] = useState<MeResponse | null>(null);
@@ -71,8 +72,9 @@ export function SignIn() {
   async function saveName(event: Event) {
     event.preventDefault();
     const res = await api<MeResponse>("PATCH", "/api/me", { firstName });
-    if (res.status === 200) return signedIn(res.data);
-    failed(res.data.error);
+    if (res.status !== 200) return failed(res.data.error);
+    if (!res.data.introSeen) return void route("/");
+    return signedIn(res.data);
   }
 
   async function signOut() {
