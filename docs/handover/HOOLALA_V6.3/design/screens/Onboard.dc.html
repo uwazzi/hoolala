@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! onboarding: five quick ones, compass, game</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}
+button{font:inherit;color:inherit}
+@keyframes hl-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes hl-rise{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes hl-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes hl-talk{0%,100%{transform:scale(1,1)}25%{transform:scale(1.07,0.95)}50%{transform:scale(0.97,1.04)}75%{transform:scale(1.05,0.97)}}
+@keyframes hl-think{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes hl-ping{0%{transform:translate(-50%,-50%) scale(1);opacity:0.6}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0}}
+.hl-cursor{display:inline-block;width:10px;height:0.9em;background:#182513;vertical-align:-2px;margin-left:2px;animation:hl-blink 0.9s steps(1) infinite}
+.hl-rise{animation:hl-rise 0.3s ease-out both}
+.hl-spin{animation:hl-think 0.8s steps(8) infinite}
+.hl-key{cursor:pointer;user-select:none;-webkit-user-select:none}
+.hl-key:hover{outline:2px solid #182513;outline-offset:2px}
+.hl-key:active{transform:translateY(2px)}
+.hl-ball{cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none}
+textarea:focus{outline:2px solid #182513;outline-offset:2px}
+.hl-board{outline:none}
+.hl-board:focus-visible{outline:2px dashed #182513;outline-offset:3px}
+@media (prefers-reduced-motion: reduce){.hl-spin{animation:none}.hl-cursor{animation:none}.hl-rise{animation-duration:0.01s}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #BED39C; color: #182513; font-family: 'Space Mono', monospace; display: flex; flex-direction: column; overflow: hidden">
+  <header style="flex-shrink: 0; margin: 0 24px; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px dashed #304327">
+    <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; letter-spacing: 1px">HOOLALA!</div>
+    <div style="font-size: 11px; line-height: 1.3; color: #304327; text-align: right">You never know until you go.</div>
+  </header>
+
+  <div style="flex-shrink: 0; margin: 10px 24px 0 24px; display: flex; align-items: center; gap: 6px">
+    <sc-for list="{{ stages }}" as="s" hint-placeholder-count="4">
+      <div style="{{ s.style }}">{{ s.label }}</div>
+    </sc-for>
+  </div>
+
+  <!-- 1. SURPRISE ME: hello human, five quick ones (voice UI reused) -->
+  <sc-if value="{{ isVoice }}" hint-placeholder-val="{{ true }}">
+    <div style="margin: 10px 24px 0 24px; display: flex; justify-content: space-between; align-items: center; min-height: 28px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="5"><span style="{{ d.style }}"></span></sc-for>
+        <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327; margin-left: 4px">{{ fillsShown }}</span>
+      </div>
+      <button class="hl-key" onClick="{{ toggleSound }}" style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 10px; background: #DDE7C6">
+        <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 3h2l2-2h1v6H4L2 5H0z" fill="#182513"></path><sc-if value="{{ soundOn }}" hint-placeholder-val="{{ true }}"><rect x="6" y="2" width="1" height="4" fill="#182513"></rect></sc-if></svg>
+        <span>{{ soundLabel }}</span>
+      </button>
+    </div>
+
+    <div style="position: relative; height: 124px; flex-shrink: 0">
+      <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12"><div style="{{ b.style }}"></div></sc-for>
+      <sc-if value="{{ listening }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; border: 2px solid #182513; border-radius: 50%; animation: hl-ping 1s ease-out infinite"></div>
+      </sc-if>
+      <div style="position: absolute; left: 50%; top: 50%; width: 88px; height: 88px; margin: -44px 0 0 -44px">
+        <div style="{{ ballStyle }}">
+          <svg width="88" height="88" viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true">
+            <path d="M5 0h4v1h2v1h1v1h1v2h1v4h-1v2h-1v1h-1v1H9v1H5v-1H3v-1H2v-1H1V9H0V5h1V3h1V2h1V1h2z" fill="#182513"></path>
+            <rect x="3" y="3" width="2" height="2" fill="#DDE7C6"></rect>
+            <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}"><rect x="9" y="9" width="1" height="1" fill="#DDE7C6"></rect></sc-if>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; padding: 0 24px 10px 24px; display: flex; flex-direction: column; gap: 10px">
+      <div style="text-align: center; font-family: 'Silkscreen', monospace; font-size: 11px; min-height: 16px">{{ hint }}</div>
+
+      <sc-if value="{{ isIntro }}" hint-placeholder-val="{{ true }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 14px">
+          <div style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 30px; line-height: 1.1; text-align: center">HELLO, HUMAN.</div>
+          <p style="margin: 0; font-size: 15px; line-height: 1.5; text-align: center">Five quick ones, then you’re out of here.</p>
+          <p style="margin: 0; font-size: 12px; line-height: 1.5; text-align: center; color: #304327">Tap an answer, hold the mic and talk, or type.</p>
+          <button class="hl-key" onClick="{{ startQs }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border: 0; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 17px"><span>START</span><span>&gt;</span></button>
+          <div style="font-size: 11px; line-height: 1.5; color: #304327; text-align: center">Heard, then forgotten. Your voice becomes words, and only the useful bits are kept, after you check them.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ inQs }}" hint-placeholder-val="{{ false }}">
+        <div aria-live="polite" style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 19px; line-height: 1.2; text-align: center; min-height: 46px">{{ captionShown }}<sc-if value="{{ captionTyping }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></div>
+      </sc-if>
+
+      <sc-if value="{{ showReply }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" aria-live="polite" style="border-left: 4px solid #182513; padding: 6px 0 6px 12px; font-family: 'Silkscreen', monospace; font-size: 15px; line-height: 1.3">{{ replyText }}</div>
+      </sc-if>
+
+      <sc-if value="{{ showChips }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center">
+          <sc-for list="{{ chips }}" as="c" hint-placeholder-count="5">
+            <button class="hl-key" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasExtra }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size: 12px; text-align: center">+ {{ extraText }}</div>
+      </sc-if>
+
+      <sc-if value="{{ showTranscript }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="border: 2px dashed #304327; border-radius: 2px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">{{ transcriptLabel }}</span>
+          <span style="font-size: 14px; line-height: 1.45">{{ transcriptShown }}<sc-if value="{{ listening }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showManyNext }}" hint-placeholder-val="{{ false }}">
+        <button class="hl-key" onClick="{{ manyNext }}" style="{{ manyNextStyle }}"><span>NEXT</span><span>&gt;</span></button>
+      </sc-if>
+
+      <sc-if value="{{ confirming }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 12px; color: #304327; text-align: center">I’ll keep the good bits at the end. Ramble away.</div>
+          <button class="hl-key" onClick="{{ textNext }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px; background: #182513; color: #DDE7C6; border: 0; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px"><span>NEXT</span><span>&gt;</span></button>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <button class="hl-key" onClick="{{ again }}" style="min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">SAY AGAIN</button>
+            <button class="hl-key" onClick="{{ typeInstead }}" style="min-height: 44px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px">FIX BY TYPING</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ typingMode }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 8px">
+          <label style="display: flex; flex-direction: column"><span style="position: absolute; left: -9999px">Your answer</span>
+            <textarea value="{{ draft }}" onChange="{{ onDraft }}" rows="2" placeholder="{{ typePlaceholder }}" style="font-family: 'Space Mono', monospace; font-size: 15px; line-height: 1.4; padding: 10px; border: 2px solid #182513; border-radius: 2px; background: #DDE7C6; color: #182513; resize: none"></textarea>
+          </label>
+          <button class="hl-key" onClick="{{ sendTyped }}" style="{{ sendStyle }}"><span>SEND</span><span>&gt;</span></button>
+          <button class="hl-key" onClick="{{ backToVoice }}" style="background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline">ANSWER OUT LOUD INSTEAD</button>
+        </div>
+      </sc-if>
+      <div style="flex-grow: 1"></div>
+      <sc-if value="{{ inQs }}" hint-placeholder-val="{{ false }}"><div style="font-size: 11px; line-height: 1.4; color: #304327; text-align: center">Heard, then forgotten. Only the useful bits are kept, after you check them.</div></sc-if>
+    </div>
+
+    <sc-if value="{{ inQs }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-shrink: 0; padding: 8px 24px 14px 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; border-top: 2px solid #182513">
+      <button class="hl-key" onClick="{{ typeInstead }}" style="justify-self: start; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 48px; min-height: 48px; background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 10px">
+        <svg width="28" height="20" viewBox="0 0 14 10" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h14v10H0z M1 1v8h12V1z" fill="#182513" fill-rule="evenodd"></path><rect x="2" y="2" width="2" height="1" fill="#182513"></rect><rect x="5" y="2" width="2" height="1" fill="#182513"></rect><rect x="8" y="2" width="2" height="1" fill="#182513"></rect><rect x="3" y="4" width="2" height="1" fill="#182513"></rect><rect x="6" y="4" width="2" height="1" fill="#182513"></rect><rect x="9" y="4" width="2" height="1" fill="#182513"></rect><rect x="4" y="6" width="6" height="1" fill="#182513"></rect></svg>
+        <span>TYPE</span>
+      </button>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <button class="hl-ball" aria-label="Hold to talk" onMouseDown="{{ down }}" onMouseUp="{{ up }}" onMouseLeave="{{ up }}" onTouchStart="{{ down }}" onTouchEnd="{{ up }}" style="{{ micStyle }}">
+          <svg width="40" height="56" viewBox="0 0 10 14" shape-rendering="crispEdges" aria-hidden="true">
+            <path d="M3 0h4v1h1v7H7v1H3V8H2V1h1z" fill="{{ micInk }}"></path>
+            <path d="M0 5h1v3h1v1h1v1h4V9h1V8h1V5h1v4H9v1H8v1H6v2h2v1H2v-1h2v-2H2v-1H1V9H0z" fill="{{ micInk }}"></path>
+          </svg>
+        </button>
+        <span style="font-family: 'Silkscreen', monospace; font-size: 10px">{{ micLabel }}</span>
+      </div>
+      <button class="hl-key" onClick="{{ skip }}" style="justify-self: end; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 48px; min-height: 48px; background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 10px">
+        <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 1h2v1h1v1h1v1h1v2H4v1H3v1H2v1H0zM5 1h2v1h1v1h1v1h1v2H9v1H8v1H7v1H5z" fill="#182513"></path></svg>
+        <span>SKIP</span>
+      </button>
+    </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- 1b. KEEPING THE JUICY BITS (with Snake while you wait) -->
+  <sc-if value="{{ isJuicy }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; min-height: 0; padding: 14px 24px 14px 24px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div class="{{ faceCls }}" style="flex-shrink: 0"><svg width="40" height="40" viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 0h4v1h2v1h1v1h1v2h1v4h-1v2h-1v1h-1v1H9v1H5v-1H3v-1H2v-1H1V9H0V5h1V3h1V2h1V1h2z" fill="#182513"></path><rect x="3" y="3" width="2" height="2" fill="#DDE7C6"></rect></svg></div>
+        <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 18px; line-height: 1.2; min-height: 44px">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'Silkscreen', monospace; font-size: 11px">
+        <span aria-live="polite">{{ juicyStatus }}</span>
+        <sc-if value="{{ isSnake }}" hint-placeholder-val="{{ false }}"><button class="hl-key" onClick="{{ stopSnake }}" style="background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline; min-height: 32px">STOP PLAYING</button></sc-if>
+      </div>
+
+      <sc-if value="{{ notSnake }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px">
+          <sc-for list="{{ juicyAnswers }}" as="ja" hint-placeholder-count="2">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #304327">{{ ja.label }}</span>
+              <div style="font-size: 13px; line-height: 1.7">
+                <sc-for list="{{ ja.tokens }}" as="tk" hint-placeholder-count="12"><span style="{{ tk.style }}">{{ tk.w }}</span> </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noFreeText }}" hint-placeholder-val="{{ false }}"><div style="font-size: 12px">Nothing to trim. Just your taps.</div></sc-if>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-family: 'Silkscreen', monospace; font-size: 10px; color: #304327">KEPT</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px">
+            <sc-for list="{{ keptShown }}" as="k" hint-placeholder-count="6"><span class="hl-rise" style="padding: 3px 8px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 11px">{{ k.label }}</span></sc-for>
+          </div>
+        </div>
+        <div style="flex-grow: 1"></div>
+        <button class="hl-key" onClick="{{ startSnake }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 16px; background: #DDE7C6; border: 2px dashed #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 13px">
+          <span style="display: flex; align-items: center; gap: 10px"><svg width="30" height="14" viewBox="0 0 15 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 4h8v2H0zM6 1h2v3H6zM8 1h4v2H8zM14 1h1v1h-1z" fill="#182513"></path></svg>PLAY SNAKE WHILE YOU WAIT</span><span>&gt;</span>
+        </button>
+      </sc-if>
+
+      <sc-if value="{{ isSnake }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-board" ref="{{ boardRef }}" tabIndex="0" onKeyDown="{{ snakeKey }}" onClick="{{ focusBoard }}" aria-label="Snake. Steer with the arrow keys or the buttons below." style="position: relative; width: 342px; height: 216px; align-self: center; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; box-sizing: content-box">
+          <sc-for list="{{ snakeCells }}" as="sc" hint-placeholder-count="4"><div style="{{ sc.style }}"></div></sc-for>
+          <sc-if value="{{ snakeOops }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Silkscreen', monospace; font-size: 16px">OOPS. GO AGAIN.</div>
+          </sc-if>
+        </div>
+        <div aria-live="polite" style="text-align: center; font-family: 'Silkscreen', monospace; font-size: 12px; min-height: 18px">{{ snakeTicker }}</div>
+        <div style="flex-grow: 1"></div>
+        <div role="group" aria-label="Snake controls" style="align-self: center; display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(2, 56px); gap: 6px">
+          <sc-for list="{{ pad }}" as="p" hint-placeholder-count="4">
+            <button class="hl-key" aria-label="{{ p.name }}" onClick="{{ p.go }}" style="{{ p.style }}">
+              <svg width="22" height="22" viewBox="0 0 6 6" shape-rendering="crispEdges" aria-hidden="true"><path d="{{ p.d }}" fill="#182513"></path></svg>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ juicyReady }}" hint-placeholder-val="{{ false }}">
+        <button class="hl-key hl-rise" onClick="{{ toCompass }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border: 0; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px"><span>SHOW ME WHAT YOU KEPT</span><span>&gt;</span></button>
+      </sc-if>
+      <sc-if value="{{ juicyWaiting }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 56px; border: 2px dashed #304327; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px; color: #304327">STILL KEEPING THE JUICY BITS...</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- 2. COMPASS: one tap to save -->
+  <sc-if value="{{ isCompass }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; padding: 20px 24px 16px 24px; display: flex; flex-direction: column; gap: 14px">
+      <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 26px; line-height: 1.15; min-height: 60px">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{ dirs }}" as="d" hint-placeholder-count="4">
+          <div style="{{ d.style }}">
+            <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">{{ d.pole }} · {{ d.name }}</div>
+            <div style="font-size: 13px; font-weight: 700; line-height: 1.3">{{ d.value }}</div>
+            <div style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #304327">{{ d.src }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="{{ peopleStyle }}">
+        <div style="font-family: 'Silkscreen', monospace; font-size: 11px; color: #304327">PEOPLE IN YOUR DAYS</div>
+        <div style="font-size: 13px; font-weight: 700; line-height: 1.3">{{ peopleSaid }}</div>
+        <div style="font-size: 13px; line-height: 1.3">{{ peopleNod }}</div>
+        <div style="font-family: 'Silkscreen', monospace; font-size: 9px; color: #304327">{{ peopleSrc }}</div>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5">Nothing is saved until you say it looks right. Change or undo any line later in MY COMPASS.</p>
+      <div style="flex-grow: 1"></div>
+      <sc-if value="{{ done }}" hint-placeholder-val="{{ true }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 10px">
+          <button class="hl-key" onClick="{{ confirmCompass }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border: 0; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 16px"><span>LOOKS RIGHT. MAKE MY GAME</span><span>&gt;</span></button>
+          <button class="hl-key" onClick="{{ restart }}" style="min-height: 44px; background: transparent; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 13px">CHANGE SOMETHING</button>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- 3. TRY IT writes the game -->
+  <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; padding: 20px 24px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; gap: 14px">
+        <div class="hl-spin"><svg width="40" height="40" viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 0h4v1h2v1h1v1h1v2h1v4h-1v2h-1v1h-1v1H9v1H5v-1H3v-1H2v-1H1V9H0V5h1V3h1V2h1V1h2z" fill="#182513"></path><rect x="3" y="3" width="2" height="2" fill="#DDE7C6"></rect></svg></div>
+        <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 24px; line-height: 1.15">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px">
+        <sc-for list="{{ buildLines }}" as="b" hint-placeholder-count="5">
+          <div style="{{ b.style }}">{{ b.text }}</div>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; line-height: 1.5; color: #304327">TRY IT writes fresh words every time, so no two games are the same. Code sets each level, checks every try against the safety rules, and swaps in a hand-written one if a try fails.</div>
+    </div>
+  </sc-if>
+
+  <!-- 4. THE GAME: three levels, written fresh, each try replaceable -->
+  <sc-if value="{{ isGame }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; padding: 14px 24px 12px 24px; display: flex; flex-direction: column; gap: 10px; min-height: 0">
+      <h1 aria-live="polite" style="margin: 0; font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 22px; line-height: 1.15; min-height: 52px">{{ headShown }}<sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}"><span class="hl-cursor"></span></sc-if></h1>
+      <div role="tablist" aria-label="Levels" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{ levels }}" as="l" hint-placeholder-count="3">
+          <button role="tab" class="hl-key" onClick="{{ l.pick }}" style="{{ l.style }}"><span style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 14px">{{ l.name }}</span><span style="font-size: 10px">{{ l.tag }}</span></button>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; line-height: 1.4">{{ levelLine }}</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <sc-for list="{{ tries }}" as="t" hint-placeholder-count="3">
+          <div style="{{ t.style }}">
+            <button class="hl-key" onClick="{{ t.pick }}" style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; padding: 10px 0 10px 12px; background: transparent; border: 0; color: inherit">
+              <span style="font-family: 'Silkscreen', monospace; font-weight: 700; font-size: 12px; line-height: 1.35">{{ t.title }}</span>
+              <span style="font-size: 10px">{{ t.info }}</span>
+            </button>
+            <button class="hl-key" onClick="{{ t.renew }}" aria-label="Write a new one instead" style="flex-shrink: 0; width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: 0; border-left: 2px dashed currentColor; color: inherit; font-family: 'Silkscreen', monospace; font-size: 9px">
+              <svg width="16" height="16" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 0h4v1h1v1H6v1H5V2H2v1H1v3h1v1h3V6h1V5h1V4h1v2H7v1H6v1H2V7H1V6H0V2h1V1h1z" fill="currentColor"></path></svg>
+              <span>NEW ONE</span>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+      <button class="hl-key" onClick="{{ newGame }}" style="align-self: center; background: transparent; border: 0; font-family: 'Silkscreen', monospace; font-size: 11px; text-decoration: underline; min-height: 32px">NONE OF THESE? NEW GAME FROM SCRATCH</button>
+      <div style="flex-grow: 1"></div>
+      <div style="font-size: 10px; line-height: 1.4; color: #304327">Every level stays safe: public places, no contact details, no touching, nothing about looks. Any level is fine. Trying counts.</div>
+      <sc-if value="{{ noChoice }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 56px; border: 2px dashed #304327; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 14px; color: #304327">PICK A TRY ABOVE</div>
+      </sc-if>
+      <sc-if value="{{ hasChoice }}" hint-placeholder-val="{{ false }}">
+        <div class="hl-rise" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 12px; line-height: 1.4">Saved as today's try. Want a place for it? Around me scans 500 m for places where people chat. Optional.</div>
+          <a class="hl-key" href="Around.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 18px; background: #182513; color: #DDE7C6; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 15px; text-decoration: none"><span>FIND A PLACE AROUND ME</span><span>&gt;</span></a>
+          <a class="hl-key" href="Flow.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 44px; border: 2px solid #182513; border-radius: 2px; font-family: 'Silkscreen', monospace; font-size: 12px; text-decoration: none">SKIP. I KNOW WHERE TO GO</a>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startAt":{"editor":"enum","default":"surprise","options":["surprise","juicy","compass","game"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    /* The five quick ones. type: one (single chip), many (several chips + free text), text (free text or dictation).
+       heard / pickHeard are design samples for the prototype's simulated dictation only. */
+    this.steps = [
+      { id: 'q1', n: 1, q: 'When did you last lose track of time talking to someone?', type: 'one',
+        chips: ['THIS WEEK', 'THIS MONTH', 'AGES AGO', 'CAN’T REMEMBER'],
+        replies: { 'CAN’T REMEMBER': 'Fair. We’ll start gentle.' }, skipFollow: 'CAN’T REMEMBER',
+        heard: 'This month, I think.', pickHeard: 'THIS MONTH' },
+      { id: 'q1f', n: 1, follow: true, q: 'Nice. What was it about? Ramble if you like. I’ll keep the good bits.', type: 'text',
+        heard: 'Um, so basically it was board games with my brother, like, last Saturday. We argued about the rules for, you know, a whole hour.' },
+      { id: 'q2', n: 2, q: 'Who did you say more than “hi” to this week?', type: 'many',
+        chips: ['BARISTA', 'NEIGHBOUR', 'COLLEAGUE', 'DRIVER', 'SHOP STAFF', 'A REGULAR', 'NOBODY YET'], none: 'NOBODY YET',
+        heard: 'The barista and, er, my neighbour.', pickHeard: ['BARISTA', 'NEIGHBOUR'] },
+      { id: 'q2f', n: 2, follow: true, q: 'And who did you only nod at?', type: 'many',
+        chips: ['BARISTA', 'NEIGHBOUR', 'COLLEAGUE', 'DRIVER', 'SHOP STAFF', 'A REGULAR', 'NOBODY'], none: 'NOBODY',
+        heard: 'A colleague. And the bus driver.', pickHeard: ['COLLEAGUE', 'DRIVER'] },
+      { id: 'q3', n: 3, q: 'Battery check. How’s yours today?', type: 'one',
+        chips: ['LOW', 'OK', 'GOOD', 'FULL'],
+        replies: { LOW: 'Soft tries today. Noted.', OK: 'Steady does it.', GOOD: 'Good. Room for a brave one.', FULL: 'Full battery. Bold it is.' },
+        heard: 'OK, I guess.', pickHeard: 'OK' },
+      { id: 'q4', n: 4, q: 'What did you nearly say to someone lately, but didn’t?', type: 'text',
+        heard: 'Honestly I kind of nearly told the barista that I really love the music they play.' },
+      { id: 'q5', n: 5, q: 'Last one. Anything to keep off the table?', type: 'many',
+        chips: ['POLITICS', 'WORK', 'FAMILY', 'HEALTH', 'MONEY', 'LOOKS', 'NOTHING, I’M EASY'], none: 'NOTHING, I’M EASY',
+        heard: 'Politics. And money.', pickHeard: ['POLITICS', 'MONEY'] }
+    ];
+    this.closing = 'Got it. Give me a moment to keep the juicy bits.';
+    /* chip roles: [phrase, label, class, place] */
+    this.chipRoles = {
+      'BARISTA': ['the barista', 'BARISTA', 'service', 'the café'], 'NEIGHBOUR': ['your neighbour', 'NEIGHBOUR', 'close', 'your building'],
+      'COLLEAGUE': ['a colleague', 'COLLEAGUE', 'close', 'work'], 'DRIVER': ['the bus driver', 'DRIVER', 'service', 'the bus stop'],
+      'SHOP STAFF': ['the person at the shop counter', 'SHOP STAFF', 'service', 'the shop'], 'A REGULAR': ['a regular you always see', 'A REGULAR', 'close', 'your usual spot']
+    };
+    /* roles found in free text: [regex, phrase, label, class, family] */
+    this.roleList = [
+      [/\b(mum|mother|mom)\b/i, 'your mum', 'MUM', 'close', 1], [/\b(dad|father)\b/i, 'your dad', 'DAD', 'close', 1],
+      [/\bbrother\b/i, 'your brother', 'BROTHER', 'close', 1], [/\bsister\b/i, 'your sister', 'SISTER', 'close', 1],
+      [/\b(gran|grandma|grandad|grandpa)\b/i, 'your grandparent', 'GRANDPARENT', 'close', 1], [/\b(cousin|aunt|uncle)\b/i, 'someone in your family', 'FAMILY', 'close', 1],
+      [/\b(colleague|co-?worker|teammate)\b/i, 'a colleague', 'COLLEAGUE', 'close', 0], [/\bneighbou?r\b/i, 'your neighbour', 'NEIGHBOUR', 'close', 0],
+      [/\bflatmate\b/i, 'your flatmate', 'FLATMATE', 'close', 0], [/\b(waiter|waitress)\b/i, 'the waiter', 'WAITER', 'service', 0],
+      [/\bbarista\b/i, 'the barista', 'BARISTA', 'service', 0], [/\b(driver)\b/i, 'the bus driver', 'DRIVER', 'service', 0],
+      [/\b(cashier|shopkeeper)\b/i, 'the cashier', 'CASHIER', 'service', 0]
+    ];
+    this.filler = ['um', 'uh', 'er', 'erm', 'so', 'basically', 'like', 'honestly', 'really', 'just', 'actually', 'literally', 'well', 'anyway', 'kind', 'sort', 'guess', 'mean'];
+    this.stop = ['i', 'a', 'an', 'the', 'and', 'or', 'but', 'it', 'its', 'was', 'were', 'is', 'to', 'of', 'for', 'with', 'my', 'me', 'we', 'you', 'they', 'them', 'their', 'that', 'this', 'about', 'at', 'in', 'on', 'last', 'whole', 'told', 'nearly', 'said', 'think', 'love', 'play', 'played', 'argued', 'talked', 'asked', 'went', 'some', 'very', 'have', 'had', 'what', 'when', 'didnt', 'didn’t', 'know', 'saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'hour', 'hours', 'week', 'month', 'today', 'yesterday', 'minutes', 'time', 'thing', 'things'];
+    this.phrases = ['board games', 'video games', 'the music'];
+    /* [words, step, kind, who]: who is none, any, close or service */
+    this.pools = [
+      { name: 'SOFT', tag: 'STEPS 1-2', line: 'A nod, a thank you, a kind word. Over in seconds.', min: 1, tries: [
+        ['Smile and nod at three people at {p}.', 1, 'TALK', 'none'], ['Say good morning to {who} and ask how they are.', 2, 'TALK', 'any'],
+        ['Hold the door for someone at {p} and say "have a good one".', 1, 'KIND', 'none'], ['Thank {who} for one thing they did this week, and say what it was.', 2, 'KIND', 'any'],
+        ['Tell {who} "have a good day" as you leave.', 1, 'KIND', 'service'], ['Ask {who} how their week is going.', 2, 'TALK', 'close'],
+        ['Ask someone at {p} if the seat next to them is free, then say thanks.', 2, 'TALK', 'none'], ['Let someone go ahead of you in the queue at {p}.', 1, 'KIND', 'none'] ] },
+      { name: 'BRAVE', tag: 'STEPS 3-4', line: 'One question or one kind act, with a reply. A minute or two.', min: 2, tries: [
+        ['Ask someone at {p} for their {rec}.', 3, 'TALK', 'none'], ['Ask {who} one question about their weekend, then one more.', 3, 'TALK', 'close'],
+        ['Offer {who} a hand with something small: carrying, finding, holding.', 3, 'KIND', 'close'], ['Tell {who} one thing they do that makes your day easier.', 4, 'KIND', 'any'],
+        ['Mention {topic} to {who} and ask if they are into it too.', 4, 'TALK', 'any'], ['Ask {who} what they would pick today, and why.', 3, 'TALK', 'service'],
+        ['Make {who} a drink or bring a snack from home, no reason needed.', 4, 'KIND', 'close'], ['Tell {who} they did a great job today, out loud.', 4, 'KIND', 'service'] ] },
+      { name: 'BOLD', tag: 'STEP 5', line: 'Big for you, still small for the world. Five minutes, in public.', min: 5, tries: [
+        ['Ask two people at {p} for their {rec}, then tell each the other\'s answer.', 5, 'TALK', 'none'], ['Suggest a ten-minute {topic} break with {who} this week.', 5, 'TALK', 'close'],
+        ['Ask {who} if there is something you could do for them this week, and do it.', 5, 'KIND', 'close'], ['Start a two-minute chat about {topic} at {p}, and say your name before you go.', 5, 'TALK', 'none'],
+        ['Leave a thank-you note for {who} where they will find it today.', 5, 'KIND', 'any'], ['Ask at {p} if there is a group or event you could join, and go once.', 5, 'TALK', 'none'],
+        ['Ask {who} to show you something they are good at, and learn it for five minutes.', 5, 'TALK', 'any'], ['Tell {who} out loud what difference they make to your week.', 5, 'KIND', 'close'] ] }
+    ];
+    var s = props.startAt ?? 'surprise';
+    var demo = s !== 'surprise';
+    var answers = {};
+    if (demo) this.steps.forEach((st) => { answers[st.id] = st.type === 'text' ? st.heard : st.pickHeard; });
+    this.state = {
+      stage: demo ? s : 'voice', phase: 'intro', i: 0, cap: 0, heard: 0, levels: [], sound: true, draft: '', typedText: null,
+      answers: answers, extra: {}, sel: [], reply: null, lastHeard: null,
+      typed: 0, held: 0, level: null, writing: {}, chosen: null,
+      snake: null
+    };
+    this.state.picks = this.freshPicks();
+  }
+  componentDidMount() {
+    var rm = false;
+    try { rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    this.reduced = rm;
+    this.timer = setInterval(() => this.tick(30), 30);
+    if (this.state.stage === 'juicy') this.startSnake();
+  }
+  componentWillUnmount() { clearInterval(this.timer); this.clear(); this.stopSnakeTimer(); try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }
+  clear() { clearInterval(this.capT); clearInterval(this.heardT); clearInterval(this.lvT); clearTimeout(this.waitT); clearTimeout(this.replyT); }
+  speak(text) {
+    if (!this.state.sound) return;
+    try { var u = new SpeechSynthesisUtterance(text); u.lang = 'en-GB'; u.rate = 1.05; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); } catch (e) {}
+  }
+  shuffle(n) { var a = []; for (var k = 0; k < n; k++) a.push(k); for (var j = a.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[r]; a[r] = t; } return a; }
+
+  /* ---------- the five quick ones ---------- */
+  step() { return this.steps[Math.min(this.state.i, this.steps.length - 1)]; }
+  ask(i) {
+    this.clear();
+    var q = this.steps[i];
+    this.setState({ phase: 'speaking', i: i, cap: 0, heard: 0, typedText: null, draft: '', sel: [], reply: null, lastHeard: null });
+    this.speak(q.q);
+    this.capT = setInterval(() => {
+      if (this.state.cap >= q.q.length) { clearInterval(this.capT); this.setState({ phase: 'ready' }); return; }
+      this.setState({ cap: this.state.cap + 1 });
+    }, 40);
+  }
+  record(id, value, extra) {
+    var a = Object.assign({}, this.state.answers); a[id] = value;
+    var x = Object.assign({}, this.state.extra); if (extra) x[id] = extra;
+    this.setState({ answers: a, extra: x });
+    return a;
+  }
+  advance(skipNext) {
+    var i = this.state.i + (skipNext ? 2 : 1);
+    if (i >= this.steps.length) { this.clear(); this.toJuicy(); return; }
+    this.ask(i);
+  }
+  pickOne(chip) {
+    var q = this.step();
+    this.record(q.id, chip);
+    var reply = q.replies && q.replies[chip];
+    var skipNext = q.skipFollow === chip;
+    if (reply) {
+      this.clear();
+      this.setState({ phase: 'reply', reply: reply });
+      this.speak(reply);
+      this.replyT = setTimeout(() => this.advance(skipNext), 1700);
+    } else this.advance(skipNext);
+  }
+  toggleChip(chip) {
+    var q = this.step(), sel = this.state.sel.slice();
+    if (chip === q.none) sel = sel.indexOf(chip) >= 0 ? [] : [chip];
+    else {
+      sel = sel.filter((c) => c !== q.none);
+      sel = sel.indexOf(chip) >= 0 ? sel.filter((c) => c !== chip) : sel.concat(chip);
+    }
+    this.setState({ sel: sel });
+  }
+  down(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (this.state.phase !== 'ready' && this.state.phase !== 'confirm') return;
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (x) {}
+    this.clear();
+    var a = this.step().heard;
+    this.setState({ phase: 'listening', heard: 0, typedText: null, lastHeard: null });
+    this.heardT = setInterval(() => { if (this.state.heard < a.length) this.setState({ heard: this.state.heard + 2 }); }, 50);
+    this.lvT = setInterval(() => this.setState({ levels: Array.from({ length: 12 }, () => 4 + Math.round(Math.random() * 20)) }), 90);
+  }
+  up() {
+    if (this.state.phase !== 'listening') return;
+    this.clear();
+    var q = this.step();
+    this.setState({ phase: 'thinking', heard: Math.max(this.state.heard, 8), levels: [] });
+    this.waitT = setTimeout(() => {
+      if (q.type === 'text') this.setState({ phase: 'confirm', heard: q.heard.length });
+      else if (q.type === 'one') { this.setState({ lastHeard: q.heard }); this.pickOne(q.pickHeard); }
+      else this.setState({ phase: 'ready', sel: q.pickHeard.slice(), lastHeard: q.heard });
+    }, 800);
+  }
+
+  /* ---------- keeping the juicy bits ---------- */
+  toJuicy() {
+    this.setState({ stage: 'juicy', typed: 0, held: 0, phase: 'done' });
+    this.speak(this.closing);
+    this.startSnake();
+  }
+  focusBoard() { setTimeout(() => { try { this.boardEl && this.boardEl.focus({ preventScroll: true }); } catch (e) {} }, 60); }
+  tokens(text) {
+    var words = (text || '').split(/\s+/).filter(Boolean), out = [];
+    for (var k = 0; k < words.length; k++) {
+      var raw = words[k], w = raw.toLowerCase().replace(/[^a-z’']/g, '');
+      var pair = k + 1 < words.length ? (w + ' ' + words[k + 1].toLowerCase().replace(/[^a-z]/g, '')) : '';
+      if (this.phrases.indexOf(pair) >= 0) { out.push({ w: raw + ' ' + words[k + 1], cls: 'key', key: pair.replace(/^the /, '') }); k++; continue; }
+      var prev = k > 0 ? words[k - 1].toLowerCase().replace(/[^a-z]/g, '') : '';
+      var isFiller = this.filler.indexOf(w) >= 0 || (w === 'know' && prev === 'you');
+      var isRole = this.roleList.some((r) => r[0].test(w));
+      var cls = isFiller ? 'filler' : isRole ? 'key' : (this.stop.indexOf(w) >= 0 || w.length < 4) ? 'stop' : 'key';
+      out.push({ w: raw, cls: cls, key: cls === 'key' ? w : null });
+    }
+    return out;
+  }
+  keywords(text) { var seen = []; this.tokens(text).forEach((t) => { if (t.key && seen.indexOf(t.key) < 0) seen.push(t.key); }); return seen; }
+  nearlySaid() {
+    var t = this.state.answers.q4;
+    if (!t) return null;
+    if (t === this.steps[5].heard) return 'I love the music you play';
+    return this.keywords(t).filter((k) => !this.roleList.some((r) => r[0].test(k))).slice(0, 3).join(' · ');
+  }
+  nearlyRole() {
+    var t = this.state.answers.q4 || '';
+    var r = this.roleList.filter((x) => x[0].test(t))[0];
+    return r ? { phrase: r[1], label: r[2], cls: r[3], tier: 'said' } : null;
+  }
+  offTable() { var o = this.state.answers.q5; return Array.isArray(o) ? o.filter((x) => x !== 'NOTHING, I’M EASY') : []; }
+  topics() {
+    var t = this.state.answers.q1f;
+    return t ? this.keywords(t).filter((k) => !this.roleList.some((r) => r[0].test(k))).slice(0, 3) : [];
+  }
+  roles() {
+    var a = this.state.answers || {}, off = this.offTable(), out = [];
+    var add = (r) => { if (!out.some((o) => o.label === r.label)) out.push(r); };
+    (Array.isArray(a.q2) ? a.q2 : []).forEach((c) => { var r = this.chipRoles[c]; if (r) add({ phrase: r[0], label: r[1], cls: r[2], place: r[3], tier: 'said' }); });
+    [a.q1f, a.q4].forEach((t) => { if (!t) return; this.roleList.forEach((r) => { if (r[0].test(t)) add({ phrase: r[1], label: r[2], cls: r[3], family: r[4], tier: 'said', place: (this.chipRoles[r[2]] || [])[3] }); }); });
+    (Array.isArray(a.q2f) ? a.q2f : []).forEach((c) => { var r = this.chipRoles[c]; if (r && !out.some((o) => o.label === r[1])) out.push({ phrase: r[0], label: r[1], cls: r[2], place: r[3], tier: 'nod' }); });
+    return out.filter((r) => !(off.indexOf('FAMILY') >= 0 && r.family) && !(off.indexOf('WORK') >= 0 && r.label === 'COLLEAGUE'));
+  }
+  keptList() {
+    var a = this.state.answers, list = [];
+    this.topics().forEach((t) => list.push(t.toUpperCase()));
+    this.roles().forEach((r) => list.push(r.label + (r.tier === 'nod' ? ' (NOD)' : '')));
+    if (this.nearlySaid()) list.push('NEARLY SAID');
+    if (a.q3) list.push('BATTERY ' + a.q3);
+    this.offTable().forEach((o) => list.push('NOT: ' + o));
+    return list;
+  }
+
+  /* ---------- Snake, while you wait ---------- */
+  stopSnakeTimer() { clearInterval(this.snakeT); this.snakeT = null; }
+  newSnake() { return { body: [[9, 6], [8, 6], [7, 6]], dir: [1, 0], next: [1, 0], food: [14, 6], eaten: 0, oops: false }; }
+  startSnake() {
+    this.setState({ snake: this.newSnake() });
+    this.stopSnakeTimer();
+    this.snakeT = setInterval(() => this.stepSnake(), this.reduced ? 260 : 170);
+    this.focusBoard();
+  }
+  steer(d) {
+    var s = this.state.snake; if (!s) return;
+    if (s.dir[0] === -d[0] && s.dir[1] === -d[1]) return;
+    this.setState({ snake: Object.assign({}, s, { next: d }) });
+  }
+  stepSnake() {
+    var s = this.state.snake; if (!s) return;
+    if (s.oops) { if (Date.now() - s.oops > 1200) this.setState({ snake: this.newSnake() }); return; }
+    var C = 19, R = 12, d = s.next;
+    var head = [(s.body[0][0] + d[0] + C) % C, (s.body[0][1] + d[1] + R) % R];
+    if (s.body.some((b) => b[0] === head[0] && b[1] === head[1])) { this.setState({ snake: Object.assign({}, s, { oops: Date.now() }) }); return; }
+    var body = [head].concat(s.body), food = s.food, eaten = s.eaten;
+    if (head[0] === food[0] && head[1] === food[1]) {
+      eaten++;
+      do { food = [Math.floor(Math.random() * C), Math.floor(Math.random() * R)]; } while (body.some((b) => b[0] === food[0] && b[1] === food[1]));
+    } else body.pop();
+    this.setState({ snake: { body: body, dir: d, next: d, food: food, eaten: eaten, oops: false } });
+  }
+
+  /* ---------- typed headlines for the later stages ---------- */
+  answeredCount() { var a = this.state.answers; return ['q1', 'q2', 'q3', 'q4', 'q5'].filter((k) => a[k] && (!Array.isArray(a[k]) || a[k].length)).length; }
+  head() {
+    var s = this.state.stage;
+    if (s === 'juicy') return this.closing.toUpperCase();
+    if (s === 'compass') return "THAT'S YOU, IN " + this.answeredCount() + ' ANSWERS.';
+    if (s === 'build') return 'WRITING YOUR GAME...';
+    if (s === 'game') return 'YOUR GAME. PICK A LEVEL, PICK A TRY.';
+    return '';
+  }
+  tick(sp) {
+    if (this.state.stage === 'voice') return;
+    var h = this.head();
+    if (this.state.typed < h.length) { this.setState({ typed: this.reduced ? h.length : this.state.typed + 1 }); return; }
+    var held = this.state.held + sp;
+    if (this.state.stage === 'build' && held >= 2600) { this.go('game'); return; }
+    if (held < 9000) this.setState({ held: held });
+  }
+  go(stage, extra) { if (stage !== 'juicy') this.stopSnakeTimer(); this.setState(Object.assign({ stage: stage, typed: 0, held: 0 }, extra || {})); }
+
+  /* ---------- the game ---------- */
+  ctx() {
+    var a = this.state.answers || {}, topics = this.topics(), rs = this.roles();
+    var topic = topics[0] || 'something you like';
+    var recMap = { 'board games': 'favourite board game', 'music': 'favourite song right now', 'video games': 'favourite game right now' };
+    var rec = recMap[topic] || (topics[0] ? 'best tip about ' + topic : 'favourite place nearby');
+    var placed = rs.filter((r) => r.tier === 'said' && r.place)[0] || rs.filter((r) => r.place)[0];
+    var pace = { LOW: 0, OK: 0, GOOD: 1, FULL: 2 }[a.q3] ?? 0;
+    if (a.q1 === 'CAN’T REMEMBER') pace = 0;
+    return { topic: topic, rec: rec, place: placed ? placed.place : 'the café', pace: pace };
+  }
+  pickLevel(l) {
+    var tries = this.pools[l].tries, order = this.shuffle(tries.length);
+    var talk = order.filter((k) => tries[k][2] === 'TALK')[0], kind = order.filter((k) => tries[k][2] === 'KIND')[0];
+    var third = order.filter((k) => k !== talk && k !== kind)[0];
+    var set = [talk, kind, third];
+    if (l === 2 && this.state && this.nearlySaid()) set[2] = -1;
+    return this.shuffle(3).map((j) => set[j]).map((t) => ({ t: t, w: Math.floor(Math.random() * 100) }));
+  }
+  freshPicks() { return [0, 1, 2].map((l) => this.pickLevel(l)); }
+  who(kind, w, rs, lvl) {
+    var fall = { any: { phrase: 'someone you see often', label: '' }, close: { phrase: 'someone you see every day', label: '' }, service: { phrase: 'the person serving you', label: '' } };
+    if (kind === 'none') return null;
+    var list = kind === 'any' ? rs : rs.filter((r) => r.cls === kind);
+    var pref = list.filter((r) => r.tier === (lvl === 0 ? 'nod' : 'said'));
+    var use = pref.length ? pref : list;
+    return use.length ? use[w % use.length] : fall[kind];
+  }
+  tryAt(l, pk) {
+    if (pk.t === -1) return ['Say the thing you nearly said to {who}: “' + this.nearlySaid() + '”.', 5, 'KIND', 'nearly'];
+    return this.pools[l].tries[pk.t];
+  }
+  fill(tpl, c, who) { return tpl.replace(/\{who\}/g, who ? who.phrase : 'someone').replace(/\{p\}/g, c.place).replace(/\{rec\}/g, c.rec).replace(/\{topic\}/g, c.topic); }
+  renew(l, slot) {
+    var key = l + '-' + slot, picks = this.state.picks.map((x) => x.slice());
+    var used = picks[l].map((x) => x.t), options = [];
+    for (var k = 0; k < this.pools[l].tries.length; k++) if (used.indexOf(k) < 0) options.push(k);
+    picks[l][slot] = { t: options[Math.floor(Math.random() * options.length)], w: Math.floor(Math.random() * 100) };
+    var w = Object.assign({}, this.state.writing); w[key] = true;
+    var chosen = this.state.chosen && this.state.chosen.l === l && this.state.chosen.i === slot ? null : this.state.chosen;
+    this.setState({ writing: w, chosen: chosen });
+    setTimeout(() => { var w2 = Object.assign({}, this.state.writing); delete w2[key]; this.setState({ picks: picks, writing: w2 }); }, 700);
+  }
+
+  renderVals() {
+    var st = this.state, stage = st.stage, ph = st.phase, q = this.step();
+    var cur = (stage === 'voice' || stage === 'juicy') ? 0 : (stage === 'compass' || stage === 'build') ? 1 : 2;
+    var h = this.head(), done = st.typed >= h.length;
+    var c = this.ctx(), rs = this.roles();
+    var lvl = st.level === null ? c.pace : st.level;
+    var L = this.pools[lvl];
+    var inQ = stage === 'voice';
+    var ballAnim = ph === 'speaking' || ph === 'reply' ? 'animation:hl-talk 0.45s ease-in-out infinite' : ph === 'listening' ? 'transform:scale(1.08,0.9);transition:transform 0.15s' : ph === 'thinking' ? 'animation:hl-think 0.8s steps(8) infinite' : 'animation:hl-breathe 2.6s ease-in-out infinite';
+    var readyHint = q.type === 'one' ? 'TAP ONE, OR HOLD THE MIC' : q.type === 'many' ? 'TAP ANY, OR HOLD THE MIC' : 'HOLD THE MIC AND RAMBLE, OR TYPE';
+    var hints = { intro: '', speaking: 'HOOLALA! IS ASKING…', ready: readyHint, listening: 'LISTENING. LET GO WHEN YOU’RE DONE.', thinking: 'GOT IT. ONE SECOND…', confirm: 'CHECK IT, OR HOLD THE MIC TO REDO', typing: '', reply: '' };
+    var a = st.answers;
+    /* juicy */
+    var free = [['q1f', 'Q1 · WHAT IT WAS ABOUT'], ['q4', 'Q4 · WHAT YOU NEARLY SAID']].filter((x) => a[x[0]]);
+    var held = st.held, ready = stage === 'juicy' && done && held >= 6000;
+    var kept = this.keptList();
+    var sn = st.snake;
+    var snakeCells = [];
+    if (sn) {
+      sn.body.forEach((b, k) => snakeCells.push({ style: 'position:absolute;left:' + (b[0] * 18 + 1) + 'px;top:' + (b[1] * 18 + 1) + 'px;width:16px;height:16px;background:' + (k === 0 ? '#182513' : '#304327') }));
+      snakeCells.push({ style: 'position:absolute;left:' + (sn.food[0] * 18 + 4) + 'px;top:' + (sn.food[1] * 18 + 4) + 'px;width:10px;height:10px;background:#182513' });
+    }
+    var buildLines = ['READING YOUR ANSWERS', rs.length ? 'ADDING YOUR PEOPLE: ' + rs.map((r) => r.label).join(' · ') : 'NO PEOPLE NAMED: TRIES SAY SOMEONE',
+      this.offTable().length ? 'KEEPING OFF: ' + this.offTable().join(' · ') : 'NOTHING OFF THE TABLE', 'TRY IT WRITES 9 TRIES: SMALL TALK AND KIND IT', 'CODE SETS THE LEVELS: SOFT, BRAVE, BOLD'];
+    var near = this.nearlySaid(), tops = this.topics(), off = this.offTable();
+    var cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    var dirsData = [
+      ['N', 'MORE OF', near ? 'Saying it: “' + near + '”' : null, 'FROM: WHAT YOU NEARLY SAID'],
+      ['E', 'TALK ABOUT', tops.length ? cap(tops.join(' · ')) : null, 'FROM: YOUR STORY'],
+      ['S', 'LESS OF', off.length ? cap(off.join(' · ').toLowerCase()) : (Array.isArray(a.q5) && a.q5.length ? 'Nothing. You’re easy.' : null), 'FROM: KEEP OFF THE TABLE'],
+      ['W', 'HOW I GO', a.q3 ? 'Battery ' + a.q3.toLowerCase() + ' today' + (a.q1 ? ' · last long chat: ' + a.q1.toLowerCase() : '') : null, 'FROM: BATTERY CHECK']
+    ];
+    var said = rs.filter((r) => r.tier === 'said'), nod = rs.filter((r) => r.tier === 'nod');
+    return {
+      stages: ['SURPRISE ME', 'COMPASS', 'GAME', 'AROUND?'].map((n, k) => ({ label: n, style: 'flex:1;text-align:center;padding:4px 0;font-family:Silkscreen,monospace;font-size:9px;border:2px solid #182513;border-radius:2px;' + (k === cur ? 'background:#182513;color:#DDE7C6' : k < cur ? 'background:#AEC58A' : 'background:transparent;color:#304327;border-style:dashed') })),
+      isVoice: inQ, isJuicy: stage === 'juicy', isCompass: stage === 'compass', isBuild: stage === 'build', isGame: stage === 'game',
+      /* voice */
+      dots: [1, 2, 3, 4, 5].map((k) => ({ style: 'display:inline-block;width:10px;height:10px;border:2px solid #182513;' + (ph !== 'intro' && k < q.n ? 'background:#182513' : ph !== 'intro' && k === q.n ? 'background:#304327;outline:2px solid #182513;outline-offset:1px' : 'background:transparent') })),
+      fillsShown: ph === 'intro' ? '5 QUICK ONES' : 'Q' + q.n + ' OF 5' + (q.follow ? ' · FOLLOW-UP' : ''),
+      soundOn: st.sound, soundLabel: st.sound ? 'SOUND ON' : 'SOUND OFF',
+      toggleSound: () => { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} this.setState({ sound: !st.sound }); },
+      bars: (ph === 'listening' ? st.levels : []).map((hh, k) => ({ style: 'position:absolute;left:50%;top:50%;width:6px;height:' + hh + 'px;background:#182513;transform-origin:50% 0;transform:translate(-50%,0) rotate(' + (k * 30) + 'deg) translateY(52px)' })),
+      listening: ph === 'listening', thinking: ph === 'thinking',
+      ballStyle: 'width:88px;height:88px;' + ballAnim,
+      down: (e) => this.down(e), up: () => this.up(),
+      hint: inQ ? (hints[ph] || '') : '',
+      isIntro: ph === 'intro', inQs: ph !== 'intro', startQs: () => this.ask(0),
+      captionShown: q.q.slice(0, ph === 'speaking' ? st.cap : q.q.length), captionTyping: ph === 'speaking',
+      showReply: ph === 'reply', replyText: st.reply || '',
+      showChips: q.type !== 'text' && (ph === 'ready' || ph === 'listening' || ph === 'thinking'),
+      chips: (q.chips || []).map((ch) => {
+        var on = q.type === 'many' && st.sel.indexOf(ch) >= 0;
+        return { label: ch, on: on, pick: () => { if (q.type === 'one') this.pickOne(ch); else this.toggleChip(ch); },
+          style: 'min-height:44px;padding:0 12px;border:2px solid #182513;border-radius:2px;font-family:Silkscreen,monospace;font-size:12px;' + (on ? 'background:#182513;color:#DDE7C6' : 'background:#DDE7C6;color:#182513') };
+      }),
+      hasExtra: q.type === 'many' && !!st.extra[q.id] && ph === 'ready', extraText: st.extra[q.id] || '',
+      showTranscript: ph === 'listening' || ph === 'thinking' || ph === 'confirm' || (ph === 'ready' && !!st.lastHeard),
+      transcriptLabel: ph === 'confirm' ? (st.typedText ? 'YOU TYPED' : 'I HEARD') : ph === 'ready' ? 'I HEARD' : 'HEARING…',
+      transcriptShown: ph === 'confirm' ? (st.typedText ?? q.heard) : ph === 'ready' ? (st.lastHeard || '') : q.heard.slice(0, st.heard),
+      showManyNext: q.type === 'many' && ph === 'ready',
+      manyNext: () => { if (st.sel.length || st.extra[q.id]) { this.record(q.id, st.sel.slice()); this.advance(false); } },
+      manyNextStyle: 'display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:0 16px;border-radius:2px;font-family:Silkscreen,monospace;font-size:15px;' + (st.sel.length || st.extra[q.id] ? 'background:#182513;color:#DDE7C6;border:0' : 'background:transparent;color:#304327;border:2px dashed #304327'),
+      confirming: ph === 'confirm' && q.type === 'text',
+      textNext: () => { this.record(q.id, st.typedText ?? q.heard); this.advance(false); },
+      again: () => this.setState({ phase: 'ready', heard: 0, typedText: null }),
+      typeInstead: () => { this.clear(); try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} this.setState({ phase: 'typing', draft: st.typedText ?? '' }); },
+      typingMode: ph === 'typing',
+      typePlaceholder: q.type === 'many' ? 'Someone else? Type it' : q.type === 'one' ? 'Type your answer' : 'Ramble away',
+      draft: st.draft, onDraft: (e) => this.setState({ draft: e.target.value }),
+      sendStyle: 'display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 16px;border-radius:2px;font-family:Silkscreen,monospace;font-size:14px;' + (st.draft.trim() ? 'background:#182513;color:#DDE7C6;border:0' : 'background:transparent;border:2px solid #182513;opacity:0.4'),
+      sendTyped: () => {
+        var t = st.draft.trim(); if (!t) return;
+        if (q.type === 'text') this.setState({ phase: 'confirm', typedText: t });
+        else if (q.type === 'many') { var x = Object.assign({}, st.extra); x[q.id] = t; this.setState({ extra: x, phase: 'ready', draft: '' }); }
+        else { var m = q.chips.filter((ch) => t.toUpperCase().indexOf(ch.split(/[ ,’]/)[0]) >= 0)[0]; if (m) this.pickOne(m); else { this.record(q.id, t.toUpperCase().slice(0, 24)); this.advance(false); } }
+      },
+      backToVoice: () => this.setState({ phase: 'ready' }),
+      skip: () => { if (ph !== 'intro') this.advance(q.id === 'q1'); },
+      micStyle: 'width:76px;height:76px;padding:0;display:flex;align-items:center;justify-content:center;border:2px solid #182513;border-radius:2px;transition:transform 0.1s;' + (ph === 'listening' ? 'background:#DDE7C6;transform:scale(0.94);box-shadow:0 0 0 6px #BED39C,0 0 0 8px #182513' : ph === 'speaking' || ph === 'thinking' || ph === 'reply' ? 'background:#304327;opacity:0.5' : 'background:#182513'),
+      micInk: ph === 'listening' ? '#182513' : '#DDE7C6',
+      micLabel: ph === 'listening' ? 'LET GO TO SEND' : ph === 'confirm' ? 'HOLD TO REDO' : ph === 'ready' ? 'HOLD TO TALK' : 'WAIT…',
+      /* juicy */
+      faceCls: ready ? '' : 'hl-spin',
+      juicyStatus: ready ? 'READY WHEN YOU ARE.' : 'KEEPING THE JUICY BITS ' + '■■■■■'.slice(0, 1 + Math.floor(Math.min(held, 5999) / 1200)) + '□□□□□'.slice(1 + Math.floor(Math.min(held, 5999) / 1200)),
+      isSnake: !!sn, notSnake: !sn,
+      juicyAnswers: free.map((x) => {
+        var n = 0;
+        return { label: x[1], tokens: this.tokens(a[x[0]]).map((tk) => {
+          n++;
+          var struck = done && held >= 1200 + n * 90, lit = done && held >= 2600 + n * 90;
+          var style = tk.cls === 'filler' ? (struck ? 'text-decoration:line-through;opacity:0.35' : '') : tk.cls === 'key' ? (lit ? 'background:#182513;color:#DDE7C6;padding:0 3px;border-radius:2px' : '') : (lit ? 'opacity:0.55' : '');
+          return { w: tk.w, style: style };
+        }) };
+      }),
+      noFreeText: !free.length,
+      keptShown: kept.filter((k, i) => done && held >= 3400 + i * 220).map((k) => ({ label: k })),
+      startSnake: () => this.startSnake(),
+      boardRef: (el) => { this.boardEl = el; },
+      focusBoard: () => this.focusBoard(),
+      snakeKey: (e) => {
+        var map = { ArrowLeft: [-1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowRight: [1, 0], a: [-1, 0], w: [0, -1], s: [0, 1], d: [1, 0] };
+        var d = map[e.key] || map[(e.key || '').toLowerCase()];
+        if (d) { if (e.preventDefault) e.preventDefault(); this.steer(d); }
+      },
+      stopSnake: () => { this.stopSnakeTimer(); this.setState({ snake: null }); },
+      snakeCells: snakeCells, snakeOops: !!(sn && sn.oops),
+      snakeTicker: !sn ? '' : sn.oops ? '' : sn.eaten ? '+ ' + kept[(sn.eaten - 1) % Math.max(1, kept.length)] : 'EAT A PIXEL. EACH ONE IS A JUICY BIT. ARROW KEYS WORK TOO.',
+      pad: [['Left', [-1, 0], 'M4 0h1v6H4zM3 1h1v4H3zM2 2h1v2H2z'], ['Up', [0, -1], 'M0 4h6v1H0zM1 3h4v1H1zM2 2h2v1H2z'], ['Down', [0, 1], 'M0 1h6v1H0zM1 2h4v1H1zM2 3h2v1H2z'], ['Right', [1, 0], 'M1 0h1v6H1zM2 1h1v4H2zM3 2h1v2H3z']].map((p) => ({ name: p[0], d: p[2], go: () => this.steer(p[1]),
+        style: 'grid-column:' + { Left: 1, Up: 2, Down: 2, Right: 3 }[p[0]] + ';grid-row:' + (p[0] === 'Up' ? 1 : 2) + ';min-height:56px;display:flex;align-items:center;justify-content:center;background:#DDE7C6;border:2px solid #182513;border-radius:2px;touch-action:manipulation' })),
+      juicyReady: ready, juicyWaiting: stage === 'juicy' && !ready,
+      toCompass: () => this.go('compass', { snake: null }),
+      /* typed headline */
+      headShown: h.slice(0, st.typed), typing: !done, done: done,
+      /* compass */
+      dirs: dirsData.map((d) => ({ pole: d[0], name: d[1], value: d[2] || 'Add later, if you like', src: d[2] ? d[3] : 'EMPTY FOR NOW',
+        style: 'display:flex;flex-direction:column;gap:4px;padding:10px;min-height:76px;box-sizing:border-box;border-radius:2px;' + (d[2] ? 'background:#DDE7C6;border:2px solid #182513' : 'background:transparent;border:2px dashed #304327') })),
+      peopleSaid: said.length ? 'MORE THAN HI: ' + said.map((r) => r.label).join(' · ') : 'MORE THAN HI: nobody yet',
+      peopleNod: nod.length ? 'A NOD SO FAR: ' + nod.map((r) => r.label).join(' · ') : 'A NOD SO FAR: nobody yet',
+      peopleSrc: rs.length ? 'FROM: YOUR ANSWERS · ROLES ONLY, NEVER NAMES' : 'EMPTY FOR NOW. TRIES WILL SAY SOMEONE.',
+      peopleStyle: 'display:flex;flex-direction:column;gap:4px;padding:10px;box-sizing:border-box;border-radius:2px;' + (rs.length ? 'background:#DDE7C6;border:2px solid #182513' : 'background:transparent;border:2px dashed #304327'),
+      confirmCompass: () => this.go('build', { level: null, chosen: null, picks: this.freshPicks() }),
+      restart: () => { this.clear(); this.setState({ stage: 'voice', phase: 'intro', i: 0, answers: {}, extra: {}, sel: [], typed: 0, held: 0 }); },
+      buildLines: buildLines.map((t, k) => ({ text: (st.held >= k * 450 ? '■ ' : '□ ') + t, style: 'font-family:Silkscreen,monospace;font-size:11px;line-height:1.4;' + (st.held >= k * 450 ? 'color:#182513' : 'color:#304327;opacity:0.5') })),
+      /* game */
+      levels: this.pools.map((g, k) => ({ name: g.name, tag: k === c.pace ? 'START HERE' : g.tag, pick: () => this.setState({ level: k }),
+        style: 'min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid #182513;border-radius:2px;' + (k === lvl ? 'background:#182513;color:#DDE7C6' : 'background:transparent;color:#182513') })),
+      levelLine: L.line,
+      tries: st.picks[lvl].map((pk, i) => {
+        var t = this.tryAt(lvl, pk), wr = !!st.writing[lvl + '-' + i];
+        var who = t[3] === 'nearly' ? (this.nearlyRole() || { phrase: 'them', label: '' }) : this.who(t[3], pk.w, rs, lvl);
+        var sel = st.chosen && st.chosen.l === lvl && st.chosen.i === i;
+        var from = t[3] === 'nearly' ? ' · FROM WHAT YOU NEARLY SAID' : (who && who.label ? ' · FROM YOUR COMPASS: ' + who.label : '');
+        return { title: wr ? 'TRY IT IS WRITING A NEW ONE...' : this.fill(t[0], c, who),
+          info: wr ? 'CHECKING IT AGAINST THE RULES' : (t[2] === 'KIND' ? 'KIND IT' : 'SMALL TALK') + ' · STEP ' + t[1] + ' · ' + L.min + ' MIN' + from,
+          pick: () => { if (!wr) this.setState({ chosen: { l: lvl, i: i } }); },
+          renew: () => { if (!wr) this.renew(lvl, i); },
+          style: 'display:flex;align-items:stretch;border:2px solid #182513;border-radius:2px;' + (sel ? 'background:#182513;color:#DDE7C6' : wr ? 'background:transparent;color:#304327;border-style:dashed' : 'background:#DDE7C6;color:#182513') };
+      }),
+      newGame: () => this.go('build', { chosen: null, picks: this.freshPicks() }),
+      noChoice: !st.chosen, hasChoice: !!st.chosen
+    };
+  }
+}
+</script>
+</body>
+</html>

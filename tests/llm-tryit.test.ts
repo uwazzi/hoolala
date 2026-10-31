@@ -88,3 +88,25 @@ describe("TRY IT", () => {
     expect(timeOfDay(new Date("2026-10-28T18:00:00.000Z"))).toBe("evening");
   });
 });
+
+describe("TRY IT off the table", () => {
+  const INPUT = { talkAbout: "Board games", moreOf: null, howIGo: null, lessOf: [], roles: [], offTable: ["politics", "money"] };
+
+  it("tells the model the off-table themes, or that there are none", async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: { body?: string }) => {
+        const body = JSON.parse(String(init?.body ?? "{}")) as { messages: { content: string }[] };
+        seen.push(body.messages.map((m) => m.content).join("\n"));
+        const one = { title: "Smile and nod at the park.", level: "soft", kind: "talk", who_role: null, place_kind: null, why: "Soft." };
+        return Response.json({ choices: [{ message: { content: JSON.stringify({ tries: [one] }) } }], usage: {} });
+      }),
+    );
+    const { draftGameTries, draftNewOneTry } = await import("../src/llm/tryit");
+    await draftGameTries(testEnv({ ...AI }), "ana", INPUT);
+    expect(seen[0]).toContain("OFF THE TABLE (never these): politics; money.");
+    await draftNewOneTry(testEnv({ ...AI }), "ana", { ...INPUT, offTable: [] }, "soft", "talk", []);
+    expect(seen[1]).toContain("OFF THE TABLE: none.");
+  });
+});

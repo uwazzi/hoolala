@@ -1,5 +1,11 @@
 # Hoolala! changelog
 
+## 2026-10-31: Five quick ones and the juicy bits (v6.3)
+
+- **Five quick ones (WP36, revised):** HELLO, HUMAN. Five quick ones, then you're out of here. Five owner-written questions, mostly chips, with two follow-ups and Hoolala!'s replies (CAN'T REMEMBER, battery). Same voice UI, now with a chips slot. FULL battery starts on BOLD; CAN'T REMEMBER starts on SOFT.
+- **Keeping the juicy bits, with Snake (WP39):** one Muse Spark call removes filler and keeps the bits useful for small talk and kindness tries, while a Nokia-style Snake starts by itself (arrow keys and WASD on desktop, inverted-T buttons on mobile, no score). Then the compass check with people who got more than a hi and people who got a nod.
+- **Game:** what you nearly said becomes a BOLD KIND IT try; off-table answers filter tries (FAMILY, WORK).
+
 ## 2026-10-29: First minutes rebuilt (v6.2)
 
 - **Onboarding story (WP35):** on first open, six animated pixel beats with sourced findings (1 in 6 feel alone; we expect awkward; the liking gap; one hello lifts you for hours; a small kindness counts), ending on GET OUTSIDE. MEET PEOPLE. GROW INSIDE. and LET'S GO.

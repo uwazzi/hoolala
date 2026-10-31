@@ -15,6 +15,7 @@ import {
   handleReport,
   handleSuggest,
 } from "./api/here";
+import { handleExtract } from "./api/juicy";
 import { handleIntroSeen, handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
@@ -36,6 +37,7 @@ import {
   handleRemoveMember,
 } from "./api/crew";
 import { handleDashboard } from "./api/dashboard";
+import { handleFeedback } from "./api/feedback";
 import { handleWorkings } from "./api/workings";
 import type { Env, ExecutionContext, ScheduledEvent } from "./types";
 
@@ -98,6 +100,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/me/surprise/next" && method === "POST") {
     return handleNext(request, env);
+  }
+  if (url.pathname === "/api/me/juicy/extract" && method === "POST") {
+    return handleExtract(request, env);
   }
   if (url.pathname === "/api/me/compass/draft-line" && method === "POST") {
     return handleDraftLine(request, env);
@@ -280,6 +285,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/dashboard" && method === "GET") {
     return handleDashboard(request, env);
+  }
+  if (url.pathname === "/api/feedback" && (method === "GET" || method === "POST")) {
+    return handleFeedback(request, env);
   }
   if (url.pathname === "/api/block" && method === "POST") {
     return handleBlock(request, env);

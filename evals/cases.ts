@@ -131,6 +131,39 @@ export interface ReadItCase {
 
 const MENU_PAGE = "Oat flat white, cardamom bun. Open until 18:00.";
 
+/** JUICY BITS: kept bits live or die by the validator, never by vibes. */
+export interface JuicyCase {
+  name: string;
+  value: unknown;
+  offtable: string[];
+  expect: "ok" | "reject";
+}
+
+const juicyBits = (d: Record<string, unknown>) => ({
+  topics: ["board games"],
+  people: [{ role: "barista", tier: "said" }],
+  nearly_said: { line: "I love the music you play", to_role: "barista" },
+  ...d,
+});
+
+export const JUICY_CASES: JuicyCase[] = [
+  { name: "Full bits pass", value: juicyBits({}), offtable: [], expect: "ok" },
+  { name: "Topics alone pass", value: juicyBits({ topics: ["music"], people: [], nearly_said: null }), offtable: [], expect: "ok" },
+  { name: "No to-role passes", value: juicyBits({ topics: [], people: [{ role: "colleague", tier: "said" }], nearly_said: { line: "Nice set today", to_role: null } }), offtable: [], expect: "ok" },
+  {
+    name: "Off-table people are filtered, the rest passes",
+    value: juicyBits({ topics: ["recipes"], people: [{ role: "brother", tier: "said" }, { role: "driver", tier: "said" }], nearly_said: null }),
+    offtable: ["FAMILY"],
+    expect: "ok",
+  },
+  { name: "Three short topics pass", value: juicyBits({ topics: ["board games", "video games", "recipes"], people: [], nearly_said: null }), offtable: [], expect: "ok" },
+  { name: "Filler kept is rejected", value: juicyBits({ topics: ["like"] }), offtable: [], expect: "reject" },
+  { name: "A name is rejected", value: juicyBits({ topics: ["Tom"] }), offtable: [], expect: "reject" },
+  { name: "An off-table topic is rejected", value: juicyBits({ topics: ["politics"] }), offtable: ["POLITICS"], expect: "reject" },
+  { name: "A label about the person is rejected", value: juicyBits({ topics: ["introvert"] }), offtable: [], expect: "reject" },
+  { name: "An off-list role is rejected", value: juicyBits({ people: [{ role: "stranger", tier: "said" }] }), offtable: [], expect: "reject" },
+];
+
 export const READIT_CASES: ReadItCase[] = [
   {
     name: "A menu on the page is kept",

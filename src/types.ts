@@ -78,6 +78,16 @@ export interface UserRow {
   intro_seen_at: IsoDateTime | null; // migration 0014: onboarding story seen
 }
 
+export interface FeedbackRow {
+  id: string;
+  user_id: string;
+  first_name: string | null;
+  screen: string;
+  message: string;
+  log_json: string;
+  created_at: IsoDateTime;
+}
+
 export interface TryRow {
   id: string;
   user_id: string;

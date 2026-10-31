@@ -95,7 +95,7 @@ npm run deploy
 - STAY IN TOUCH creates a friendship only when both chose it; a one-sided choice is never revealed.
 - Block works both ways, across places, immediately. Report hides the item at once.
 - Images for SNAP IT live in memory only and are never stored; vision prompts never describe people.
-- 18+ at sign-in; delete account removes the user's data. Crisis words return the fixed help message from `src/rules/safety.ts`, never model text.
+- 18+ at sign-in; delete account removes the user's data. Crisis words return the fixed help message (`SCREEN_MESSAGES.crisis` in `src/rules/screening.ts`), never model text.
 - Never: years lost, time wasted, screen-time talk, streaks, comparisons, fear or scarcity copy, forced permissions. The 5-step ladder and the plant are allowed because they are private and the person chooses every step; they must never become public levels, scores or rankings.
 
 ## Definition of done (every package)

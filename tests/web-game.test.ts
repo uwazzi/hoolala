@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BUILD_LINES, BUILD_TICK_MS, buildTick, peopleLine, startBuild, tryInfo } from "../web/src/game";
+import { BUILD_LINES, BUILD_TICK_MS, buildTick, offTableLine, peopleLine, startBuild, tryInfo } from "../web/src/game";
 
 describe("the build ticker", () => {
   it("ticks one line per 450 ms, the first at once", () => {
@@ -36,5 +36,15 @@ describe("the build ticker", () => {
   it("writes the info line with kind, step, minutes and the compass role", () => {
     expect(tryInfo("talk", 2, 1, null)).toBe("SMALL TALK · STEP 2 · 1 MIN");
     expect(tryInfo("kind", 4, 2, "neighbour")).toBe("KIND IT · STEP 4 · 2 MIN · FROM YOUR COMPASS: NEIGHBOUR");
+  });
+
+  it("names the nearly-said try as from what you nearly said", () => {
+    expect(tryInfo("kind", 5, 5, null, true)).toBe("KIND IT · STEP 5 · 5 MIN · FROM WHAT YOU NEARLY SAID");
+  });
+
+  it("names the off-table list in line three, or says nothing is off", () => {
+    expect(offTableLine(null)).toBe("KEEPING OFF...");
+    expect(offTableLine([])).toBe("NOTHING OFF THE TABLE");
+    expect(offTableLine(["POLITICS", "MONEY"])).toBe("KEEPING OFF: POLITICS · MONEY");
   });
 });

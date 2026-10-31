@@ -1,8 +1,7 @@
-// WP36 LET'S GET PERSONAL: three spoken questions about real moments on the
-// Surprise me voice UI. Every answer drafts one compass line; NEXT confirms
-// it in memory; after the third, the compass check shows the sketch and the
-// people in your days. LOOKS RIGHT saves everything at once. Heard, then
-// forgotten: audio is never kept; nothing is saved before LOOKS RIGHT.
+// WP36 FIVE QUICK ONES: Hoolala! asks five mostly-chip questions on the
+// shared Surprise me voice UI, then hands the answers (in memory only) to
+// the juicy bits screen. No per-answer AI; nothing is stored before LOOKS
+// RIGHT. Heard, then forgotten: audio is never kept.
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
@@ -10,33 +9,12 @@ import { type BallMode, PixelBall } from "../components/PixelBall";
 import { Screen } from "../components/Screen";
 import { Stages } from "../components/Stages";
 import { Typed } from "../components/Typed";
-import { checkCells, checkHeadline, checkPeople, savePayload } from "../personal";
+import "../fivequick.css";
+import { CLOSING, CONFIRM_LINE, HEARD_NOTE, INTRO, matchChips, saveOnboardAnswers, STEPS, toggleMany, type OnboardAnswers, type OnboardStep } from "../onboard";
 import { canRecord, holdRelease, isMuted, type Level, type Recording, record, setMuted, speak } from "../voice";
 
-type Phase = "intro" | "ask" | "check" | "help";
-type Mic = "speaking" | "ready" | "listening" | "thinking" | "confirm" | "typing";
-
-interface Turn {
-  q: string;
-  a: string;
-}
-interface Draft {
-  part: string;
-  line: string;
-  people: string[];
-  viaTyped: boolean;
-  fallback: boolean;
-}
-
-const PART_LABEL: Record<string, string> = {
-  interest: "TALK ABOUT",
-  intention: "MORE OF",
-  filter: "LESS OF",
-  delivery: "HOW I GO",
-  action: "NEXT TIME",
-};
-const MAX_TURNS = 3;
-
+type Phase = "intro" | "ask" | "closing";
+type Mic = "speaking" | "ready" | "listening" | "thinking" | "confirm" | "typing" | "reply";
 
 const BALL: Record<Mic, BallMode> = {
   speaking: "speaking",
@@ -45,24 +23,27 @@ const BALL: Record<Mic, BallMode> = {
   thinking: "thinking",
   confirm: "idle",
   typing: "idle",
+  reply: "speaking",
 };
 
-const HINTS: Record<Mic, string> = {
-  speaking: "HOOLALA! IS ASKING...",
-  ready: "YOUR TURN",
-  listening: "LISTENING. LET GO WHEN YOU'RE DONE.",
-  thinking: "GOT IT. ONE SECOND...",
+const BASE_HINTS: Record<Mic, string> = {
+  speaking: "HOOLALA! IS ASKING…",
+  ready: "",
+  listening: "LISTENING. LET GO WHEN YOU’RE DONE.",
+  thinking: "GOT IT. ONE SECOND…",
   confirm: "CHECK IT, OR HOLD THE MIC TO REDO",
   typing: "",
+  reply: "",
 };
 
 const MIC_LABEL: Record<Mic, string> = {
-  speaking: "WAIT...",
+  speaking: "WAIT…",
   ready: "HOLD TO TALK",
   listening: "LET GO TO SEND",
-  thinking: "WAIT...",
+  thinking: "WAIT…",
   confirm: "HOLD TO REDO",
-  typing: "WAIT...",
+  typing: "WAIT…",
+  reply: "WAIT…",
 };
 
 const ERRORS: Record<string, string> = {
@@ -73,26 +54,39 @@ const ERRORS: Record<string, string> = {
   bad_audio: "Didn't catch that. Try again, or type it.",
 };
 
+/** The reply to a chip plays 1.7 s, as drawn. */
+const REPLY_MS = 1700;
+/** Thinking shows at least 800 ms, as drawn, even when transcription is quick. */
+const THINK_MS = 800;
+
+const BLANK: OnboardAnswers = {
+  q1: null,
+  q1f: null,
+  q2: [],
+  q2extra: null,
+  q2f: [],
+  q2fextra: null,
+  q3: null,
+  q4: null,
+  q5: [],
+};
+
 export function Surprise() {
   const { route } = useLocation();
   const level = useRef<Level>({ current: 0 }).current;
   const [phase, setPhase] = useState<Phase>("intro");
   const [mic, setMic] = useState<Mic>("speaking");
   const [sound, setSound] = useState(!isMuted());
-  const [turns, setTurns] = useState<Turn[]>([]);
-  const [qi, setQi] = useState(0);
-  const [question, setQuestion] = useState("");
-  const [qpart, setQpart] = useState<string | null>(null);
+  const [si, setSi] = useState(0);
+  const [answers, setAnswers] = useState<OnboardAnswers>(BLANK);
+  const [extras, setExtras] = useState<Record<string, string>>({});
+  const [sel, setSel] = useState<string[]>([]);
   const [heard, setHeard] = useState("");
   const [typedAnswer, setTypedAnswer] = useState(false);
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [draftWhy, setDraftWhy] = useState("");
-  const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [droppedPeople, setDroppedPeople] = useState<string[]>([]);
+  const [lastHeard, setLastHeard] = useState("");
+  const [reply, setReply] = useState("");
   const [text, setText] = useState("");
-  const [help, setHelp] = useState("");
   const [note, setNote] = useState("");
-  const [failed, setFailed] = useState(false);
   const [said, setSaid] = useState(false);
   const [shown, setShown] = useState(false);
   const [bars, setBars] = useState<number[]>([]);
@@ -101,10 +95,11 @@ export function Surprise() {
   const pressedAt = useRef(0);
   const backTo = useRef<Mic>("ready");
   const seq = useRef(0);
-  const acting = useRef(false);
-  const [busy, setBusy] = useState(false);
+  const thinkingSince = useRef(0);
+  const saved = useRef(false);
   const voice = useMemo(canRecord, []);
   const still = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
+  const step: OnboardStep = STEPS[Math.min(si, STEPS.length - 1)];
 
   useEffect(() => {
     api("GET", "/api/me").then((res) => {
@@ -136,88 +131,107 @@ export function Surprise() {
     return () => clearInterval(timer);
   }, [mic, still, level]);
 
-  function stop(message: string) {
-    holding.current = false;
-    recording.current?.cancel();
-    recording.current = null;
-    window.speechSynthesis?.cancel();
-    setHelp(message);
-    setPhase("help");
-  }
-
-  // One tap, one action: the ref guards faster than a re-render.
-  function takeBusy() {
-    if (acting.current) return false;
-    acting.current = true;
-    setBusy(true);
-    return true;
-  }
-
-  function freeBusy() {
-    acting.current = false;
-    setBusy(false);
-  }
-
-  async function fetchNext(sofar: Turn[]) {
+  function ask(i: number) {
     const my = ++seq.current;
-    setNote("");
-    setFailed(false);
-    let res;
-    try {
-      res = await api<{ question?: string | null; part?: string | null; help?: string }>("POST", "/api/me/surprise/next", { turns: sofar });
-    } catch {
-      res = null;
-    }
-    if (seq.current !== my) return;
-    if (!res) return fetchFailed();
-    if (res.status === 401) return void (location.href = "/signin");
-    if (res.data.help) return stop(res.data.help);
-    if (res.status !== 200 || !res.data.question) return fetchFailed();
-    setQuestion(res.data.question);
-    setQpart(res.data.part ?? null);
-    setQi(sofar.length);
+    const q = STEPS[i];
+    setSi(i);
     setHeard("");
     setTypedAnswer(false);
-    setDraft(null);
-    setDraftWhy("");
+    setLastHeard("");
+    setReply("");
+    setSel([]);
     setText("");
+    setNote("");
     setSaid(false);
     setShown(false);
     setMic("speaking");
-    await speak(res.data.question, level);
-    if (seq.current === my) setSaid(true);
+    void speak(q.q, level).then(() => {
+      if (seq.current === my) setSaid(true);
+    });
   }
 
-  function fetchFailed() {
-    setMic("ready");
-    setFailed(true);
-    setNote("Something went wrong.");
+  function keep(id: OnboardStep["id"], value: string | string[] | null) {
+    setAnswers((a) => {
+      const next = { ...a };
+      if (id === "q1" || id === "q1f" || id === "q3" || id === "q4") {
+        next[id] = typeof value === "string" ? value : null;
+      } else if (id === "q2" || id === "q2f" || id === "q5") {
+        next[id] = Array.isArray(value) ? value : [];
+      }
+      if (id === "q2") next.q2extra = extras.q2?.trim() ? extras.q2.trim() : null;
+      if (id === "q2f") next.q2fextra = extras.q2f?.trim() ? extras.q2f.trim() : null;
+      return next;
+    });
   }
 
-  async function begin() {
-    const sofar: Turn[] = [];
-    setTurns(sofar);
-    setDrafts([]);
-    setDroppedPeople([]);
-    setNote("");
-    setPhase("ask");
-    await fetchNext(sofar);
+  function advance(skipNext: boolean) {
+    const i = si + (skipNext ? 2 : 1);
+    if (i >= STEPS.length) {
+      const my = ++seq.current;
+      setPhase("closing");
+      void speak(CLOSING, level).then(() => {
+        if (seq.current === my) setSaid(true);
+      });
+      return;
+    }
+    ask(i);
   }
 
-  function restart() {
-    setTurns([]);
-    setDrafts([]);
-    setDroppedPeople([]);
-    setNote("");
-    setFailed(false);
-    setPhase("ask");
-    setMic("thinking");
-    void fetchNext([]);
+  function pickOne(chip: string) {
+    if (phase !== "ask") return;
+    const my = ++seq.current;
+    const q = STEPS[si];
+    keep(q.id, chip);
+    const line = q.replies?.[chip];
+    const skipNext = q.skipFollow === chip;
+    if (!line) {
+      advance(skipNext);
+      return;
+    }
+    setReply(line);
+    setMic("reply");
+    void speak(line, level);
+    setTimeout(() => {
+      if (seq.current === my) advance(skipNext);
+    }, REPLY_MS);
+  }
+
+  function toggleChip(chip: string) {
+    const q = STEPS[si];
+    if (phase !== "ask" || q.type !== "many" || !q.none || mic !== "ready") return;
+    setSel((s) => toggleMany(s, chip, q.none!));
+  }
+
+  function manyNext() {
+    const q = STEPS[si];
+    if (phase !== "ask" || q.type !== "many") return;
+    if (!sel.length && !extras[q.id]?.trim()) return;
+    keep(q.id, sel.slice());
+    advance(false);
+  }
+
+  function textNext() {
+    const q = STEPS[si];
+    if (phase !== "ask" || q.type !== "text" || !heard.trim()) return;
+    keep(q.id, heard.trim());
+    advance(false);
+  }
+
+  function skip() {
+    if (phase !== "ask") return;
+    if (mic !== "ready" && mic !== "confirm" && mic !== "typing" && mic !== "reply") return;
+    window.speechSynthesis?.cancel();
+    holding.current = false;
+    recording.current?.cancel();
+    recording.current = null;
+    const q = STEPS[si];
+    keep(q.id, q.type === "many" ? [] : null);
+    advance(q.id === "q1");
   }
 
   async function holdStart(event: Event) {
     event.preventDefault();
-    if (failed) return;
+    if (phase !== "ask") return;
     if (mic !== "ready" && mic !== "confirm") return;
     if (recording.current) return;
     window.speechSynthesis?.cancel();
@@ -259,6 +273,9 @@ export function Surprise() {
   }
 
   async function sendHeard(wav: Uint8Array<ArrayBuffer>) {
+    const my = seq.current;
+    const q = STEPS[si];
+    thinkingSince.current = Date.now();
     setMic("thinking");
     let res;
     try {
@@ -269,153 +286,93 @@ export function Surprise() {
         body: wav,
       });
     } catch {
+      if (seq.current !== my) return;
       setMic(backTo.current);
       return setNote("Didn't catch that. Try again, or type it.");
     }
     const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string };
+    if (seq.current !== my) return;
     if (!res.ok || !data.text) {
       setMic(backTo.current);
       return setNote(ERRORS[data.error ?? ""] ?? "Didn't catch that. Try again, or type it.");
     }
-    const heardText = data.text.trim();
-    setHeard(heardText);
-    await draftLine(heardText, false);
-  }
-
-  async function draftLine(answer: string, viaTyping: boolean) {
-    setMic("thinking");
-    let res;
-    try {
-      res = await api<{ draft?: { part: string; line: string; people: string[] }; fallback?: boolean; error?: string; why?: string }>(
-        "POST",
-        "/api/me/compass/draft-line",
-        { questionId: `q${qi + 1}`, answer },
-      );
-    } catch {
-      res = null;
-    }
-    if (!res) {
-      setTypedAnswer(viaTyping);
-      setDraft(null);
-      setDraftWhy("That didn't work. Try again?");
-      setNote("");
-      return setMic("confirm");
-    }
-    if (res.status === 401) return void (location.href = "/signin");
-    if (res.data.error === "crisis") return stop(typeof res.data.why === "string" ? res.data.why : "Let's pause. Call 143 any time, day or night.");
-    if (res.status === 200 && res.data.draft) {
-      setTypedAnswer(viaTyping);
-      setDraft({ part: res.data.draft.part, line: res.data.draft.line, people: res.data.draft.people ?? [], viaTyped: viaTyping, fallback: res.data.fallback === true });
-      setDraftWhy("");
-      setNote("");
-      return setMic("confirm");
-    }
-    if (res.status === 429) {
-      setTypedAnswer(viaTyping);
-      setDraft(null);
-      setDraftWhy("Slow down a little, then try again.");
-      setNote("");
-      return setMic("confirm");
-    }
-    setTypedAnswer(viaTyping);
-    setDraft(null);
-    setDraftWhy(typeof res.data.why === "string" ? res.data.why : "That didn't work. Try again?");
-    setNote("");
-    setMic("confirm");
-  }
-
-  function next() {
-    if (!draft || !takeBusy()) return;
-    const kept = [...drafts, draft];
-    const sofar = [...turns, { q: question, a: heard }];
-    setDrafts(kept);
-    setTurns(sofar);
-    setDraft(null);
-    setHeard("");
-    freeBusy();
-    if (sofar.length >= MAX_TURNS) {
-      window.speechSynthesis?.cancel();
-      setMic("ready");
-      setPhase("check");
+    // Thinking shows at least 800 ms, as drawn, even when transcription is quick.
+    const wait = THINK_MS - (Date.now() - thinkingSince.current);
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    if (seq.current !== my) return;
+    const saidText = data.text.trim();
+    if (q.type === "text") {
+      setHeard(saidText);
+      setTypedAnswer(false);
+      setMic("confirm");
       return;
     }
-    setMic("thinking");
-    void fetchNext(sofar).then(freeBusy);
-  }
-
-  async function save() {
-    if (!takeBusy()) return;
-    setNote("");
-    let res;
-    try {
-      res = await api("POST", "/api/me/compass/save", savePayload(drafts, droppedPeople));
-    } catch {
-      freeBusy();
-      return setNote("That didn't save. Try again?");
+    const found = matchChips(saidText, q.chips ?? []);
+    setLastHeard(saidText);
+    if (q.type === "one") {
+      if (found[0]) {
+        pickOne(found[0]);
+      } else {
+        setNote("Didn't catch an answer. Tap one, or try again.");
+        setMic("ready");
+      }
+      return;
     }
-    if (res.status === 401) return void (location.href = "/signin");
-    if (res.status !== 200) {
-      freeBusy();
-      const why = (res.data as { why?: unknown }).why;
-      return setNote(typeof why === "string" ? why : "That didn't save. Try again?");
+    if (!found.length) {
+      setNote("Didn't catch a chip. Tap any, or try again.");
+      setMic("ready");
+      return;
     }
-    freeBusy();
-    route("/game");
+    setSel(q.none && found.includes(q.none) ? [q.none] : found.filter((c) => c !== q.none));
+    setMic("ready");
   }
 
   function again() {
     setHeard("");
     setTypedAnswer(false);
-    setDraft(null);
-    setDraftWhy("");
     setNote("");
     setMic(voice ? "ready" : "typing");
   }
 
   function typeInstead() {
-    if (!question || failed) return;
+    if (phase !== "ask") return;
     window.speechSynthesis?.cancel();
     holding.current = false;
     recording.current?.cancel();
     recording.current = null;
-    setText(heard);
+    const q = STEPS[si];
+    setText(q.type === "many" ? (extras[q.id] ?? "") : heard);
     setNote("");
     setMic("typing");
   }
 
-  async function sendTyped(event?: Event) {
+  function sendTyped(event?: Event) {
     event?.preventDefault();
-    if (!question || !takeBusy()) return;
+    if (phase !== "ask") return;
+    const q = STEPS[si];
     const t = text.trim();
-    if (!t) {
-      freeBusy();
-      return setNote(voice ? "Hold the mic and talk, or type an answer." : "Type an answer first.");
-    }
+    if (!t) return setNote(voice ? "Hold the mic and talk, or type an answer." : "Type an answer first.");
     setNote("");
-    setHeard(t);
-    await draftLine(t, true);
-    freeBusy();
-  }
-
-  async function skip() {
-    if (phase !== "ask" || !question || failed || !takeBusy()) return;
-    window.speechSynthesis?.cancel();
-    holding.current = false;
-    recording.current?.cancel();
-    recording.current = null;
-    const sofar = [...turns, { q: question, a: "" }];
-    setTurns(sofar);
-    setHeard("");
-    if (sofar.length >= MAX_TURNS) {
-      window.speechSynthesis?.cancel();
-      setMic("ready");
-      setPhase("check");
-      freeBusy();
+    if (q.type === "text") {
+      setHeard(t);
+      setTypedAnswer(true);
+      setMic("confirm");
       return;
     }
-    setMic("thinking");
-    await fetchNext(sofar);
-    freeBusy();
+    if (q.type === "many") {
+      setExtras((x) => ({ ...x, [q.id]: t }));
+      setText("");
+      setMic("ready");
+      return;
+    }
+    const found = matchChips(t, q.chips ?? [])[0];
+    if (found) {
+      setLastHeard(t);
+      pickOne(found);
+    } else {
+      setNote("Tap one above, or hold the mic.");
+      setMic("ready");
+    }
   }
 
   function keyHold(event: KeyboardEvent, down: boolean) {
@@ -432,15 +389,25 @@ export function Surprise() {
     setSound(on);
   }
 
+  function finish() {
+    if (saved.current) return;
+    saved.current = true;
+    saveOnboardAnswers(answers);
+    route("/juicy");
+  }
+
   const soundLabel = sound ? "SOUND ON" : "SOUND OFF";
-  const inVoice = phase === "intro" || phase === "ask";
-  const showMicRow = voice && phase === "ask" && mic !== "typing" && !failed;
-  const fills = qpart ? `Q${qi + 1} OF 3 · FILLS ${PART_LABEL[qpart] ?? qpart}` : `Q${qi + 1} OF 3 · ANYTHING ELSE`;
-  const showTranscript = mic === "listening" || ((mic === "thinking" || mic === "confirm") && heard !== "");
-  const stage = phase === "check" ? 1 : 0;
-  const cells = checkCells(drafts);
-  const people = checkPeople(drafts, droppedPeople);
-  const checkHead = checkHeadline(drafts.length);
+  const showMicRow = voice && phase === "ask" && mic !== "typing";
+  const fills = phase === "intro" ? "5 QUICK ONES" : `Q${step.n} OF 5${step.follow ? " · FOLLOW-UP" : ""}`;
+  const hint = mic === "ready" ? step.hint : BASE_HINTS[mic];
+  const showChips = phase === "ask" && step.type !== "text" && (mic === "ready" || mic === "listening" || mic === "thinking");
+  const showTranscript =
+    phase === "ask" && (mic === "listening" || mic === "thinking" || mic === "confirm" || ((mic === "ready" || mic === "reply") && lastHeard !== ""));
+  const transcriptLabel = mic === "confirm" ? (typedAnswer ? "YOU TYPED" : "I HEARD") : mic === "ready" || mic === "reply" ? "I HEARD" : "HEARING…";
+  const transcriptText = mic === "confirm" ? heard : mic === "ready" || mic === "reply" ? lastHeard : "";
+  const showManyNext = phase === "ask" && step.type === "many" && mic === "ready";
+  const manyReady = sel.length > 0 || Boolean(extras[step.id]?.trim());
+  const confirming = phase === "ask" && step.type === "text" && mic === "confirm";
 
   const soundToggle = (
     <button type="button" class="sm-sound" onClick={toggleSound} aria-pressed={sound} aria-label={soundLabel}>
@@ -454,7 +421,7 @@ export function Surprise() {
 
   return (
     <Screen
-      title="Let's get personal"
+      title="Surprise me"
       softkeys={
         <>
           <a class="lcd-softkey" href="/">
@@ -467,22 +434,22 @@ export function Surprise() {
       }
     >
       <div class="sm-flow">
-        {(inVoice || phase === "check") && <Stages now={stage} />}
+        <Stages now={0} />
         <div class="sm-progress">
-          {phase === "ask" && question ? (
-            <div class="sm-dots" role="status">
-              {Array.from({ length: MAX_TURNS }, (_, i) => (
-                <span key={i} class={`sm-dot${i < qi ? " is-done" : i === qi ? " is-now" : ""}`} aria-hidden="true" />
-              ))}
-              <span class="sm-fills">{fills}</span>
-            </div>
-          ) : (
-            <span class="sm-kicker">Surprise me</span>
-          )}
+          <div class="sm-dots" role="status">
+            {Array.from({ length: 5 }, (_, i) => (
+              <span
+                key={i}
+                class={`sm-dot${phase !== "intro" && i + 1 < step.n ? " is-done" : phase !== "intro" && i + 1 === step.n ? " is-now" : ""}`}
+                aria-hidden="true"
+              />
+            ))}
+            <span class="sm-fills">{fills}</span>
+          </div>
           {soundToggle}
         </div>
 
-        {inVoice && (
+        {phase !== "closing" && (
           <div class="sm-stage">
             {mic === "listening" && bars.length > 0 && (
               <svg class="sm-bars" width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
@@ -494,65 +461,105 @@ export function Surprise() {
               </svg>
             )}
             {phase === "ask" && mic === "listening" && <span class="sm-ping" aria-hidden="true" />}
-            <div class={`sm-ball${phase === "ask" && mic === "speaking" ? " is-talking" : phase === "ask" && mic === "listening" ? " is-squashed" : ""}`}>
+            <div
+              class={`sm-ball${phase === "ask" && (mic === "speaking" || mic === "reply") ? " is-talking" : phase === "ask" && mic === "listening" ? " is-squashed" : ""}`}
+            >
               <PixelBall mode={phase === "ask" ? BALL[mic] : "idle"} level={level} />
             </div>
           </div>
         )}
 
-        {phase === "ask" && <p class="sm-hint">{HINTS[mic]}</p>}
-
-        {phase === "ask" && question && (
-          <p class="sm-caption" aria-live="polite">
-            {mic === "speaking" ? <Typed key={qi} text={question} msPerChar={45} onDone={() => setShown(true)} /> : question}
-          </p>
-        )}
+        {phase === "ask" && <p class="sm-hint">{hint}</p>}
 
         {phase === "intro" && (
           <>
-            <h1 class="sm-head">Let's get personal.</h1>
-            <p class="sm-center">Three questions about real moments you've had, so your tiny tries fit you. No right answers. Hold the mic at the bottom and answer out loud, or type. About a minute.</p>
+            <h1 class="fq-hello">{INTRO.head}</h1>
+            <p class="sm-center">{INTRO.sub}</p>
+            <p class="sm-center lcd-small">{INTRO.how}</p>
             <ul class="key-list">
               <li>
-                <button class="lcd-key lcd-key--primary" type="button" onClick={begin}>
+                <button
+                  class="lcd-key lcd-key--primary"
+                  type="button"
+                  onClick={() => {
+                    setAnswers(BLANK);
+                    setExtras({});
+                    setPhase("ask");
+                    ask(0);
+                  }}
+                >
                   Start
                 </button>
               </li>
             </ul>
-            <p class="lcd-small sm-center">Heard, then forgotten. Your voice becomes words and is never kept. Only lines you keep are saved, and only you see them.</p>
+            <p class="lcd-small sm-center">{INTRO.privacy}</p>
           </>
         )}
 
-        {phase === "ask" && showTranscript && (
+        {phase === "ask" && (
+          <p class="sm-caption" aria-live="polite">
+            {mic === "speaking" ? <Typed key={step.id} text={step.q} msPerChar={40} onDone={() => setShown(true)} /> : step.q}
+          </p>
+        )}
+
+        {phase === "ask" && mic === "reply" && (
+          <p class="fq-reply" aria-live="polite">
+            {reply}
+          </p>
+        )}
+
+        {showChips && (
+          <div class="fq-chips">
+            {(step.chips ?? []).map((chip) => {
+              const on = step.type === "many" && sel.includes(chip);
+              return (
+                <button
+                  key={chip}
+                  type="button"
+                  class={`fq-chip${on ? " is-on" : ""}`}
+                  aria-pressed={step.type === "many" ? on : undefined}
+                  onClick={() => (step.type === "one" ? pickOne(chip) : toggleChip(chip))}
+                >
+                  {chip}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {phase === "ask" && step.type === "many" && mic === "ready" && extras[step.id]?.trim() && (
+          <p class="fq-extra">+ {extras[step.id].trim()}</p>
+        )}
+
+        {showTranscript && (
           <div class="sm-said keys-rise">
-            <span class="sm-said-label">{mic === "confirm" ? (typedAnswer ? "YOU TYPED" : "I HEARD") : "HEARING..."}</span>
+            <span class="sm-said-label">{transcriptLabel}</span>
             <span class="sm-said-text">
-              {heard}
-              {mic === "listening" && <span class="lcd-cursor" aria-hidden="true" />}
+              {transcriptText}
+              {(mic === "listening" || mic === "thinking") && <span class="lcd-cursor" aria-hidden="true" />}
             </span>
           </div>
         )}
 
-        {phase === "ask" && mic === "confirm" && (
+        {showManyNext && (
+          <ul class="key-list">
+            <li>
+              <button class="lcd-key lcd-key--primary" type="button" onClick={manyNext} disabled={!manyReady}>
+                Next
+              </button>
+            </li>
+          </ul>
+        )}
+
+        {confirming && (
           <div class="keys-rise">
-            <div class="sm-draft">
-              <span class="lcd-kicker">{draft && !draft.fallback ? "AI · For your compass" : "For your compass"}</span>
-              {draft ? (
-                <p class="sm-draft-line">
-                  <span class="sm-draft-part">{PART_LABEL[draft.part] ?? draft.part}:</span> {draft.line}
-                </p>
-              ) : (
-                <p class="sm-draft-line">{draftWhy}</p>
-              )}
-            </div>
+            <p class="sm-center lcd-small">{CONFIRM_LINE}</p>
             <ul class="key-list">
-              {draft && (
-                <li>
-                  <button class="lcd-key lcd-key--primary" type="button" onClick={next} disabled={busy}>
-                    Next
-                  </button>
-                </li>
-              )}
+              <li>
+                <button class="lcd-key lcd-key--primary" type="button" onClick={textNext}>
+                  Next
+                </button>
+              </li>
               <li>
                 <div class="key-row">
                   <button class="lcd-key" type="button" onClick={again}>
@@ -578,12 +585,12 @@ export function Surprise() {
               rows={2}
               maxLength={300}
               value={text}
-              placeholder="Type your answer"
+              placeholder={step.placeholder}
               onInput={(e) => setText(e.currentTarget.value)}
             />
             <ul class="key-list">
               <li>
-                <button class="lcd-key lcd-key--primary" type="submit" disabled={!text.trim() || busy}>
+                <button class="lcd-key lcd-key--primary" type="submit" disabled={!text.trim()}>
                   Send
                 </button>
               </li>
@@ -600,14 +607,10 @@ export function Surprise() {
           </form>
         )}
 
-        {phase === "ask" && failed && (
-          <ul class="key-list">
-            <li>
-              <button class="lcd-key" type="button" onClick={() => fetchNext(turns)}>
-                Try again
-              </button>
-            </li>
-          </ul>
+        {phase === "closing" && (
+          <p class="sm-caption" aria-live="polite">
+            <Typed text={CLOSING} msPerChar={40} onDone={finish} />
+          </p>
         )}
 
         {showMicRow && (
@@ -628,8 +631,8 @@ export function Surprise() {
             <div class="sm-micwrap">
               <button
                 type="button"
-                class={`sm-mic${mic === "listening" ? " is-held" : mic === "speaking" || mic === "thinking" ? " is-dim" : ""}`}
-                disabled={mic === "speaking" || mic === "thinking"}
+                class={`sm-mic${mic === "listening" ? " is-held" : mic === "speaking" || mic === "thinking" || mic === "reply" ? " is-dim" : ""}`}
+                disabled={mic === "speaking" || mic === "thinking" || mic === "reply"}
                 aria-pressed={mic === "listening"}
                 aria-label={MIC_LABEL[mic]}
                 onPointerDown={holdStart}
@@ -647,7 +650,7 @@ export function Surprise() {
               </button>
               <span class="sm-miclabel">{MIC_LABEL[mic]}</span>
             </div>
-            <button type="button" class="sm-side" onClick={skip} aria-label="Skip this question" disabled={busy}>
+            <button type="button" class="sm-side" onClick={skip} aria-label="Skip this question">
               <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true">
                 <path d="M0 1h2v1h1v1h1v1h1v2H4v1H3v1H2v1H0zM5 1h2v1h1v1h1v1h1v2H9v1H8v1H7v1H5z" fill="currentColor" />
               </svg>
@@ -656,74 +659,7 @@ export function Surprise() {
           </div>
         )}
 
-        {phase === "check" && (
-          <div class="sm-check">
-            <h1 class="sm-checkhead" aria-live="polite">
-              <Typed text={checkHead} msPerChar={35} onDone={() => {}} />
-            </h1>
-            <div class="sm-grid">
-              {cells.map((cell) => (
-                <div class={`sm-cell${cell.line ? "" : " is-empty"}`} key={cell.pole}>
-                  <span class="sm-cellhead">
-                    {cell.pole} · {PART_LABEL[cell.part]}
-                  </span>
-                  <span class="sm-celltext">{cell.line ?? "Add later, if you like"}</span>
-                  <span class="sm-cellsrc">{cell.line ? (cell.viaTyped ? "FROM: YOU TYPED" : "FROM: SURPRISE ME") : "EMPTY FOR NOW"}</span>
-                </div>
-              ))}
-            </div>
-            <div class={`sm-people${people.length > 0 ? "" : " is-empty"}`}>
-              <span class="sm-cellhead">PEOPLE IN YOUR DAYS</span>
-              {people.length > 0 ? (
-                <>
-                  <ul class="sm-roles">
-                    {people.map((role) => (
-                      <li key={role}>
-                        <span class="sm-celltext">{role.toUpperCase()}</span>
-                        <button type="button" class="link-button" onClick={() => setDroppedPeople((d) => [...d, role])} aria-label={`Remove ${role}`}>
-                          Remove
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <span class="sm-cellsrc">FROM: YOUR ANSWERS · ROLES ONLY, NEVER NAMES</span>
-                </>
-              ) : (
-                <>
-                  <span class="sm-celltext">Nobody named yet. Tries will say someone.</span>
-                  <span class="sm-cellsrc">EMPTY FOR NOW</span>
-                </>
-              )}
-            </div>
-            <p class="sm-note">Nothing is saved until you say it looks right. Change or undo any line later in MY COMPASS.</p>
-            <ul class="key-list">
-              <li>
-                <button class="lcd-key lcd-key--primary" type="button" onClick={save} disabled={busy}>
-                  Looks right. Make my game
-                </button>
-              </li>
-              <li>
-                <button class="lcd-key" type="button" onClick={restart}>
-                  Change something
-                </button>
-              </li>
-            </ul>
-          </div>
-        )}
-
-        {phase === "help" && (
-          <>
-            <h1 class="sm-head">Let's pause</h1>
-            <p class="sm-center">{help}</p>
-            <ul class="key-list">
-              <li>
-                <a class="lcd-key" href="/">
-                  Home
-                </a>
-              </li>
-            </ul>
-          </>
-        )}
+        {phase === "ask" && <p class="lcd-small sm-center">{HEARD_NOTE}</p>}
 
         <p class="lcd-small" role="status" aria-live="polite">
           {note}

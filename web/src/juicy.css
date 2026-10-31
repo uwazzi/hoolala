@@ -1,0 +1,38 @@
+/* WP39 keeping the juicy bits: the Snake board, the trimming view and the
+   compass check extras. Values as drawn in design/screens/Onboard.dc.html. */
+.jy-flow { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; }
+.jy-headrow { display: flex; align-items: center; gap: 12px; }
+.jy-face { flex-shrink: 0; display: inline-flex; color: var(--lcd-ink); }
+.jy-face.is-spinning { animation: jy-spin 0.8s steps(8) infinite; }
+@keyframes jy-spin { to { transform: rotate(360deg); } }
+.jy-head { margin: 0; font: 700 18px/1.2 var(--font-display); min-height: 44px; }
+.jy-statusrow { display: flex; justify-content: space-between; align-items: center; font: 11px/1.4 var(--font-display); min-height: 32px; }
+.jy-stop { background: transparent; border: 0; font: 11px/1.4 var(--font-display); text-decoration: underline; min-height: 32px; cursor: pointer; color: var(--lcd-ink); }
+.jy-board { position: relative; width: 342px; max-width: 100%; height: 216px; align-self: center; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); outline: none; }
+.jy-board:focus-visible { outline: 2px dashed var(--lcd-ink); outline-offset: 3px; }
+.jy-cell { position: absolute; width: 16px; height: 16px; background: var(--lcd-ink-secondary); }
+.jy-cell.is-head { background: var(--lcd-ink); }
+.jy-food { position: absolute; width: 10px; height: 10px; background: var(--lcd-ink); }
+.jy-oops { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 16px/1.2 var(--font-display); }
+.jy-ticker { text-align: center; font: 12px/1.5 var(--font-display); min-height: 18px; }
+.jy-spacer { flex-grow: 1; min-height: 8px; }
+.jy-pad { align-self: center; display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(2, 56px); gap: 6px; }
+.jy-padkey { min-height: 56px; display: flex; align-items: center; justify-content: center; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); touch-action: manipulation; cursor: pointer; color: var(--lcd-ink); }
+.jy-padkey:active { transform: translateY(2px); }
+.jy-trim { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); }
+.jy-trimlabel { font: 9px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }
+.jy-trimtext { font-size: 13px; line-height: 1.7; }
+.jy-token.is-struck { text-decoration: line-through; opacity: 0.35; }
+.jy-token.is-lit { background: var(--lcd-ink); color: var(--lcd-surface); padding: 0 3px; border-radius: var(--radius-control); }
+.jy-token.is-dim { opacity: 0.55; }
+.jy-keptlabel { font: 10px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }
+.jy-kept { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+.jy-chip { padding: 3px 8px; background: var(--lcd-ink); color: var(--lcd-surface); border-radius: var(--radius-control); font: 11px/1.6 var(--font-display); }
+.jy-play { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 16px; background: var(--lcd-surface); border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); font: 13px/1.2 var(--font-display); cursor: pointer; color: var(--lcd-ink); width: 100%; }
+.jy-playinner { display: flex; align-items: center; gap: 10px; }
+.jy-wait { display: flex; align-items: center; justify-content: center; min-height: 56px; border: 2px dashed var(--lcd-ink-secondary); border-radius: var(--radius-control); font: 12px/1.4 var(--font-display); color: var(--lcd-ink-secondary); text-align: center; padding: 0 12px; }
+.jy-show { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
+.jy-help { padding: 14px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); font-size: 14px; line-height: 1.5; }
+@media (prefers-reduced-motion: reduce) {
+  .jy-face.is-spinning { animation: none; }
+}

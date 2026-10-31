@@ -117,6 +117,7 @@ One line per decision: date, decision, why. Newest at the bottom.
 - 2026-10-29 (Today): the prominent MY COMPASS box is back on the hero (owner call, replaces the small v6.2 link), plus a small ACCOUNT link; signed-in users had no path to account at all.
 - 2026-10-30 (dashboard): owner-only product page at `/dashboard` behind `OWNER_TOKEN` (new `Env` field): total accounts, interactions logged, total leaves and the How-did-it-go breakdown, aggregates only, samples and deleted users excluded. The public Live page is untouched.
 - 2026-10-30 (Live, owner call): the same four counts are public on the Live page too, refreshed every 4 hours (API cache and page poll). The leaves total is published as an anonymous aggregate only; per-person plants and steps stay private and are never compared.
+- 2026-10-30 (feedback): Say hi page behind a footer link sends screen, message and an in-memory log (API method, path, status only, never bodies) to a new `feedback` table (new `FeedbackRow` type); the owner reads it on the dashboard with the owner token. Messages pass the code screening rules.
 
 ## Open (confirm at kickoff)
 

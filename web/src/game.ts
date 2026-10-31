@@ -25,8 +25,14 @@ export function peopleLine(people: string[] | null): string {
   return people.length > 0 ? `ADDING YOUR PEOPLE: ${people.map((p) => p.toUpperCase()).join(" · ")}` : "NO PEOPLE NAMED: TRIES SAY SOMEONE";
 }
 
-export function tryInfo(kind: string, step: number, minutes: number, whoRole: string | null): string {
+export function offTableLine(offtable: string[] | null): string {
+  if (offtable === null) return "KEEPING OFF...";
+  return offtable.length > 0 ? `KEEPING OFF: ${offtable.join(" · ")}` : "NOTHING OFF THE TABLE";
+}
+
+export function tryInfo(kind: string, step: number, minutes: number, whoRole: string | null, nearly = false): string {
   const head = kind === "kind" ? "KIND IT" : "SMALL TALK";
+  if (nearly) return `${head} · STEP ${step} · ${minutes} MIN · FROM WHAT YOU NEARLY SAID`;
   const who = whoRole ? ` · FROM YOUR COMPASS: ${whoRole.toUpperCase()}` : "";
   return `${head} · STEP ${step} · ${minutes} MIN${who}`;
 }
