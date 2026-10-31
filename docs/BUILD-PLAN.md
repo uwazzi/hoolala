@@ -212,11 +212,21 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Tests first: first open shows beat 1; LET'S GO and SKIP set the seen flag and open WP36; tap completes then advances; six beats in order, no invented numbers.
 
 ### WP36 Let's get personal (v6.2, Sat 31)
+> Revised in v6.3 (Sat 31): Five quick ones. HELLO, HUMAN. intro, five owner-written questions (mostly chips, two follow-ups), Hoolala!'s replies, five dots; no per-answer AI; after Q5 the juicy bits screen (WP39). The v6.2 three-question flow below is replaced.
 - [x] Reuse the WP34 voice component (no duplicate): new intro, three Mom Test questions, three dots (`Qn OF 3 · FILLS ...`), NEXT saves the draft; progress strip SURPRISE ME · COMPASS · GAME · AROUND?; entry after the story and from Around me's SET IT UP.
 - [x] COMPASS DRAFT (Muse Spark): one structured call per answer `{part, line, topic, place_kind, pace, people}`; code validator (part matches the question, roles from the allow-list, names stripped, banned labels, what happened never who); fallback trims to 60, keyword roles, gentle pace. Transcripts never stored.
 - [x] Compass check: typed count headline, 2×2 grid with sources, PEOPLE IN YOUR DAYS box (roles only); LOOKS RIGHT. MAKE MY GAME saves lines and roles (`compass_people`); CHANGE SOMETHING clears the drafts.
 - [x] FIND ME removed: consent, IS THIS YOU?, find and draft paths gone; footprint sources gone from the compass; roles removable via REMOVE.
 - [x] Tests first: shared voice component; names become roles only; off-list roles dropped; labels rejected to fallback; nothing saved before LOOKS RIGHT; full flow with `LLM_ENABLED=false`; no transcripts in logs.
+
+### WP36 revised: Five quick ones (v6.3, Sat 31)
+Spec: `docs/handover/HOOLALA_V6.3/specs/five-quick-ones.md`. Screens: `design/screens/Onboard.dc.html` (stage SURPRISE ME).
+- [ ] Same voice component, new options only (no second voice component): chips slot below the caption, short reply line; face 88 px in a 124 px band; captions typed while spoken (en-GB, rate 1.05); thumb row TYPE · 76 px mic · SKIP; I HEARD / YOU TYPED, SAY AGAIN, FIX BY TYPING, SOUND ON / OFF.
+- [ ] The script exactly as drawn: HELLO, HUMAN. intro with START; Q1 one-chip with CAN'T REMEMBER reply ("Fair. We'll start gentle.", 1.7 s, skips the follow-up); Q1 follow-up free text; Q2/Q2 follow-up many-chips with exclusive NOBODY YET / NOBODY and typed extra ("+ …"); Q3 battery with the four replies; Q4 free text; Q5 off the table with exclusive NOTHING, I'M EASY; closing line opens WP39.
+- [ ] Mic on every step; on chip steps the transcript is matched to chips by code and shown selected with the I HEARD box. SKIP moves on; SKIP on Q1 skips its follow-up. Five dots; follow-ups keep the dot and add `· FOLLOW-UP`.
+- [ ] Code rules: START HERE from battery (LOW/OK SOFT, GOOD BRAVE, FULL BOLD), CAN'T REMEMBER forces SOFT; people tiers (said/nod); places from roles (first said role's place fills `{p}`, default the café); off-table Q5 as banned TRY IT themes, FAMILY removes family roles, WORK removes COLLEAGUE.
+- [ ] Nothing stored until LOOKS RIGHT; audio never stored; free text discarded after WP39 extraction; no answers or free text in logs.
+- [ ] Tests first (spec list): step order and copy; CAN'T REMEMBER and SKIP skip the follow-up; exclusive chips; battery replies and START HERE incl. the CAN'T REMEMBER override; off-table FAMILY/WORK removals; one voice component; nothing stored before LOOKS RIGHT.
 
 ### WP37 Your game of tiny tries (v6.2, Sat 31 to Sun 1)
 - [x] Library fallback first: 24 hand-written tries filled with topic, place and roles; a full game of 9 renders with `LLM_ENABLED=false`, 3 per level, talk and kind in each.
@@ -230,6 +240,15 @@ Map: `docs/ARCHITECTURE.md`. Replaces the plain pages in `public/` before more s
 - [x] Today's try is the picked game try (v6 library fallback for old accounts); ANOTHER ONE draws the next unpicked try at the level (a new game in the background when used up); NOT TODAY is the later state, no reminder.
 - [x] Off you go, I'M BACK, outcomes, NEXT TIME, plant growth and the COMPASS? row unchanged.
 - [x] Tests first: one primary key and two text links; try equals the pick; ANOTHER ONE keeps the level without repeats; removed items gone.
+
+### WP39 Keeping the juicy bits, with Snake (v6.3, Sun 1 morning)
+Spec: `docs/handover/HOOLALA_V6.3/specs/juicy-bits-snake.md`. Screen: `design/screens/Onboard.dc.html` (juicy stage, `startAt` tweak to jump).
+- [ ] Code fallback first: Snake (342 x 216 board, 19 x 12 cells, starts by itself, arrows and WASD on the focused board only, inverted-T touch buttons, walls wrap, OOPS. GO AGAIN. on self-hit, no score of any kind, timer stopped on leave), trimming view (fillers struck, keywords lit, KEPT chips), kept bits, compass check from the kept bits.
+- [ ] JUICY BITS extraction (Muse Spark, one call): input the two free-text answers plus chips and the off-table list; output `{topics (max 3), people[{role, tier said}], nearly_said{line, to_role} | null}`; validator rejects (never rewrites): no filler in topics, roles from the allow-list, no names, SCREEN IT and off-table check, no labels about the person; fallback strips filler and keeps 4+ letter words, known phrases and roles. Free text discarded once kept bits exist; kept bits stored only after LOOKS RIGHT.
+- [ ] Compass check values: N saying it (FROM: WHAT YOU NEARLY SAID), E topics (FROM: YOUR STORY), S off-table (FROM: KEEP OFF THE TABLE), W battery and last long chat (FROM: BATTERY CHECK), PEOPLE IN YOUR DAYS as MORE THAN HI / A NOD SO FAR (FROM: YOUR ANSWERS · ROLES ONLY, NEVER NAMES). Headline THAT'S YOU, IN n ANSWERS.
+- [ ] Game changes (WP37, otherwise unchanged): START HERE from the WP36 rules; one BOLD try is always the nearly-said try (`Say the thing you nearly said to {who}: "{line}".`, KIND IT, step 5, FROM WHAT YOU NEARLY SAID); writing lines incl. KEEPING OFF; off-table items as banned TRY IT themes and library filters.
+- [ ] Evals: 5 pass, 5 reject (filler kept, a name, an off-table topic, a label about the person, a role outside the allow-list).
+- [ ] Tests first (spec list): Snake autostart, focus, keys incl. WASD, no scroll; inverted-T steering, reverse ignored; self-collision restarts with no score rendered or stored; eating reveals the next kept bit; SHOW ME only after processing; leaving stops the timer; `LLM_ENABLED=false` completes via the fallback; filler and names never in kept bits; nearly-said BOLD try present.
 
 ### WP21 Telegram Mini App and login (Wed 28, afternoon)
 > Moved to ROADMAP 29 Oct (v6, owner-confirmed): the web app is the demo. The `wp21/telegram` work branch was deleted the same day; only this section remains.
