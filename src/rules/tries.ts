@@ -3,6 +3,7 @@
 // Bounds are maximums: a gentler ask than the step's own always passes.
 
 import { GAME_FILL_FALLBACK, ROLE_PHRASE } from "../content/tries";
+import { hitsOffTable } from "./juicy";
 import { screenText } from "./screening";
 
 export type Step = 1 | 2 | 3 | 4 | 5;
@@ -98,6 +99,8 @@ export interface GameCtx {
   roles: { role: string; roleClass: string }[];
   lessOf: string[];
   exclude?: string[];
+  /** Off-table chips (POLITICS, WORK, ...): banned themes for this person. */
+  offTable?: string[];
 }
 
 export type GameVerdict =
@@ -163,8 +166,12 @@ function hitsLessOf(titleLow: string, lessOf: string[]): boolean {
   return false;
 }
 
-/** One try against every game rule. Rejects, never rewrites. */
-export function validateGameTry(input: GameTryInput, ctx: GameCtx): GameVerdict {
+/**
+ * One try against every game rule. Rejects, never rewrites. The fixed
+ * nearly-said slot skips the name heuristic: names were already excluded at
+ * extraction and at save, and its quoted line may hold plain capitals.
+ */
+export function validateGameTry(input: GameTryInput, ctx: GameCtx, opts?: { skipNameCheck?: boolean }): GameVerdict {
   if (!input || typeof input.title !== "string" || !input.title.trim()) return "bad_shape";
   if (input.level !== "soft" && input.level !== "brave" && input.level !== "bold") return "bad_shape";
   if (input.kind !== "talk" && input.kind !== "kind") return "bad_shape";
@@ -181,7 +188,7 @@ export function validateGameTry(input: GameTryInput, ctx: GameCtx): GameVerdict 
   }
   if (title.split(/\s+/).length > GAME_TITLE_WORDS) return "too_long";
   const low = title.toLowerCase();
-  if (hitsLessOf(low, ctx.lessOf)) return "less_of";
+  if (hitsLessOf(low, ctx.lessOf) || (ctx.offTable?.length ? hitsOffTable(title, ctx.offTable) : false)) return "less_of";
   if (BUYING.test(title)) return "buying";
   if (roleClass === "service") {
     if (LEVEL_MINUTES[input.level] > 2) return "service_heavy";
@@ -194,7 +201,7 @@ export function validateGameTry(input: GameTryInput, ctx: GameCtx): GameVerdict 
   if (MONEY.test(title) || US_SPELLING.test(title) || EM_DASH.test(title)) return "off_limits";
   if (ALCOHOL.test(title) && LATE.test(title)) return "off_limits";
   if (PRIVATE.test(title)) return "off_limits";
-  if (hasCapitalName(title)) return "off_limits";
+  if (!opts?.skipNameCheck && hasCapitalName(title)) return "off_limits";
   return "ok";
 }
 
@@ -222,6 +229,37 @@ export function minutesForLevel(level: GameLevel): number {
 export function tabForPace(deliveryText: string | null): 0 | 1 {
   if (deliveryText && /straight|fast|quick|dive|direct|bold|just go|walk up/i.test(deliveryText)) return 1;
   return 0;
+}
+
+// ---- WP39: the kept bits reach the game. START HERE follows the battery
+// (FULL may open BOLD now), off-table answers filter roles and ban themes,
+// and one BOLD slot says the thing nearly said.
+
+/** START HERE from the battery: LOW and OK stay SOFT, GOOD opens BRAVE, FULL opens BOLD. CAN'T REMEMBER always stays SOFT. */
+export function tabForBattery(battery: string | null, cantRemember: boolean): 0 | 1 | 2 {
+  if (cantRemember) return 0;
+  if (battery === "FULL") return 2;
+  if (battery === "GOOD") return 1;
+  return 0;
+}
+
+export const FAMILY_ROLES = ["mum", "dad", "brother", "sister", "grandparent", "family"];
+
+/** FAMILY removes family roles and WORK removes colleagues from tries. */
+export function filterRolesForOffTable(roles: { role: string; roleClass: string }[], offtable: string[]): { role: string; roleClass: string }[] {
+  return roles.filter((r) => !(offtable.includes("FAMILY") && FAMILY_ROLES.includes(r.role)) && !(offtable.includes("WORK") && r.role === "colleague"));
+}
+
+/** The fixed BOLD try, in the person's voice. The phrase is a role, never a name. */
+export const NEARLY_PREFIX = "Say the thing you nearly said to ";
+
+export function buildNearlyTitle(line: string, toRole: string | null): string {
+  const phrase = toRole ? (ROLE_PHRASE[toRole] ?? "them") : "them";
+  return `${NEARLY_PREFIX}${phrase}: \u201C${line}\u201D.`;
+}
+
+export function isNearlyTitle(title: string): boolean {
+  return title.startsWith(NEARLY_PREFIX);
 }
 
 export interface FillContext {

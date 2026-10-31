@@ -7,6 +7,7 @@ import { Friends } from "./pages/Friends";
 import { Game } from "./pages/Game";
 import { Home } from "./pages/Home";
 import { Join } from "./pages/Join";
+import { Juicy } from "./pages/Juicy";
 import { Around } from "./pages/Around";
 import { Arrive } from "./pages/Arrive";
 import { Compass } from "./pages/Compass";
@@ -60,6 +61,7 @@ function App() {
       <Route path="/around" component={Around} />
       <Route path="/arrive" component={Arrive} />
       <Route path="/surprise" component={Surprise} />
+      <Route path="/juicy" component={Juicy} />
       <Route path="/game" component={Game} />
       <Route path="/compass" component={Compass} />
       <Route path="/here" component={Here} />

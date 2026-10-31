@@ -32,6 +32,7 @@ import { draftAnswer } from "../llm/compassdraft";
 import {
   changeRemove,
   cleanRole,
+  hasBannedLabel,
   PARTS,
   partForWords,
   type PeopleRole,
@@ -40,6 +41,8 @@ import {
   type TryFeedback,
   validateProposal,
 } from "../rules/compass";
+import { hasJuicyName, JUICY_ROLES, MAX_LINE as JUICY_LINE, OFFTABLE_CHIPS } from "../rules/juicy";
+import { FAMILY_ROLES } from "../rules/tries";
 import { SCREEN_MESSAGES, screenText } from "../rules/screening";
 import { MAX_ANSWER, QUESTIONS } from "../rules/surprise";
 import { sourceDomain } from "../rules/grounding";
@@ -190,7 +193,9 @@ export async function handleDraftLine(request: Request, env: Env, now = new Date
 
 /**
  * LOOKS RIGHT: the one save of onboarding. Validates every line and role
- * again, then stores them. Empty saves are a no-op.
+ * again, then stores them. Empty saves are a no-op. WP39 also accepts the
+ * kept-bits extras (battery, offtable, nearlySaid) for the game; a save that
+ * sends none keeps the stored bits.
  */
 export async function handleSave(request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
@@ -199,27 +204,90 @@ export async function handleSave(request: Request, env: Env, now = new Date()): 
   if (!Array.isArray(body.lines) || body.lines.length > 8 || (body.people !== undefined && !Array.isArray(body.people))) {
     return json({ error: "bad_lines" }, 400);
   }
+  const bits = readBits(body);
+  if (!bits.ok) return json(bits.error.status === 400 ? { error: bits.error.error } : bits.error, bits.error.status);
   const lines: { part: CompassPart; words: string }[] = [];
   for (const l of body.lines) {
     const check = validateProposal((l as { part?: unknown })?.part, (l as { words?: unknown })?.words);
     if (!check.ok) return json({ error: check.error, why: check.why }, 422);
     lines.push(check.line!);
   }
-  const people: PeopleRole[] = [];
+  const people: { role: string; roleClass: string }[] = [];
   for (const p of body.people ?? []) {
-    const role = cleanRole(typeof p === "string" ? p : (p as { role?: unknown })?.role);
+    const role = cleanAnyRole(typeof p === "string" ? p : (p as { role?: unknown })?.role);
     if (!role) return json({ error: "bad_role", why: "People are saved as roles only." }, 422);
-    if (!people.includes(role)) people.push(role);
+    if (!people.some((x) => x.role === role.role)) people.push(role);
   }
+  const kept = bits.value ? people.filter((p) => !(bits.value!.offtable.includes("FAMILY") && FAMILY_ROLES.includes(p.role)) && !(bits.value!.offtable.includes("WORK") && p.role === "colleague")) : people;
   if (await overLimit(env, `rl:save:${user.id}`, SAVE_LIMIT)) return json({ error: "too_many" }, 429);
-  await saveCompass(
-    env.DB,
-    user.id,
-    lines,
-    people.map((role) => ({ role, roleClass: roleClass(role) })),
-    now.toISOString(),
-  );
-  return json({ compass: view(await getCompass(env.DB, user.id)), people: people.map((role) => ({ role })) });
+  await saveCompass(env.DB, user.id, lines, kept, now.toISOString());
+  if (bits.value) await saveBits(env, user.id, bits.value, now.toISOString());
+  return json({ compass: view(await getCompass(env.DB, user.id)), people: kept.map((p) => ({ role: p.role })) });
+}
+
+const BATTERIES = ["LOW", "OK", "GOOD", "FULL"];
+const JUICY_ROLE_CLASS: Record<string, string> = {
+  grandparent: "close",
+  family: "close",
+  flatmate: "close",
+  waiter: "service",
+  cashier: "service",
+  librarian: "service",
+  "shop staff": "service",
+  "a regular": "service",
+};
+
+/** A proposed role folded to the v6.2 or juicy allow-list, with its class. Names never survive. */
+function cleanAnyRole(raw: unknown): { role: string; roleClass: string } | null {
+  if (typeof raw === "string" && (JUICY_ROLES as readonly string[]).includes(raw.trim().toLowerCase())) {
+    const role = raw.trim().toLowerCase();
+    return { role, roleClass: JUICY_ROLE_CLASS[role] ?? roleClass(role as PeopleRole) };
+  }
+  const role = cleanRole(raw);
+  return role ? { role, roleClass: roleClass(role) } : null;
+}
+
+interface SaveBits {
+  battery: string | null;
+  offtable: string[];
+  nearlySaid: { line: string; toRole: string | null } | null;
+}
+
+type BitsResult = { ok: true; value: SaveBits | null } | { ok: false; error: { error: string; why?: string; status: number } };
+
+/** The kept-bits extras: absent entirely when an older client saves, validated when present. */
+function readBits(body: Record<string, unknown>): BitsResult {
+  if (body.battery === undefined && body.offtable === undefined && body.nearlySaid === undefined) return { ok: true, value: null };
+  const battery = body.battery ?? null;
+  if (battery !== null && (typeof battery !== "string" || !BATTERIES.includes(battery))) return { ok: false, error: { error: "bad_bits", status: 400 } };
+  const offtable = body.offtable ?? [];
+  if (!Array.isArray(offtable) || !offtable.every((c): c is string => typeof c === "string" && (OFFTABLE_CHIPS as readonly string[]).includes(c))) {
+    return { ok: false, error: { error: "bad_bits", status: 400 } };
+  }
+  const raw = body.nearlySaid ?? null;
+  let nearlySaid: SaveBits["nearlySaid"] = null;
+  if (raw !== null) {
+    if (!raw || typeof raw !== "object") return { ok: false, error: { error: "bad_bits", status: 400 } };
+    const { line, toRole } = raw as { line?: unknown; toRole?: unknown };
+    if (typeof line !== "string" || line.trim().length < 1 || line.length > JUICY_LINE) return { ok: false, error: { error: "bad_bits", status: 400 } };
+    if (toRole !== null && (typeof toRole !== "string" || !(JUICY_ROLES as readonly string[]).includes(toRole.trim().toLowerCase()))) {
+      return { ok: false, error: { error: "bad_bits", status: 400 } };
+    }
+    const screen = screenText(line.trim(), JUICY_LINE);
+    if (!screen.ok || hasBannedLabel(line) || hasJuicyName(line)) {
+      return { ok: false, error: { error: "not_allowed", why: "People are saved as roles only, never names.", status: 422 } };
+    }
+    nearlySaid = { line: line.trim().replace(/\s+/g, " "), toRole: toRole === null ? null : (toRole as string).trim().toLowerCase() };
+  }
+  return { ok: true, value: { battery, offtable, nearlySaid } };
+}
+
+async function saveBits(env: Env, userId: string, bits: SaveBits, nowIso: string): Promise<void> {
+  // Inline SQL: src/db/* is owned by the sibling track under the shared
+  // contract, so the WP39 writes live here until the tracks merge.
+  await env.DB.prepare("INSERT OR REPLACE INTO onboard_bits (user_id, battery, offtable_json, nearly_line, nearly_to_role, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(userId, bits.battery, JSON.stringify(bits.offtable), bits.nearlySaid?.line ?? null, bits.nearlySaid?.toRole ?? null, nowIso)
+    .run();
 }
 
 export async function handlePeople(request: Request, env: Env, now = new Date()): Promise<Response> {

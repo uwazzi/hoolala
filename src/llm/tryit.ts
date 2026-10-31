@@ -110,6 +110,7 @@ export interface GameInput {
   howIGo: string | null;
   lessOf: string[];
   roles: { role: string; roleClass: string }[];
+  offTable: string[];
 }
 
 const GAME_SYSTEM = `You write a personal game of nine tiny real-world tries: three each in SOFT, BRAVE and BOLD. Each level mixes SMALL TALK (talk) and KIND IT (kind: small acts of kindness). Personalise with the person's topic, place and the people in their days: who_role is a role from their list or null for a stranger (never a name).
@@ -181,6 +182,7 @@ function gameUser(input: GameInput): string {
     `MORE OF: ${input.moreOf ?? "unknown"}.`,
     `HOW I GO: ${input.howIGo ?? "unknown"}.`,
     input.lessOf.length > 0 ? `LESS OF (never these): ${input.lessOf.join("; ")}.` : "LESS OF: none.",
+    input.offTable.length > 0 ? `OFF THE TABLE (never these): ${input.offTable.join("; ")}.` : "OFF THE TABLE: none.",
     input.roles.length > 0 ? `People: ${input.roles.map((r) => `${r.role} (${r.roleClass})`).join(", ")}.` : "People: none named.",
   ];
   return lines.join("\n");
