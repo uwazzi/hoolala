@@ -1,0 +1,50 @@
+/* WP36 five quick ones: the chips slot and reply line of the shared voice
+   stage, as drawn in Onboard.dc.html. Imported by Surprise.tsx only. */
+
+.fq-hello {
+  margin: 12px 0;
+  font: 700 30px/1.1 var(--font-display);
+  text-align: center;
+}
+
+.fq-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 10px 0 0;
+}
+
+.fq-chip {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 2px solid var(--lcd-ink);
+  border-radius: var(--radius-control);
+  background: var(--lcd-surface);
+  color: var(--lcd-ink);
+  font: 12px/1.2 var(--font-display);
+  cursor: pointer;
+}
+
+.fq-chip.is-on {
+  background: var(--lcd-selected);
+  color: var(--lcd-selected-ink);
+}
+
+.fq-chip:focus-visible {
+  outline: 3px dashed var(--lcd-ink);
+  outline-offset: 2px;
+}
+
+.fq-reply {
+  margin: 10px 0 0;
+  border-left: 4px solid var(--lcd-ink);
+  padding: 6px 0 6px 12px;
+  font: 15px/1.3 var(--font-display);
+}
+
+.fq-extra {
+  margin: 8px 0 0;
+  font-size: 12px;
+  text-align: center;
+}
