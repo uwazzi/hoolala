@@ -15,6 +15,7 @@ import {
   handleReport,
   handleSuggest,
 } from "./api/here";
+import { handleExtract } from "./api/juicy";
 import { handleIntroSeen, handleMe } from "./api/me";
 import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMeetState, handleStayInTouch } from "./api/meet";
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
@@ -99,6 +100,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/me/surprise/next" && method === "POST") {
     return handleNext(request, env);
+  }
+  if (url.pathname === "/api/me/juicy/extract" && method === "POST") {
+    return handleExtract(request, env);
   }
   if (url.pathname === "/api/me/compass/draft-line" && method === "POST") {
     return handleDraftLine(request, env);

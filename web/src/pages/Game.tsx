@@ -7,7 +7,8 @@ import { api } from "../api";
 import { Screen } from "../components/Screen";
 import { Stages } from "../components/Stages";
 import { Typed } from "../components/Typed";
-import { BUILD_TICK_MS, buildTick, peopleLine, startBuild, tryInfo, type BuildState } from "../game";
+import { BUILD_TICK_MS, buildTick, offTableLine, peopleLine, startBuild, tryInfo, type BuildState } from "../game";
+import { CANT_REMEMBER, startPace } from "../juicy";
 
 interface GameTry {
   id: string;
@@ -18,6 +19,7 @@ interface GameTry {
   title: string;
   source: "ai" | "library";
   minutes: number;
+  nearly: boolean;
 }
 
 interface GameData {
@@ -25,6 +27,14 @@ interface GameData {
   tries: GameTry[];
   startTab: number;
   people: string[];
+  offtable: string[];
+  pace: { battery: string | null; cantRemember: boolean };
+}
+
+/** START HERE follows the battery, as the server paced it. */
+function startTabOf(d: GameData): number {
+  if (!d.pace) return d.startTab;
+  return startPace(d.pace.battery, d.pace.cantRemember ? CANT_REMEMBER : null);
 }
 
 const LEVELS = [
@@ -40,6 +50,7 @@ export function Game() {
   const [build, setBuild] = useState<BuildState>(startBuild);
   const [data, setData] = useState<GameData | null>(null);
   const [people, setPeople] = useState<string[] | null>(null);
+  const [offtable, setOfftable] = useState<string[] | null>(null);
   const [tab, setTab] = useState(0);
   const [tries, setTries] = useState<GameTry[]>([]);
   const [shown, setShown] = useState<string[]>([]);
@@ -64,7 +75,7 @@ export function Game() {
     if (build.done && data) {
       setTries(data.tries);
       setShown(data.tries.map((t) => t.title));
-      setTab(data.startTab);
+      setTab(startTabOf(data));
       setPhase("game");
       return;
     }
@@ -77,6 +88,7 @@ export function Game() {
     setBuild(startBuild());
     setData(null);
     setPeople(null);
+    setOfftable(null);
     setChosen(null);
     setWriting({});
     setNote("");
@@ -94,6 +106,7 @@ export function Game() {
     }
     gameId.current = res.data.gameId;
     setPeople(res.data.people);
+    setOfftable(res.data.offtable ?? []);
     setData(res.data);
   }
 
@@ -144,7 +157,7 @@ export function Game() {
   }
 
   const at = tries.filter((t) => t.level === LEVEL_KEY[tab]);
-  const lines = ["READING YOUR COMPASS", peopleLine(people), "TRY IT WRITES 9 TRIES: SMALL TALK AND KIND IT", "CODE CHECKS EACH ONE: SAFE, PUBLIC, SHORT", "CODE SETS THE LEVELS: SOFT, BRAVE, BOLD"];
+  const lines = ["READING YOUR ANSWERS", peopleLine(people), offTableLine(offtable), "TRY IT WRITES 9 TRIES: SMALL TALK AND KIND IT", "CODE SETS THE LEVELS: SOFT, BRAVE, BOLD"];
 
   return (
     <Screen title="Your game">
@@ -211,7 +224,7 @@ export function Game() {
                   onClick={() => setTab(i)}
                 >
                   <span class="gm-tabname">{l.name}</span>
-                  <span class="gm-tabtag">{data && i === data.startTab ? "START HERE" : l.tag}</span>
+                  <span class="gm-tabtag">{data && i === startTabOf(data) ? "START HERE" : l.tag}</span>
                 </button>
               ))}
             </div>
@@ -224,7 +237,7 @@ export function Game() {
                   <div key={t.id} class={`gm-card${isChosen ? " is-chosen" : isWriting ? " is-writing" : ""}`}>
                     <button type="button" class="gm-pick" onClick={() => pick(tab, i)} disabled={isWriting || busy} aria-pressed={isChosen}>
                       <span class="gm-title">{isWriting ? "TRY IT IS WRITING A NEW ONE..." : t.title}</span>
-                      <span class="gm-info">{isWriting ? "CHECKING IT AGAINST THE RULES" : tryInfo(t.kind, t.step, t.minutes, t.who_role)}</span>
+                      <span class="gm-info">{isWriting ? "CHECKING IT AGAINST THE RULES" : tryInfo(t.kind, t.step, t.minutes, t.who_role, t.nearly)}</span>
                     </button>
                     <button
                       type="button"

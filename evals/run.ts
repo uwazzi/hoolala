@@ -12,12 +12,13 @@ import { suggestFor } from "../src/llm/suggest";
 import { validateWhyGo } from "../src/llm/whygo";
 import { cleanRole, validateDraft } from "../src/rules/compass";
 import { ground, resolveCitation } from "../src/rules/grounding";
+import { validateJuicy } from "../src/rules/juicy";
 import { checkDraft, claimsAction } from "../src/rules/plan";
 import { confirmProblem, underCap } from "../src/rules/places";
 import { screenText } from "../src/rules/screening";
 import { validateGameMix, validateGameTry, validateTry, type GameCtx } from "../src/rules/tries";
 import type { Env } from "../src/types";
-import { READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
+import { JUICY_CASES, READIT_CASES, SCREEN_MODEL, SCREEN_RULES, SUGGEST_PLACES, TRY_CASES, WHYGO_CASES, WHYGO_PLACE } from "./cases";
 
 interface Result {
   suite: string;
@@ -169,6 +170,11 @@ for (const c of WHYGO_CASES) {
   const kept = validateWhyGo(c.value, [WHYGO_PLACE]);
   const got = kept === null ? -1 : kept.length;
   record({ suite: "whygo", name: c.name, live: false, pass: got === c.keep, detail: `kept ${got}` });
+}
+
+for (const c of JUICY_CASES) {
+  const got = validateJuicy(c.value, { offtable: c.offtable }) === null ? "reject" : "ok";
+  record({ suite: "juicy", name: c.name, live: false, pass: got === c.expect, detail: `got ${got}` });
 }
 
 for (const c of READIT_CASES) {
