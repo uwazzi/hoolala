@@ -271,7 +271,7 @@ export function Game() {
                 <ul class="key-list">
                   <li>
                     <a class="lcd-key lcd-key--primary" href="/">
-                      Skip. I know where to go
+                      LET'S GO
                     </a>
                   </li>
                 </ul>
