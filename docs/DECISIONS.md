@@ -125,3 +125,4 @@ One line per decision: date, decision, why. Newest at the bottom.
 - ~~Do hackathon keys work from Switzerland? Which features are on our key~~: yes for structured output and web_search (tested 28 Oct); image, audio and parallel tools to test when a function needs them.
 - Does Muse Code draw on the $150 credits?
 - May code start after kickoff on 26 Oct, or only from 27 Oct?
+- 2026-10-31 (v6.3, owner-ordered): onboarding game pick key reads LET'S GO (was SKIP. I KNOW WHERE TO GO as drawn). Same target (/), label only.
