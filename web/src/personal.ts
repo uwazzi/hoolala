@@ -56,11 +56,7 @@ function westLine(bits: KeptBits): string | null {
   return trimLine(`Battery ${bits.battery.toLowerCase()} today${last}`);
 }
 
-export function checkCells(bits: KeptBits): CheckCell[];
-export function checkCells(drafts: KeptDraft[]): LegacyCheckCell[];
-export function checkCells(input: KeptBits | KeptDraft[]): CheckCell[] | LegacyCheckCell[] {
-  if (Array.isArray(input)) return legacyCells(input);
-  const bits = input;
+export function checkCells(bits: KeptBits): CheckCell[] {
   const values: [string, string, string | null, string][] = [
     ["N", "MORE OF", northLine(bits), "FROM: WHAT YOU NEARLY SAID"],
     ["E", "TALK ABOUT", eastLine(bits), "FROM: YOUR STORY"],
@@ -95,15 +91,7 @@ export interface SavePayload {
 }
 
 /** LOOKS RIGHT: the checked lines plus the bits the game reads. */
-export function savePayload(bits: KeptBits): SavePayload;
-export function savePayload(drafts: KeptDraft[], dropped: string[]): { lines: { part: string; words: string }[]; people: { role: string }[] };
-export function savePayload(bits: KeptBits | KeptDraft[], dropped?: string[]): SavePayload | { lines: { part: string; words: string }[]; people: { role: string }[] } {
-  if (Array.isArray(bits)) {
-    return {
-      lines: bits.map((d) => ({ part: d.part, words: d.line })),
-      people: legacyPeople(bits, dropped ?? []).map((role) => ({ role })),
-    };
-  }
+export function savePayload(bits: KeptBits): SavePayload {
   const parts = ["intention", "interest", "filter", "delivery"];
   const lines = checkCells(bits)
     .map((cell, i) => ({ part: parts[i], words: cell.value }))
@@ -113,43 +101,4 @@ export function savePayload(bits: KeptBits | KeptDraft[], dropped?: string[]): S
     if (seen.indexOf(role) < 0) seen.push(role);
   }
   return { lines, people: seen.map((role) => ({ role })), battery: bits.battery, offtable: bits.offtable, nearlySaid: bits.nearlySaid };
-}
-
-// ---- Legacy v6.2 API, for the current Surprise.tsx only. WP36 rewrites that
-// screen and removes its import; delete this section with it.
-
-export interface KeptDraft {
-  part: string;
-  line: string;
-  people: string[];
-  viaTyped: boolean;
-}
-
-export interface LegacyCheckCell {
-  pole: string;
-  part: string;
-  line: string | null;
-  viaTyped: boolean;
-}
-
-export const CHECK_DIRS = [
-  { pole: "N", part: "intention" },
-  { pole: "E", part: "interest" },
-  { pole: "S", part: "filter" },
-  { pole: "W", part: "delivery" },
-];
-
-function legacyCells(drafts: KeptDraft[]): LegacyCheckCell[] {
-  return CHECK_DIRS.map((dir) => {
-    const line = drafts.find((d) => d.part === dir.part);
-    return { pole: dir.pole, part: dir.part, line: line ? line.line : null, viaTyped: line ? line.viaTyped : false };
-  });
-}
-
-function legacyPeople(drafts: KeptDraft[], dropped: string[]): string[] {
-  return [...new Set(drafts.flatMap((d) => d.people))].filter((r) => !dropped.includes(r));
-}
-
-export function checkPeople(drafts: KeptDraft[], dropped: string[]): string[] {
-  return legacyPeople(drafts, dropped);
 }

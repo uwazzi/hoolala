@@ -129,3 +129,30 @@ export async function compassTexts(db: D1Database, userId: string): Promise<stri
     .all<{ text: string }>();
   return results.map((r) => r.text);
 }
+
+/** The kept-bits extras saved with LOOKS RIGHT: battery, off-table list, nearly-said line. Read back by the game. */
+export interface OnboardBitsRow {
+  battery: string | null;
+  offtable_json: string;
+  nearly_line: string | null;
+  nearly_to_role: string | null;
+}
+
+export async function saveOnboardBits(
+  db: D1Database,
+  userId: string,
+  bits: { battery: string | null; offtable: string[]; nearlySaid: { line: string; toRole: string | null } | null },
+  nowIso: string,
+): Promise<void> {
+  await db
+    .prepare("INSERT OR REPLACE INTO onboard_bits (user_id, battery, offtable_json, nearly_line, nearly_to_role, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(userId, bits.battery, JSON.stringify(bits.offtable), bits.nearlySaid?.line ?? null, bits.nearlySaid?.toRole ?? null, nowIso)
+    .run();
+}
+
+export async function loadOnboardBits(db: D1Database, userId: string): Promise<OnboardBitsRow | null> {
+  return db
+    .prepare("SELECT battery, offtable_json, nearly_line, nearly_to_role FROM onboard_bits WHERE user_id = ?")
+    .bind(userId)
+    .first<OnboardBitsRow>();
+}

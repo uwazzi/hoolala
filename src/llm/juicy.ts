@@ -76,11 +76,9 @@ export async function extractJuicy(env: Env, userId: string, input: JuicyInput):
     const screenable = [...res.value.topics, res.value.nearlySaid?.line ?? ""].filter(Boolean).join(". ");
     const screen = screenable ? await screenWithModel(env, screenable) : null;
     if (screen?.verdict === "reject") continue;
-    // 'juicy' is missing from the shared writeWorking type in src/llm/client.ts
-    // (owned by another track); migration 0020 adds it to the DB check.
-    await writeWorking(env, { userId, fn: "juicy" as "compassdraft", tools: [], verdict: "approved", effort: "low" });
+    await writeWorking(env, { userId, fn: "juicy", tools: [], verdict: "approved", effort: "low" });
     return { bits: res.value, fallback: false };
   }
-  await writeWorking(env, { userId, fn: "juicy" as "compassdraft", tools: [], verdict: "rejected: invalid", effort: "low" });
+  await writeWorking(env, { userId, fn: "juicy", tools: [], verdict: "rejected: invalid", effort: "low" });
   return { bits: fallback(), fallback: true };
 }

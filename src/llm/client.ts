@@ -111,7 +111,7 @@ export async function writeWorking(
   env: Env,
   w: {
     userId: string;
-    fn: "compassdraft" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it" | "why_go" | "read_it";
+    fn: "compassdraft" | "place" | "suggest" | "screen" | "plan" | "snap" | "try_it" | "why_go" | "read_it" | "juicy";
     tools?: string[];
     citations?: string[];
     verdict?: string | null;

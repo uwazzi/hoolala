@@ -5,7 +5,7 @@
 // rejected drafts for library tries; the model never sets the step.
 
 import { GAME_LIBRARY, type GameLibraryTry } from "../content/tries";
-import { getCompass, listCompassPeople } from "../db/compass";
+import { getCompass, listCompassPeople, loadOnboardBits } from "../db/compass";
 import { gameBelongs, getGameTry, latestPickedGameTry, nextUnpickedGameTry, pickGameTry, saveGameTries, setCurrentGameTry, type GameTryRow, type NewGameTry } from "../db/tries";
 import { llmEnabled } from "../llm/client";
 import { draftGameTries, draftNewOneTry, type GameDraftTry, type GameInput } from "../llm/tryit";
@@ -61,12 +61,7 @@ interface OnboardBits {
 }
 
 async function loadBits(db: D1Database, userId: string): Promise<OnboardBits> {
-  // Inline SQL: src/db/* is owned by the sibling track under the shared
-  // contract, so the WP39 reads live here until the tracks merge.
-  const row = await db
-    .prepare("SELECT battery, offtable_json, nearly_line, nearly_to_role FROM onboard_bits WHERE user_id = ?")
-    .bind(userId)
-    .first<{ battery: string | null; offtable_json: string; nearly_line: string | null; nearly_to_role: string | null }>();
+  const row = await loadOnboardBits(db, userId);
   let offtable: string[] = [];
   try {
     const parsed: unknown = JSON.parse(row?.offtable_json ?? "[]");

@@ -25,6 +25,7 @@ import {
   removeCompassPerson,
   restoreCompassLine,
   saveCompass,
+  saveOnboardBits,
   setCompassOrigin,
   updateCompassLine,
 } from "../db/compass";
@@ -230,11 +231,12 @@ const JUICY_ROLE_CLASS: Record<string, string> = {
   grandparent: "close",
   family: "close",
   flatmate: "close",
+  colleague: "close",
   waiter: "service",
   cashier: "service",
   librarian: "service",
   "shop staff": "service",
-  "a regular": "service",
+  "a regular": "close",
 };
 
 /** A proposed role folded to the v6.2 or juicy allow-list, with its class. Names never survive. */
@@ -283,11 +285,7 @@ function readBits(body: Record<string, unknown>): BitsResult {
 }
 
 async function saveBits(env: Env, userId: string, bits: SaveBits, nowIso: string): Promise<void> {
-  // Inline SQL: src/db/* is owned by the sibling track under the shared
-  // contract, so the WP39 writes live here until the tracks merge.
-  await env.DB.prepare("INSERT OR REPLACE INTO onboard_bits (user_id, battery, offtable_json, nearly_line, nearly_to_role, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-    .bind(userId, bits.battery, JSON.stringify(bits.offtable), bits.nearlySaid?.line ?? null, bits.nearlySaid?.toRole ?? null, nowIso)
-    .run();
+  await saveOnboardBits(env.DB, userId, bits, nowIso);
 }
 
 export async function handlePeople(request: Request, env: Env, now = new Date()): Promise<Response> {

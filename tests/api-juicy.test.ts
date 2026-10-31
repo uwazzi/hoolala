@@ -208,15 +208,16 @@ describe("the onboard-bits save", () => {
     const ana = await person(env, "ana");
     const res = await call(env, "POST", "/api/me/compass/save", ana, {
       lines: LINES,
-      people: [{ role: "brother" }, { role: "colleague" }, { role: "grandparent" }, { role: "waiter" }],
+      people: [{ role: "brother" }, { role: "colleague" }, { role: "grandparent" }, { role: "waiter" }, { role: "a regular" }],
       battery: "OK",
       offtable: ["FAMILY"],
       nearlySaid: null,
     });
     expect(res.status).toBe(200);
     expect(rows(env, "SELECT role, role_class AS roleClass FROM compass_people WHERE user_id = ? ORDER BY rowid", ana.id)).toEqual([
-      { role: "colleague", roleClass: "service" },
+      { role: "colleague", roleClass: "close" },
       { role: "waiter", roleClass: "service" },
+      { role: "a regular", roleClass: "close" },
     ]);
   });
 
