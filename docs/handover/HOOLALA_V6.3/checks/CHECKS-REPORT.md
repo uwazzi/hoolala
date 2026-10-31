@@ -13,7 +13,7 @@ Checked Sat 31 Oct 2026 against branch `HOOLALA_V6.3` (contains `staging` with a
 | Value alignment | PASS | Copy built as drawn, including the curly quotes in the design file (precedent: v6.2 story copy). FULL → BOLD and CAN'T REMEMBER → SOFT exactly as decided. The CAN'T REMEMBER plus FULL line tension is owned by the open question below; until answered the line stays as written per `design/DECISIONS.md`. |
 
 Questions for the owner:
-- CAN'T REMEMBER plus FULL: keep "Full battery. Bold it is." (current) or use "Full battery. We'll still start gentle."? Building the current line.
+- CAN'T REMEMBER plus FULL: answered Sat 31 Oct, keep "Full battery. Bold it is." No code change; the reply plays as written and START HERE stays SOFT.
 
 ## WP39: Keeping the juicy bits, with Snake
 
