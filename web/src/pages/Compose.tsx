@@ -29,6 +29,35 @@ const Q1 = "WHAT'S THE TOPIC?";
 const Q2 = "WHERE ARE YOU?";
 const Q3 = "FOR HOW LONG?";
 
+function IdeasBlock({
+  ideas,
+  label,
+  suggesting,
+  onPick,
+  onMore,
+}: {
+  ideas: { text: string }[];
+  label: string;
+  suggesting: boolean;
+  onPick: (text: string) => void;
+  onMore: () => void;
+}) {
+  const [turn, setTurn] = useState(0);
+  return (
+    <div class="ideas">
+      <span class="ideas-label">{label}</span>
+      {ideas.map((idea, i) => (
+        <button key={idea.text} class="idea" type="button" onClick={() => onPick(idea.text)}>
+          {turn > i ? idea.text : turn === i ? <Typed text={idea.text} msPerChar={30} onDone={() => setTurn(i + 1)} /> : ""}
+        </button>
+      ))}
+      <button class="need-one" type="button" disabled={suggesting} onClick={onMore}>
+        <span>{suggesting ? "GETTING NEW IDEAS..." : "NONE FIT? GET 3 NEW ONES"}</span><span aria-hidden="true">&gt;</span>
+      </button>
+    </div>
+  );
+}
+
 export function Compose() {
   const { route } = useLocation();
   const [phase, setPhase] = useState<Phase>("compose");
@@ -142,19 +171,21 @@ export function Compose() {
         <h1 class="around-head">YOUR ICEBREAKER</h1>
 
         <label class="chat-bot" for="ib-topic">{turn > 0 ? Q1 : <Typed text={Q1} msPerChar={35} onDone={() => setTurn(1)} />}</label>
-        <input
-          id="ib-topic"
-          class="lcd-field"
-          type="text"
-          maxLength={60}
-          placeholder="One line. A question works best."
-          value={topic}
-          onInput={(e) => {
-            setTopic((e.target as HTMLInputElement).value.slice(0, 60));
-            setRefusal(null);
-          }}
-        />
-        <span class="field-count chat-count">{topic.length} / 60</span>
+        <div class="chat-answer">
+          <input
+            id="ib-topic"
+            class="lcd-field"
+            type="text"
+            maxLength={60}
+            placeholder="One line. A question works best."
+            value={topic}
+            onInput={(e) => {
+              setTopic((e.target as HTMLInputElement).value.slice(0, 60));
+              setRefusal(null);
+            }}
+          />
+          <span class="field-count">{topic.length} / 60</span>
+        </div>
 
         {refusal && (
           <p class="refusal-note" role="alert" aria-live="polite">{refusal}</p>
@@ -165,7 +196,7 @@ export function Compose() {
         {!ideas && !suggesting && (
           <>
             <button class="need-one" type="button" onClick={() => suggest(false)}>
-              <span>NEED ONE? GET 3 IDEAS</span><span aria-hidden="true">&gt;</span>
+              <span>NEED ONE? GET TOPIC IDEAS</span><span aria-hidden="true">&gt;</span>
             </button>
             <p class="around-privacy">{hasCompass ? `Ideas from your compass: ${compassHint}.` : "No compass yet, so I'll get creative."}</p>
           </>
@@ -177,43 +208,37 @@ export function Compose() {
           </div>
         )}
         {ideas && (
-          <div class="ideas">
-            <span class="ideas-label">{ideas.label}</span>
-            {ideas.ideas.map((idea) => (
-              <button
-                key={idea.text}
-                class="idea"
-                type="button"
-                onClick={() => {
-                  setTopic(idea.text);
-                  setRefusal(null);
-                }}
-              >
-                {idea.text}
-              </button>
-            ))}
-            <button class="need-one" type="button" disabled={suggesting} onClick={() => suggest(true)}>
-              <span>{suggesting ? "GETTING NEW IDEAS..." : "NONE FIT? GET 3 NEW ONES"}</span><span aria-hidden="true">&gt;</span>
-            </button>
-          </div>
+          <IdeasBlock
+            key={ideas.ideas.map((i) => i.text).join("\n")}
+            ideas={ideas.ideas}
+            label={ideas.label}
+            suggesting={suggesting}
+            onPick={(text) => {
+              setTopic(text);
+              setRefusal(null);
+            }}
+            onMore={() => suggest(true)}
+          />
         )}
 
         {turn >= 1 && (
           <label class="chat-bot" for="ib-place">{turn > 1 ? Q2 : <Typed text={Q2} msPerChar={35} onDone={() => setTurn(2)} />}</label>
         )}
-        <input
-          id="ib-place"
-          class="lcd-field"
-          type="text"
-          maxLength={40}
-          placeholder="Café du Coin, window table"
-          value={place}
-          onInput={(e) => {
-            setPlace((e.target as HTMLInputElement).value.slice(0, 40));
-            setRefusal(null);
-          }}
-        />
-        <span class="field-count chat-count">{place.length} / 40</span>
+        <div class="chat-answer">
+          <input
+            id="ib-place"
+            class="lcd-field"
+            type="text"
+            maxLength={40}
+            placeholder="Café du Coin, window table"
+            value={place}
+            onInput={(e) => {
+              setPlace((e.target as HTMLInputElement).value.slice(0, 40));
+              setRefusal(null);
+            }}
+          />
+          <span class="field-count">{place.length} / 40</span>
+        </div>
         <p class="around-privacy">A public place, and where inside it. This creates a 500 m area people nearby can find. We keep a rough area, never your exact spot, and it goes when your icebreaker does.</p>
 
         {turn >= 2 && (
