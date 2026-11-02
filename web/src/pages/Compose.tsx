@@ -49,19 +49,24 @@ export function Compose() {
   const compassHint = (compass ?? []).slice(0, 3).map((l) => l.text).join(" · ");
   const canPost = topic.trim() !== "" && place.trim() !== "";
 
-  async function suggest() {
+  async function suggest(fresh: boolean) {
     if (suggesting) return;
     setSuggesting(true);
-    setIdeas(null);
+    setNote("");
+    if (!fresh) setIdeas(null);
     let res;
     try {
-      res = await api<Ideas>("POST", "/api/rooms/suggest", { lang: navigator.language.startsWith("fr") ? "fr" : "en" });
+      res = await api<Ideas>("POST", "/api/rooms/suggest", {
+        lang: navigator.language.startsWith("fr") ? "fr" : "en",
+        ...(fresh ? { fresh: true, avoid: (ideas?.ideas ?? []).map((i) => i.text) } : {}),
+      });
     } catch {
       setSuggesting(false);
       return setNote("No connection. Try again when you're back online.");
     }
     setSuggesting(false);
     if (res.status === 401) return setPhase("signed-out");
+    if (res.status === 429) return setNote("That's enough ideas for one hour. Try again later.");
     if (res.status !== 200) return setNote("No ideas right now. Your own line works best anyway.");
     setIdeas({ ideas: res.data.ideas, label: res.data.label });
   }
@@ -152,12 +157,14 @@ export function Compose() {
         <p class="around-privacy">Everything typed or suggested is checked: nothing insulting, racist, sexual or offensive gets through.</p>
 
         {!ideas && !suggesting && (
-          <button class="need-one" type="button" onClick={suggest}>
-            <span class="need-one-key">NEED ONE?</span>
-            <span class="need-one-note">{hasCompass ? `Ideas from your compass: ${compassHint}.` : "No compass yet, so I'll get creative."}</span>
-          </button>
+          <>
+            <button class="need-one" type="button" onClick={() => suggest(false)}>
+              <span>NEED ONE? GET 3 IDEAS</span><span aria-hidden="true">&gt;</span>
+            </button>
+            <p class="around-privacy">{hasCompass ? `Ideas from your compass: ${compassHint}.` : "No compass yet, so I'll get creative."}</p>
+          </>
         )}
-        {suggesting && (
+        {suggesting && !ideas && (
           <p class="suggesting-line">{hasCompass ? "READING YOUR COMPASS, THEN CHECKING..." : "GETTING CREATIVE, THEN CHECKING..."}</p>
         )}
         {ideas && (
@@ -176,6 +183,9 @@ export function Compose() {
                 {idea.text}
               </button>
             ))}
+            <button class="need-one" type="button" disabled={suggesting} onClick={() => suggest(true)}>
+              <span>{suggesting ? "GETTING NEW IDEAS..." : "NONE FIT? GET 3 NEW ONES"}</span><span aria-hidden="true">&gt;</span>
+            </button>
           </div>
         )}
 
