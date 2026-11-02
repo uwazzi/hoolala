@@ -89,6 +89,10 @@ export async function firstName(db: D1Database, userId: string): Promise<string 
 const NOT_SAMPLE_PLACE = (column: string) =>
   `(${column} IS NULL OR ${column} NOT IN (SELECT id FROM places WHERE is_sample = 1))`;
 
+/** Sample people never count either (table meetings carry no place to exclude by). */
+const NOT_SAMPLE_PEOPLE =
+  `user_a NOT IN (SELECT id FROM users WHERE is_sample = 1) AND user_b NOT IN (SELECT id FROM users WHERE is_sample = 1)`;
+
 export interface LiveCounts {
   hellos: number;
   acceptedSignals: number;
@@ -103,7 +107,10 @@ export async function liveCounts(db: D1Database, sinceIso: string, weekAgoIso: s
   const one = async (sql: string, ...binds: unknown[]) =>
     ((await db.prepare(sql).bind(...binds).first<number>("n")) as number | null) ?? 0;
   const [hellos, acceptedSignals, metSignals, checkinAttempts, checkinOk, factsConfirmedWeek] = await Promise.all([
-    one(`SELECT COUNT(*) AS n FROM interactions WHERE kind = 'here' AND confirmed_at >= ? AND ${NOT_SAMPLE_PLACE("place_id")}`, sinceIso),
+    one(
+      `SELECT COUNT(*) AS n FROM interactions WHERE kind IN ('here', 'table') AND confirmed_at >= ? AND ${NOT_SAMPLE_PLACE("place_id")} AND ${NOT_SAMPLE_PEOPLE}`,
+      sinceIso,
+    ),
     one(
       `SELECT COUNT(DISTINCT r.signal_id) AS n FROM signal_responses r JOIN signals s ON s.id = r.signal_id
        WHERE r.state = 'accepted' AND r.created_at >= ? AND ${NOT_SAMPLE_PLACE("s.place_id")}`,

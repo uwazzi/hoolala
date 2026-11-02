@@ -3,6 +3,7 @@
 // compass box, friend dare, WHERE chips and here links are gone (the story
 // ends on the motto; the softkeys cover the rest).
 import { useEffect, useState } from "preact/hooks";
+import { useLocation } from "preact-iso";
 import type { MeResponse } from "../../../src/types";
 import { api } from "../api";
 import { Plant } from "../components/Plant";
@@ -13,6 +14,7 @@ import { localSeen, shouldShowStory } from "../story";
 import { Typed } from "../components/Typed";
 
 export function Home() {
+  const { query } = useLocation();
   const [me, setMe] = useState<MeResponse | null>(null);
   const [auth, setAuth] = useState<"loading" | "in" | "out">("loading");
   const [plant, setPlant] = useState<PlantState | null>(null);
@@ -89,8 +91,12 @@ export function Home() {
           <div class="today-plant">
             <Plant leaves={plant?.leaves ?? 0} cell={6} />
             <span class="today-plant-text">
-              <span class="today-plant-count">{plant?.tries ?? 0} TINY TRIES</span>
-              <span class="today-plant-sub">Your plant. It only grows.</span>
+              <span class="today-plant-count">{plant?.leaves ?? 0} LEAVES</span>
+              {query.grew === "5" ? (
+                <span class="today-plant-sub">+5 JUST NOW · Your plant grows 5 leaves for this one.</span>
+              ) : (
+                <span class="today-plant-sub">Your plant. It only grows.</span>
+              )}
             </span>
           </div>
           <div class="today-kicker">TODAY'S TRY · STEP {current?.step ?? plant?.step ?? 1} OF 5</div>
