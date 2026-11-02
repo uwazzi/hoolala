@@ -169,7 +169,7 @@ export async function handleRoomJoin(id: string, request: Request, env: Env, now
     // Already in: the same member view, no second join counted.
     return json(await memberView(env, room, cell));
   }
-  const mine = await currentRoomsFor(env.DB, user.id);
+  const mine = await currentRoomsFor(env.DB, user.id, now.toISOString());
   const joinedNow = mine.filter((m) => m.role === "member").length;
   const hourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
   if (!canJoinAnother(joinedNow, await joinsLastHour(env.DB, user.id, hourAgo))) return json({ error: "too_many" }, 429);

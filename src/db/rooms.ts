@@ -143,10 +143,14 @@ export async function rejoined(db: D1Database, roomId: string, userId: string, j
 }
 
 /** Rooms this person currently belongs to (any role). */
-export async function currentRoomsFor(db: D1Database, userId: string): Promise<RoomMemberRow[]> {
+/** Rooms the user is still in that are still alive: ended rooms free their join slots. */
+export async function currentRoomsFor(db: D1Database, userId: string, nowIso: string): Promise<RoomMemberRow[]> {
   const { results } = await db
-    .prepare("SELECT * FROM room_members WHERE user_id = ? AND left_at IS NULL AND removed = 0")
-    .bind(userId)
+    .prepare(
+      `SELECT m.* FROM room_members m JOIN rooms r ON r.id = m.room_id
+       WHERE m.user_id = ? AND m.left_at IS NULL AND m.removed = 0 AND r.status = 'open' AND r.ends_at > ?`,
+    )
+    .bind(userId, nowIso)
     .all<RoomMemberRow>();
   return results;
 }

@@ -240,6 +240,7 @@ export function Room() {
     }
     setBusy(false);
     if (res.status === 409) return setNote("That room just filled up. Try another, or post your own.");
+    if (res.status === 429) return setNote("That's enough joining for now. Leave a room, or try again later.");
     if (res.status !== 200) return setNote("That room just closed. Look again?");
     load();
   }

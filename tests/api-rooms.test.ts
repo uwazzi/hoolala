@@ -265,6 +265,18 @@ describe("rooms join and leave", () => {
     expect((await call(env, "POST", `/api/rooms/${ids[1]}/join`, lea, CAFE)).status).toBe(200);
     expect((await call(env, "POST", `/api/rooms/${ids[2]}/join`, lea, CAFE)).status).toBe(429);
   });
+
+  it("frees join slots when rooms end: ended rooms don't count", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const ids = [await room(env, hugo, { topic: "one" }), await room(env, hugo, { topic: "two" }), await room(env, hugo, { topic: "three" })];
+    expect((await call(env, "POST", `/api/rooms/${ids[0]}/join`, lea, CAFE)).status).toBe(200);
+    expect((await call(env, "POST", `/api/rooms/${ids[1]}/join`, lea, CAFE)).status).toBe(200);
+    expect((await call(env, "POST", `/api/rooms/${ids[2]}/join`, lea, CAFE)).status).toBe(429);
+    await env.DB.prepare("UPDATE rooms SET status = 'expired' WHERE id = ? OR id = ?").bind(ids[0], ids[1]).run();
+    expect((await call(env, "POST", `/api/rooms/${ids[2]}/join`, lea, CAFE)).status).toBe(200);
+  });
 });
 
 async function postRoom(env: Env, who: Person, body: Record<string, unknown>) {
