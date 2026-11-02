@@ -50,6 +50,12 @@ export function Privacy() {
           as one collective number. If you both choose STAY IN TOUCH, you become friends; if only one of you does, nobody is told.
         </p>
 
+        <h2>Poster scans</h2>
+        <p>
+          Scanning a Hoolala! poster asks your phone where you are, once. We count the scan in its rough area (about 200 metres) with the
+          town name, for our hotspot numbers, and forget the exact spot. Denying location still lets you join.
+        </p>
+
         <h2>Your Personal Compass</h2>
         <p>
           Three spoken questions about real moments. Your voice becomes words and is never kept; transcripts are never stored. Each answer drafts one
@@ -95,7 +101,7 @@ export function Privacy() {
           <a href="https://github.com/uwazzi/hoolala" target="_blank" rel="noopener noreferrer">GitHub</a>, so you can check all of this. Questions or
           requests: open an issue there.
         </p>
-        <p class="lcd-small">Last updated 29 October 2026.</p>
+        <p class="lcd-small">Last updated 2 November 2026.</p>
       </div>
     </Screen>
   );

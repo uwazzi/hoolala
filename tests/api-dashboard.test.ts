@@ -72,6 +72,20 @@ describe("the owner dashboard", () => {
     expect((await call(env, "/api/dashboard", TOKEN)).status).toBe(403);
   });
 
+  it("counts poster hotspots per GPS zone for the owner", async () => {
+    const env = testEnv();
+    env.OWNER_TOKEN = TOKEN;
+    env.DB.sqlite.prepare("INSERT INTO poster_scans (day, zone, locality, scans) VALUES ('2026-10-28', '46.52,6.63', 'Lausanne', 4)").run();
+    env.DB.sqlite.prepare("INSERT INTO poster_scans (day, zone, locality, scans) VALUES ('2026-10-27', '46.52,6.63', 'Lausanne', 2)").run();
+    env.DB.sqlite.prepare("INSERT INTO poster_scans (day, zone, locality, scans) VALUES ('2026-10-28', 'unknown', NULL, 1)").run();
+    const res = await call(env, "/api/dashboard", TOKEN);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { hotspots: { zone: string; locality: string | null; scans: number }[] }).hotspots).toEqual([
+      { zone: "46.52,6.63", locality: "Lausanne", scans: 6 },
+      { zone: "unknown", locality: null, scans: 1 },
+    ]);
+  });
+
   it("counts users, interactions, leaves and sentiment for the owner", async () => {
     const env = testEnv();
     env.OWNER_TOKEN = TOKEN;

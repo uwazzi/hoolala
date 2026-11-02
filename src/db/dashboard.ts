@@ -2,12 +2,14 @@
 // deleted and sample users are out, and interactions at SAMPLE places.
 
 import type { D1Database } from "../types";
+import { posterHotspots, type PosterHotspot } from "./posters";
 
 export interface DashboardCounts {
   users: number;
   interactions: number;
   leaves: number;
   sentiment: { went_well: number; no_reply: number; awkward: number; didnt_happen: number };
+  hotspots: PosterHotspot[];
 }
 
 const REAL_USERS = "deleted_at IS NULL AND is_sample = 0";
@@ -26,5 +28,5 @@ export async function dashboardCounts(db: D1Database): Promise<DashboardCounts> 
     if (r.outcome in sentiment) sentiment[r.outcome as keyof typeof sentiment] = r.n;
   }
   const leaves = sentiment.went_well + sentiment.no_reply + sentiment.awkward;
-  return { users: users ?? 0, interactions: interactions ?? 0, leaves, sentiment };
+  return { users: users ?? 0, interactions: interactions ?? 0, leaves, sentiment, hotspots: await posterHotspots(db) };
 }

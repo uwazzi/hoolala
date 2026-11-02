@@ -5,6 +5,7 @@ import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
 import { hhmm, locate, type Point } from "../around";
+import { Qr } from "../components/Qr";
 import { Radar } from "../components/Radar";
 import { Screen } from "../components/Screen";
 
@@ -180,6 +181,12 @@ export function Around() {
                 <li>Collective numbers only. Never data about your guests.</li>
               </ul>
               <p class="around-privacy">Bring human connection to your place. Write to Huguinho at HG-Labs, a real person answers.</p>
+              <div class="poster-box">
+                <span class="compass-box-label">YOUR POSTER</span>
+                <Qr text={`${window.location.origin}/p`} label="Hoolala! poster QR: scan to join and post an icebreaker" />
+                <p class="around-privacy">Print it, post it at your coffee machine. Every scan onboards someone into posting an icebreaker here.</p>
+                <a class="lcd-key" href="/posters">PRINT YOUR POSTER</a>
+              </div>
             </div>
             <div class="thumb-zone">
               <a class="thumb-key" href={PARTNER_MAIL}><span>CONTACT ME</span><span aria-hidden="true">&gt;</span></a>

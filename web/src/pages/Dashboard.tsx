@@ -10,6 +10,7 @@ interface DashboardView {
   interactions: number;
   leaves: number;
   sentiment: { went_well: number; no_reply: number; awkward: number; didnt_happen: number };
+  hotspots: { zone: string; locality: string | null; scans: number }[];
   updatedAt: string;
 }
 
@@ -123,6 +124,20 @@ export function Dashboard() {
                   </li>
                 ))}
               </ul>
+            </div>
+            <div class="lcd-block">
+              <p class="lcd-kicker">Poster hotspots</p>
+              {view.hotspots.length === 0 ? (
+                <p class="lcd-small">No scans yet.</p>
+              ) : (
+                <ul class="reply-list">
+                  {view.hotspots.map((h) => (
+                    <li key={h.zone}>
+                      {h.locality ?? "Unknown area"}{h.locality ? ` · ${h.zone}` : ""}: {h.scans}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div class="lcd-block">
               <p class="lcd-kicker">Latest hellos</p>
