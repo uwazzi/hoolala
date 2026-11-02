@@ -61,6 +61,7 @@ export interface Env {
   TELEGRAM_WEBHOOK_SECRET?: string;
   TELEGRAM_BOT_USERNAME?: string;
   OWNER_TOKEN?: string;
+  TABLE_QR_SECRET?: string;
 }
 
 // --- D1 rows (one per table in docs/BUILD-PLAN.md) --------------------------
@@ -357,6 +358,7 @@ export interface RoomMemberRow {
   removed: number;
   at_table_at: IsoDateTime | null;
   remove_token: string | null;
+  table_left_at: IsoDateTime | null;
 }
 
 export interface RoomReplyRow {

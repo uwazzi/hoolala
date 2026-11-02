@@ -480,6 +480,26 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .quick-key { flex: 1 1 auto; min-height: 44px; padding: 6px 8px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); font: 10px/1.2 var(--font-display); color: var(--lcd-ink); cursor: pointer; }
 .quick-key:disabled { opacity: 0.55; cursor: default; }
 .closed-note { margin: 0; padding: 12px; border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.45; }
+.table-screen { flex-grow: 1; min-height: 0; background: var(--lcd-selected); color: var(--lcd-selected-ink); padding: 18px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.table-scanned { width: 100%; box-sizing: border-box; margin: 0; padding: 8px 10px; background: var(--lcd-surface); color: var(--lcd-ink); border-radius: var(--radius-control); font-size: 12px; line-height: 1.4; text-align: left; }
+.table-brand { font: 700 20px/1.2 var(--font-display); letter-spacing: 1px; }
+.table-topic { font-size: 18px; line-height: 1.35; }
+.table-qr { padding: 12px; background: var(--lcd-surface); border-radius: var(--radius-control); }
+.qr--table { width: 200px; height: 200px; margin: 0; border: none; }
+.table-scan-line { font: 15px/1.3 var(--font-display); }
+.table-note { font-size: 11px; color: var(--lcd-sunken); }
+.table-list { width: 100%; border-top: 2px dashed var(--lcd-ink-secondary); padding-top: 10px; display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.table-list-head { font: 10px/1.4 var(--font-display); color: var(--lcd-sunken); }
+.table-names { font-size: 13px; }
+.table-spacer { flex-grow: 1; min-height: 12px; }
+.table-done { width: 100%; min-height: 48px; background: none; color: var(--lcd-selected-ink); border: 2px solid var(--lcd-selected-ink); border-radius: var(--radius-control); font: 12px/1.2 var(--font-display); cursor: pointer; }
+.table-done:disabled { opacity: 0.55; cursor: default; }
+.scan-box { padding: 14px; background: var(--lcd-selected); color: var(--lcd-selected-ink); border-radius: var(--radius-control); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.scan-head { font: 13px/1.4 var(--font-display); }
+.scan-video { width: 100%; max-width: 320px; aspect-ratio: 1; object-fit: cover; background: var(--lcd-ink); border: 3px dashed var(--lcd-surface); }
+.scan-note { font-size: 11px; color: var(--lcd-sunken); }
+.scan-back { width: 100%; min-height: 48px; background: var(--lcd-surface); color: var(--lcd-ink); border: none; border-radius: var(--radius-control); font: 12px/1 var(--font-display); cursor: pointer; }
+.table-kicker { font: 700 20px/1.2 var(--font-display); letter-spacing: 1px; }
 .partner-list { margin: 0; padding: 12px 12px 12px 30px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
 .chip-row { display: flex; gap: 6px; }
 .chip { flex: 1; padding: 8px 10px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); font: 11px/1 var(--font-display); cursor: pointer; }

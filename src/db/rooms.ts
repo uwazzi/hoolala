@@ -222,6 +222,81 @@ export async function closeExpiredRooms(db: D1Database, nowIso: string): Promise
   return res.meta?.changes ?? 0;
 }
 
+/** Phones on the table: displaying the room QR means sitting at the table. */
+export async function markAtTable(db: D1Database, roomId: string, userId: string, nowIso: string): Promise<void> {
+  await db.prepare("UPDATE room_members SET at_table_at = ?, table_left_at = NULL WHERE room_id = ? AND user_id = ?").bind(nowIso, roomId, userId).run();
+}
+
+/** Leaving the table keeps at_table_at: the debrief still finds everyone who was there. */
+export async function markTableLeft(db: D1Database, roomId: string, userId: string, nowIso: string): Promise<void> {
+  await db.prepare("UPDATE room_members SET table_left_at = ? WHERE room_id = ? AND user_id = ?").bind(nowIso, roomId, userId).run();
+}
+
+/** Current members sitting at the table right now, the starter (who sat down first) first. */
+export async function atTableIds(db: D1Database, roomId: string): Promise<string[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT user_id AS id FROM room_members
+       WHERE room_id = ? AND left_at IS NULL AND removed = 0 AND at_table_at IS NOT NULL AND table_left_at IS NULL
+       ORDER BY CASE role WHEN 'starter' THEN 0 ELSE 1 END ASC, at_table_at ASC, user_id ASC`,
+    )
+    .bind(roomId)
+    .all<{ id: string }>();
+  return results.map((r) => r.id);
+}
+
+export async function atTableNames(db: D1Database, roomId: string): Promise<string[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT u.first_name AS name FROM room_members m JOIN users u ON u.id = m.user_id
+       WHERE m.room_id = ? AND m.left_at IS NULL AND m.removed = 0
+         AND m.at_table_at IS NOT NULL AND m.table_left_at IS NULL AND u.first_name IS NOT NULL
+       ORDER BY CASE m.role WHEN 'starter' THEN 0 ELSE 1 END ASC, m.at_table_at ASC, m.user_id ASC`,
+    )
+    .bind(roomId)
+    .all<{ name: string }>();
+  return results.map((r) => r.name);
+}
+
+/**
+ * The scan is the meeting: one table interaction per pair with everyone
+ * already at the table, once per pair per day. Returns how many were new.
+ */
+export async function recordTablePairs(db: D1Database, roomId: string, userId: string, day: string, nowIso: string): Promise<number> {
+  const others = (await atTableIds(db, roomId)).filter((id) => id !== userId);
+  let recorded = 0;
+  for (const other of others) {
+    const [a, b] = userId < other ? [userId, other] : [other, userId];
+    const interactionId = crypto.randomUUID();
+    const res = await db
+      .prepare(
+        `INSERT OR IGNORE INTO interactions (id, kind, user_a, user_b, place_id, signal_id, day, confirmed_at)
+         VALUES (?, 'table', ?, ?, NULL, NULL, ?, ?)`,
+      )
+      .bind(interactionId, a, b, day, nowIso)
+      .run();
+    if ((res.meta?.changes ?? 0) !== 1) continue;
+    recorded += 1;
+    await db.batch(
+      [a, b].map((uid) =>
+        db.prepare("INSERT INTO moments (id, user_id, interaction_id, label) VALUES (?, ?, ?, ?)").bind(crypto.randomUUID(), uid, interactionId, "You met an actual human."),
+      ),
+    );
+  }
+  return recorded;
+}
+
+/** Table meetings recorded today between these people, for the table sign. */
+export async function tableMeetingCount(db: D1Database, userIds: string[], day: string): Promise<number> {
+  if (userIds.length < 2) return 0;
+  const placeholders = userIds.map(() => "?").join(", ");
+  const row = await db
+    .prepare(`SELECT COUNT(*) AS n FROM interactions WHERE kind = 'table' AND day = ? AND user_a IN (${placeholders}) AND user_b IN (${placeholders})`)
+    .bind(day, ...userIds, ...userIds)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
+}
+
 /**
  * The cron deletes rooms ended more than 24 h ago. Members, replies and the
  * grid cell go with the room (cascades); only interactions survive.

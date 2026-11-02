@@ -8,6 +8,8 @@ import { blockedIds } from "../db/here";
 import {
   addMember,
   addReply,
+  atTableIds,
+  atTableNames,
   candidateRooms,
   createRoom,
   currentMemberIds,
@@ -15,20 +17,25 @@ import {
   getMembership,
   getRoom,
   joinsLastHour,
+  markAtTable,
   markLeft,
   markRemoved,
+  markTableLeft,
   memberNames,
   membershipByToken,
   openRoomsByStarter,
+  recordTablePairs,
   rejoined,
   removedIds,
   repliesFor,
   roomMemberViews,
   setRoomStatus,
   startsToday,
+  tableMeetingCount,
 } from "../db/rooms";
 import { writeWorking } from "../llm/client";
 import { roomIdeasFor } from "../llm/roomideas";
+import { mintTableToken, verifyTableToken } from "./table";
 import { translationFor, type ScreenVerdict } from "../llm/screen";
 import { screenWithModel } from "../llm/screen";
 import { fitsYou } from "../rules/compass";
@@ -341,6 +348,7 @@ export async function handleRoomDetail(id: string, request: Request, env: Env, n
   const replies = await repliesFor(env.DB, id);
   const lastByUser = new Map<string, string>();
   for (const reply of replies) lastByUser.set(reply.user_id, reply.code);
+  const atTable = await atTableIds(env.DB, id);
   return json({
     id: room.id,
     topic: room.topic,
@@ -353,6 +361,10 @@ export async function handleRoomDetail(id: string, request: Request, env: Env, n
     member: true,
     translation: room.translation,
     lang: room.lang,
+    tableOpen: atTable.length > 0,
+    youAtTable: atTable.includes(user.id),
+    atTable: await atTableNames(env.DB, id),
+    recorded: await tableMeetingCount(env.DB, atTable, now.toISOString().slice(0, 10)),
     members: views.map((m) => {
       const last = lastByUser.get(m.userId);
       const you = m.userId === user.id;
@@ -390,6 +402,80 @@ export async function handleRoomTakedown(id: string, request: Request, env: Env,
   if (!room || room.starter_id !== user.id) return json({ error: "not_found" }, 404);
   await setRoomStatus(env.DB, id, "closed");
   return json({ ok: true });
+}
+
+/** The phone goes on the table: a fresh signed QR, and a seat at the table. */
+export async function handleTableToken(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  if (!env.TABLE_QR_SECRET) return json({ error: "table_unavailable" }, 503);
+  const room = await getRoom(env.DB, id);
+  const membership = room ? await getMembership(env.DB, id, user.id) : null;
+  if (!room || !membership || membership.left_at !== null || membership.removed === 1) return json({ error: "not_found" }, 404);
+  if (room.status !== "open" || Date.parse(room.ends_at) <= now.getTime()) return json({ error: "closed" }, 409);
+  await markAtTable(env.DB, id, user.id, now.toISOString());
+  const token = await mintTableToken(env.TABLE_QR_SECRET, room.id, user.id, now);
+  return json({ token, url: `${new URL(request.url).origin}/r/${token}`, refreshAt: now.toISOString() });
+}
+
+/** Leaving the table keeps the meeting history for the debrief. */
+export async function handleTableLeave(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  await markTableLeft(env.DB, id, user.id, now.toISOString());
+  return json({ ok: true });
+}
+
+/**
+ * The scan is the meeting. A member scans and sits down; a signed-in
+ * non-member nearby joins first. Blocked pairs are refused silently and
+ * record nothing. Honest claim: both at the same Hoolala! table.
+ */
+export async function handleTableScan(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  if (!env.TABLE_QR_SECRET) return json({ error: "table_unavailable" }, 503);
+  const body = await readJson(request);
+  const scanned = await verifyTableToken(env.TABLE_QR_SECRET, body.token, now);
+  if (!scanned) return json({ error: "bad_token" }, 404);
+  const room = await getRoom(env.DB, scanned.roomId);
+  if (!room || room.status !== "open" || Date.parse(room.ends_at) <= now.getTime()) return json({ error: "bad_token" }, 404);
+  const shower = await getMembership(env.DB, room.id, scanned.showerId);
+  if (!shower || shower.left_at !== null || shower.removed === 1) return json({ error: "bad_token" }, 404);
+
+  const blocked = await blockedIds(env.DB, user.id);
+  const atTable = await atTableIds(env.DB, room.id);
+  if (blocked.has(scanned.showerId) || atTable.some((id) => blocked.has(id))) return json({ error: "not_found" }, 404);
+
+  const membership = await getMembership(env.DB, room.id, user.id);
+  if (membership && membership.removed === 1) return json({ error: "not_found" }, 404);
+  const current = membership && membership.left_at === null;
+  if (!current) {
+    const point = pointOf(body);
+    if (!point) return json({ error: "needs_location" }, 400);
+    const cell = snapToCell(point.lat, point.lng);
+    const candidate = {
+      id: room.id,
+      starterId: room.starter_id,
+      status: room.status,
+      endsAt: room.ends_at,
+      cellLat: room.cell_lat,
+      cellLng: room.cell_lng,
+      memberIds: await currentMemberIds(env.DB, room.id),
+      removedIds: await removedIds(env.DB, room.id),
+      fitsYou: false,
+    };
+    const refusal = joinRefusal({ id: user.id, blockedIds: [...blocked] }, candidate, cell, now);
+    if (refusal === "hidden") return json({ error: "not_found" }, 404);
+    if (refusal === "full") return json({ error: "full" }, 409);
+    if (membership) await rejoined(env.DB, room.id, user.id, now.toISOString());
+    else {
+      await addMember(env.DB, { roomId: room.id, userId: user.id, role: "member", joinedAt: now.toISOString(), removeToken: crypto.randomUUID() });
+    }
+  }
+  await markAtTable(env.DB, room.id, user.id, now.toISOString());
+  const recorded = await recordTablePairs(env.DB, room.id, user.id, now.toISOString().slice(0, 10), now.toISOString());
+  return json({ ok: true, roomId: room.id, atTable: await atTableNames(env.DB, room.id), recorded });
 }
 
 export async function handleRoomRemove(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {

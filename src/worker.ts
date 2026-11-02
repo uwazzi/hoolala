@@ -31,7 +31,11 @@ import {
   handleRoomTakedown,
   handleRoomsScan,
   handleRoomsSuggest,
+  handleTableLeave,
+  handleTableScan,
+  handleTableToken,
 } from "./api/rooms";
+import { handleTableClaim, handleTableLanding, handleTablePending, handleTableStart } from "./api/table";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
 import { handleAnother, handleNewGame, handleNewOne, handlePick } from "./api/game";
@@ -67,7 +71,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   ].join("; "),
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
-  "permissions-policy": "geolocation=(self), camera=(), microphone=(self)",
+  "permissions-policy": "geolocation=(self), camera=(self), microphone=(self)",
   "strict-transport-security": "max-age=31536000; includeSubDomains",
 };
 
@@ -248,6 +252,26 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (roomOne && method === "GET") {
     return handleRoomDetail(roomOne[1], request, env);
   }
+  const roomTable = /^\/api\/rooms\/([0-9a-f-]{36})\/table$/.exec(url.pathname);
+  if (roomTable && method === "GET") {
+    return handleTableToken(roomTable[1], request, env);
+  }
+  const roomTableLeave = /^\/api\/rooms\/([0-9a-f-]{36})\/table\/leave$/.exec(url.pathname);
+  if (roomTableLeave && method === "POST") {
+    return handleTableLeave(roomTableLeave[1], request, env);
+  }
+  if (url.pathname === "/api/rooms/scan-table" && method === "POST") {
+    return handleTableScan(request, env);
+  }
+  if (url.pathname === "/api/table/pending" && method === "GET") {
+    return handleTablePending(request, env);
+  }
+  if (url.pathname === "/api/table/start" && method === "POST") {
+    return handleTableStart(request, env);
+  }
+  if (url.pathname === "/api/table/claim" && method === "POST") {
+    return handleTableClaim(request, env);
+  }
   const roomAction = /^\/api\/rooms\/([0-9a-f-]{36})\/(join|leave|reply|takedown|remove)$/.exec(url.pathname);
   if (roomAction && method === "POST") {
     const [, id, action] = roomAction;
@@ -364,6 +388,11 @@ export default {
     }
     if (url.pathname === "/auth/verify" && request.method === "GET") {
       return withSecurityHeaders(await handleAuthVerify(request, env));
+    }
+    // A phone camera opens the table QR: /r/<token> holds dots, /r/claim is the app.
+    const tableLanding = /^\/r\/([^/]+)$/.exec(url.pathname);
+    if (tableLanding && tableLanding[1].includes(".") && request.method === "GET") {
+      return withSecurityHeaders(await handleTableLanding(request, tableLanding[1], env));
     }
     return withSecurityHeaders(await env.ASSETS.fetch(request));
   },

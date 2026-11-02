@@ -77,8 +77,8 @@ describe("rooms migration", () => {
   it("keeps one row per room and person", async () => {
     const starter = await user();
     const id = await makeRoom(starter);
-    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW });
-    await expect(addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW })).rejects.toThrow();
+    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW, removeToken: crypto.randomUUID() });
+    await expect(addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW, removeToken: crypto.randomUUID() })).rejects.toThrow();
   });
 });
 
@@ -87,8 +87,8 @@ describe("rooms repository", () => {
     const starter = await user("Hugo");
     const lea = await user("Lea");
     const id = await makeRoom(starter);
-    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW });
-    await addMember(env.DB, { roomId: id, userId: lea, role: "member", line: "I know a quick one", joinedAt: NOW });
+    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW, removeToken: crypto.randomUUID() });
+    await addMember(env.DB, { roomId: id, userId: lea, role: "member", line: "I know a quick one", joinedAt: NOW, removeToken: crypto.randomUUID() });
     expect((await getRoom(env.DB, id))?.topic).toBe("Teach me a two-player game?");
     expect(await currentMemberIds(env.DB, id)).toEqual(expect.arrayContaining([starter, lea]));
     expect((await getMembership(env.DB, id, lea))?.line).toBe("I know a quick one");
@@ -99,8 +99,8 @@ describe("rooms repository", () => {
     const starter = await user();
     const lea = await user();
     const id = await makeRoom(starter);
-    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW });
-    await addMember(env.DB, { roomId: id, userId: lea, role: "member", joinedAt: NOW });
+    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW, removeToken: crypto.randomUUID() });
+    await addMember(env.DB, { roomId: id, userId: lea, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     expect(await markRemoved(env.DB, id, lea)).toBe(true);
     expect(await markRemoved(env.DB, id, lea)).toBe(false);
     expect(await currentMemberIds(env.DB, id)).toEqual([starter]);
@@ -121,8 +121,8 @@ describe("rooms repository", () => {
     const starter = await user();
     const lea = await user();
     const id = await makeRoom(starter);
-    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW });
-    await addMember(env.DB, { roomId: id, userId: lea, role: "member", joinedAt: NOW });
+    await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: NOW, removeToken: crypto.randomUUID() });
+    await addMember(env.DB, { roomId: id, userId: lea, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     expect(await startsToday(env.DB, starter, "2026-11-02")).toBe(1);
     expect(await joinsLastHour(env.DB, lea, "2026-11-02T13:00:00.000Z")).toBe(1);
     expect(await joinsLastHour(env.DB, lea, NOW)).toBe(0);
@@ -144,7 +144,7 @@ describe("expiry and retention", () => {
     const old = await makeRoom(starter, { endsAt: "2026-11-01T13:00:00.000Z" });
     const fresh = await makeRoom(starter, { endsAt: "2026-11-01T15:00:00.000Z" });
     for (const id of [old, fresh]) {
-      await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: "2026-11-01T12:00:00.000Z" });
+      await addMember(env.DB, { roomId: id, userId: starter, role: "starter", joinedAt: "2026-11-01T12:00:00.000Z", removeToken: crypto.randomUUID() });
       await addReply(env.DB, { id: `reply-${id}`, roomId: id, userId: starter, code: "AT_THE_SPOT", createdAt: "2026-11-01T12:00:00.000Z" });
     }
     await purgeRooms(env.DB, "2026-11-01T14:00:00.000Z");
