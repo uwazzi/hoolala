@@ -22,11 +22,6 @@ interface Room {
   names: string[] | null;
 }
 
-interface Join {
-  count: number;
-  size: string;
-}
-
 interface CompassLine {
   id: string;
   text: string;
@@ -41,7 +36,6 @@ export function Around() {
   const [phase, setPhase] = useState<Phase>("ask");
   const [rooms, setRooms] = useState<Room[]>([]);
   const [spot, setSpot] = useState<Point | null>(null);
-  const [joined, setJoined] = useState<Record<string, Join>>({});
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [compass, setCompass] = useState<CompassLine[] | null>(null);
@@ -69,7 +63,6 @@ export function Around() {
   async function scan() {
     setPhase("scanning");
     setNote("");
-    setJoined({});
     let p: Point;
     try {
       p = await locate();
@@ -100,7 +93,7 @@ export function Around() {
     setNote("");
     let res;
     try {
-      res = await api<Join>("POST", `/api/rooms/${room.id}/join`, spot);
+      res = await api("POST", `/api/rooms/${room.id}/join`, spot);
     } catch {
       setBusy(null);
       return setNote("No connection. Try again when you're back online.");
@@ -110,7 +103,7 @@ export function Around() {
     if (res.status === 409) return setNote("That room just filled up. Try another, or post your own.");
     if (res.status === 429) return setNote("That's enough joining for now. Leave a room, or try again later.");
     if (res.status !== 200) return setNote("That room just closed. Look again?");
-    setJoined({ ...joined, [room.id]: { count: res.data.count, size: res.data.size } });
+    route(`/room?id=${room.id}`);
   }
 
   async function leave(room: Room) {
@@ -122,9 +115,7 @@ export function Around() {
       // Leaving always works; a dropped connection still leaves locally.
     }
     setBusy(null);
-    const next = { ...joined };
-    delete next[room.id];
-    setJoined(next);
+    setRooms(rooms.map((r) => (r.id === room.id ? { ...r, member: false } : r)));
   }
 
   const compassTop = (compass ?? []).slice(0, 4).map((l) => l.text).join(" · ");
@@ -225,8 +216,7 @@ export function Around() {
               <p class="around-privacy">Topics only. Each one is an open room: join and you'll see first names, theirs and yours.</p>
               <div class="room-cards">
                 {rooms.map((r) => {
-                  const isIn = joined[r.id] !== undefined || r.member;
-                  const count = joined[r.id]?.count ?? null;
+                  const isIn = r.member;
                   const showTranslation = flipped[r.id] && r.translation;
                   return (
                     <article key={r.id} class="room-card">
@@ -254,7 +244,7 @@ export function Around() {
                       ) : (
                         <div class="room-in" aria-live="polite">
                           <span class="room-in-head">YOU'RE IN.</span>
-                          <span class="room-in-line">{count !== null ? `${count} in now, first names only. Head to ${r.placeText}.` : `Head to ${r.placeText}.`}</span>
+                          <span class="room-in-line">Head to {r.placeText}.</span>
                           <a class="room-open" href={`/room?id=${r.id}`}>OPEN ROOM ›</a>
                           <button type="button" class="room-leave" onClick={() => leave(r)}>LEAVE ROOM</button>
                         </div>
