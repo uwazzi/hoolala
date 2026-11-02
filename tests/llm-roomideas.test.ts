@@ -136,8 +136,14 @@ describe("room ideas with the model", () => {
       ctx,
     );
     const body = (await res.json()) as { ideas: { text: string }[] };
-    // The code rules drop the insult, SCREEN IT drops the date; one survives.
-    expect(body.ideas).toEqual([{ text: "Slow coffee, one recipe swap?" }]);
+    // The code rules drop the insult, SCREEN IT drops the date; one survives,
+    // topped back up to three with pre-screened fallback ideas. Nothing sent
+    // fails screening.
+    expect(body.ideas).toHaveLength(3);
+    expect(body.ideas[0]).toEqual({ text: "Slow coffee, one recipe swap?" });
+    for (const idea of body.ideas) {
+      expect(screenText(idea.text, 60)).toEqual({ ok: true, category: null });
+    }
   });
 
   it("starts fresh on demand: fresh skips the cache and avoids the shown ideas", async () => {
@@ -164,6 +170,30 @@ describe("room ideas with the model", () => {
     expect(((await fresh.json()) as { ideas: { text: string }[] }).ideas).toEqual(ideas);
     expect(suggestBodies).toHaveLength(2);
     expect(suggestBodies[1]).toContain(firstBody.ideas[0].text);
+  });
+
+  it("never repeats avoided ideas, topping up from the fallback", async () => {
+    ideas = [{ text: "Teach me a board game in ten minutes?" }, { text: "Slow coffee, one recipe swap?" }, { text: "Stargazing spots around here?" }];
+    const env = testEnv(AI);
+    const me = await who(env, ["board games"]);
+    const res = await worker.fetch(
+      new Request(`${BASE}/api/rooms/suggest`, {
+        method: "POST",
+        headers: { cookie: me.cookie, "content-type": "application/json" },
+        body: JSON.stringify({ fresh: true, avoid: ["Teach me a board game in ten minutes?", "Slow coffee, one recipe swap?", "Best cardamom bun in town?"] }),
+      }),
+      env,
+      ctx,
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { ideas: { text: string }[]; source: string };
+    expect(body.source).toBe("mixed");
+    expect(body.ideas).toHaveLength(3);
+    const texts = body.ideas.map((i) => i.text);
+    expect(texts).toContain("Stargazing spots around here?");
+    expect(texts).not.toContain("Teach me a board game in ten minutes?");
+    expect(texts).not.toContain("Slow coffee, one recipe swap?");
+    expect(new Set(texts.map((t) => t.toLowerCase())).size).toBe(3);
   });
 
   it("falls back when every idea fails screening", async () => {

@@ -451,13 +451,20 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .quiet-list { margin: 0; padding: 12px 12px 12px 34px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
 .room-open { font: 10px/1 var(--font-display); text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
 .room-join-note { font-size: 11px; line-height: 1.45; color: var(--lcd-ink-secondary); }
-.field-row { display: flex; justify-content: space-between; align-items: baseline; }
 .field-label { font: 11px/1.4 var(--font-display); }
 .field-count { font-size: 11px; color: var(--lcd-ink-secondary); }
+.chat-bot { align-self: flex-start; max-width: 92%; padding: 10px 12px; background: var(--lcd-surface); color: var(--lcd-ink); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); font: 13px/1.45 var(--font-display); }
+label.chat-bot { cursor: pointer; }
+.chat-count { align-self: flex-end; }
+.typing-dots { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: middle; }
+.typing-dots i { width: 6px; height: 6px; background: currentColor; animation: dot-blink 1s infinite; }
+.typing-dots i:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .typing-dots i { animation: none; opacity: 1; } }
 .refusal-note { margin: 0; padding: 10px 12px; border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.45; }
 .need-one { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 0 14px; background: var(--lcd-selected); color: var(--lcd-selected-ink); border: none; border-radius: var(--radius-control); font: 13px/1.2 var(--font-display); cursor: pointer; width: 100%; box-sizing: border-box; text-align: left; }
 .need-one:disabled { opacity: 0.6; cursor: default; }
-.suggesting-line { margin: 0; font: 11px/1.5 var(--font-display); color: var(--lcd-ink-secondary); }
 .ideas { display: flex; flex-direction: column; gap: 6px; }
 .ideas-label { font: 10px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }
 .idea { min-height: 44px; padding: 8px 10px; background: var(--lcd-surface); color: var(--lcd-ink); border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.4; text-align: left; cursor: pointer; width: 100%; box-sizing: border-box; }

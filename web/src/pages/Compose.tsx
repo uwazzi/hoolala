@@ -1,10 +1,11 @@
 // v6.4 compose (WP-A3): one line, or ask for ideas; say where you are; pick
 // how long. Everything typed or suggested is checked before anyone sees it.
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
 import { locate } from "../around";
 import { Screen } from "../components/Screen";
+import { Typed } from "../components/Typed";
 
 interface CompassLine {
   id: string;
@@ -24,6 +25,10 @@ const DURS = [
   { min: 120, label: "2 HOURS" },
 ];
 
+const Q1 = "WHAT'S THE TOPIC?";
+const Q2 = "WHERE ARE YOU?";
+const Q3 = "FOR HOW LONG?";
+
 export function Compose() {
   const { route } = useLocation();
   const [phase, setPhase] = useState<Phase>("compose");
@@ -35,6 +40,8 @@ export function Compose() {
   const [compass, setCompass] = useState<CompassLine[] | null>(null);
   const [suggesting, setSuggesting] = useState(false);
   const [ideas, setIdeas] = useState<Ideas | null>(null);
+  const [turn, setTurn] = useState(0);
+  const seenRef = useRef<string[]>([]);
 
   useEffect(() => {
     api<{ compass: CompassLine[] }>("GET", "/api/me/compass")
@@ -58,7 +65,7 @@ export function Compose() {
     try {
       res = await api<Ideas>("POST", "/api/rooms/suggest", {
         lang: navigator.language.startsWith("fr") ? "fr" : "en",
-        ...(fresh ? { fresh: true, avoid: (ideas?.ideas ?? []).map((i) => i.text) } : {}),
+        ...(fresh ? { fresh: true, avoid: seenRef.current.slice(-12) } : {}),
       });
     } catch {
       setSuggesting(false);
@@ -69,6 +76,7 @@ export function Compose() {
     if (res.status === 429) return setNote("That's enough ideas for one hour. Try again later.");
     if (res.status !== 200) return setNote("No ideas right now. Your own line works best anyway.");
     setIdeas({ ideas: res.data.ideas, label: res.data.label });
+    seenRef.current = [...seenRef.current, ...res.data.ideas.map((i) => i.text)].slice(-12);
   }
 
   async function post() {
@@ -133,10 +141,7 @@ export function Compose() {
       <div class="around-body">
         <h1 class="around-head">YOUR ICEBREAKER</h1>
 
-        <div class="field-row">
-          <label class="field-label" for="ib-topic">WHAT'S THE TOPIC?</label>
-          <span class="field-count">{topic.length} / 60</span>
-        </div>
+        <label class="chat-bot" for="ib-topic">{turn > 0 ? Q1 : <Typed text={Q1} msPerChar={35} onDone={() => setTurn(1)} />}</label>
         <input
           id="ib-topic"
           class="lcd-field"
@@ -149,6 +154,7 @@ export function Compose() {
             setRefusal(null);
           }}
         />
+        <span class="field-count chat-count">{topic.length} / 60</span>
 
         {refusal && (
           <p class="refusal-note" role="alert" aria-live="polite">{refusal}</p>
@@ -165,7 +171,10 @@ export function Compose() {
           </>
         )}
         {suggesting && !ideas && (
-          <p class="suggesting-line">{hasCompass ? "READING YOUR COMPASS, THEN CHECKING..." : "GETTING CREATIVE, THEN CHECKING..."}</p>
+          <div class="chat-bot" aria-live="polite">
+            {hasCompass ? "READING YOUR COMPASS" : "GETTING CREATIVE"}
+            <span class="typing-dots" aria-hidden="true"><i /><i /><i /></span>
+          </div>
         )}
         {ideas && (
           <div class="ideas">
@@ -189,10 +198,9 @@ export function Compose() {
           </div>
         )}
 
-        <div class="field-row">
-          <label class="field-label" for="ib-place">WHERE ARE YOU?</label>
-          <span class="field-count">{place.length} / 40</span>
-        </div>
+        {turn >= 1 && (
+          <label class="chat-bot" for="ib-place">{turn > 1 ? Q2 : <Typed text={Q2} msPerChar={35} onDone={() => setTurn(2)} />}</label>
+        )}
         <input
           id="ib-place"
           class="lcd-field"
@@ -205,9 +213,12 @@ export function Compose() {
             setRefusal(null);
           }}
         />
+        <span class="field-count chat-count">{place.length} / 40</span>
         <p class="around-privacy">A public place, and where inside it. This creates a 500 m area people nearby can find. We keep a rough area, never your exact spot, and it goes when your icebreaker does.</p>
 
-        <span class="field-label" id="ib-dur-label">FOR HOW LONG?</span>
+        {turn >= 2 && (
+          <div class="chat-bot" id="ib-dur-label">{turn > 2 ? Q3 : <Typed text={Q3} msPerChar={35} onDone={() => setTurn(3)} />}</div>
+        )}
         <div class="dur-row" role="group" aria-labelledby="ib-dur-label">
           {DURS.map((d) => (
             <button

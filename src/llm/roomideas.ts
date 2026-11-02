@@ -71,7 +71,7 @@ function systemFor(fromCompass: boolean, lang: "en" | "fr"): string {
 
 export interface RoomIdeas {
   ideas: { text: string }[];
-  source: "ai" | "rules";
+  source: "ai" | "rules" | "mixed";
   fromCompass: boolean;
   workings: string;
 }
@@ -114,7 +114,7 @@ export async function roomIdeasFor(
   opts: { fresh?: boolean; avoid?: string[] } = {},
 ): Promise<RoomIdeas> {
   const fromCompass = compass.length > 0;
-  const avoid = (opts.avoid ?? []).map((a) => a.trim()).filter(Boolean).slice(0, 6);
+  const avoid = (opts.avoid ?? []).map((a) => a.trim()).filter(Boolean).slice(0, 12);
   const fallback: RoomIdeas = { ideas: pickFallback(compass, avoid), source: "rules", fromCompass, workings: "" };
   fallback.workings = workingsFor(compass, fallback.ideas, fromCompass);
 
@@ -150,12 +150,22 @@ export async function roomIdeasFor(
     await env.SESSIONS.put(cacheKey, JSON.stringify(fallback), { expirationTtl: CACHE_TTL_S });
     return fallback;
   }
-  const ideas = (await screenIdeas(env, res.value)).slice(0, 3);
-  if (!ideas.length) {
+  const screened = await screenIdeas(env, res.value);
+  const seen = new Set(avoid.map((a) => a.toLowerCase()));
+  const fresh = screened.filter((idea) => {
+    const key = idea.text.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  if (!fresh.length) {
     await env.SESSIONS.put(cacheKey, JSON.stringify(fallback), { expirationTtl: CACHE_TTL_S });
     return fallback;
   }
-  const result: RoomIdeas = { ideas, source: "ai", fromCompass, workings: workingsFor(compass, ideas, fromCompass) };
+  // Repeats are dropped even when the model ignores the avoid list; the
+  // pre-screened, compass-matched fallback tops back up to three.
+  const ideas = fresh.length >= 3 ? fresh.slice(0, 3) : [...fresh, ...pickFallback(compass, [...avoid, ...fresh.map((i) => i.text)])].slice(0, 3);
+  const result: RoomIdeas = { ideas, source: fresh.length >= 3 ? "ai" : "mixed", fromCompass, workings: workingsFor(compass, ideas, fromCompass) };
   await env.SESSIONS.put(cacheKey, JSON.stringify(result), { expirationTtl: CACHE_TTL_S });
   return result;
 }
