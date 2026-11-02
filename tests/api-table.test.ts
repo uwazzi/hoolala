@@ -362,6 +362,32 @@ describe("leaving the table", () => {
     expect((await detail(env, id, lea)).body).toMatchObject({ member: false });
     expect((await detail(env, id, hugo)).body).toMatchObject({ member: true, count: 1, tableOpen: true, atTable: ["Hugo"] });
   });
+
+  it("tells guests their debrief when the room closes under them", async () => {
+    const env = envWithSecret();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await join(env, id, lea);
+    const code = (await tableToken(env, id, hugo)).body.token;
+    await scanTable(env, lea, code);
+    await call(env, "POST", `/api/rooms/${id}/table/leave`, hugo);
+    const shut = (await (await call(env, "GET", `/api/rooms/${id}`, lea)).json()) as { closed: boolean; debrief: string | null };
+    expect(shut.closed).toBe(true);
+    expect(shut.debrief).toBe(id);
+  });
+
+  it("sends guests without meetings to the taken-down screen", async () => {
+    const env = envWithSecret();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await join(env, id, lea);
+    await call(env, "POST", `/api/rooms/${id}/table/leave`, hugo);
+    const shut = (await (await call(env, "GET", `/api/rooms/${id}`, lea)).json()) as { closed: boolean; debrief: string | null };
+    expect(shut.closed).toBe(true);
+    expect(shut.debrief).toBeNull();
+  });
 });
 
 describe("live counts table meetings", () => {

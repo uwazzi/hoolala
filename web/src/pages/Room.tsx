@@ -34,6 +34,7 @@ interface RoomDetail {
   lang: string | null;
   closed?: boolean;
   closedForYou?: boolean;
+  debrief?: string | null;
   note?: string;
   tableOpen?: boolean;
   youAtTable?: boolean;
@@ -75,7 +76,10 @@ export function Room() {
     const body = res.data;
     setDetail(body);
     if (body.closedForYou) return setPhase("closedForYou");
-    if (body.closed) return setPhase("down");
+    if (body.closed) {
+      if (body.debrief) return route(`/debrief?room=${body.debrief}`);
+      return setPhase("down");
+    }
     setPhase(body.member ? "room" : "card");
   }
 
