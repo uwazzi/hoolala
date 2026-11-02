@@ -21,6 +21,23 @@ import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMee
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
 import { handleMeetingPoint, handlePlan } from "./api/plan";
+import {
+  handleRoomDetail,
+  handleRoomJoin,
+  handleRoomLeave,
+  handleRoomPost,
+  handleRoomRemove,
+  handleRoomReply,
+  handleRoomTakedown,
+  handleRoomsScan,
+  handleRoomsSuggest,
+  handleTableLeave,
+  handleTableScan,
+  handleTableToken,
+} from "./api/rooms";
+import { handleTableClaim, handleTableLanding, handleTablePending, handleTableStart } from "./api/table";
+import { handlePosterClaim, handlePosterScan, handlePosterStart } from "./api/posters";
+import { handleDebriefGet, handleDebriefPending, handleDebriefPost } from "./api/debrief";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
 import { handleAnother, handleNewGame, handleNewOne, handlePick } from "./api/game";
@@ -56,7 +73,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   ].join("; "),
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
-  "permissions-policy": "geolocation=(self), camera=(), microphone=(self)",
+  "permissions-policy": "geolocation=(self), camera=(self), microphone=(self)",
   "strict-transport-security": "max-age=31536000; includeSubDomains",
 };
 
@@ -224,6 +241,67 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/around/rate" && method === "POST") {
     return handleRate(request, env);
   }
+  if (url.pathname === "/api/rooms/scan" && method === "POST") {
+    return handleRoomsScan(request, env);
+  }
+  if (url.pathname === "/api/rooms/suggest" && method === "POST") {
+    return handleRoomsSuggest(request, env);
+  }
+  if (url.pathname === "/api/rooms" && method === "POST") {
+    return handleRoomPost(request, env);
+  }
+  const roomOne = /^\/api\/rooms\/([0-9a-f-]{36})$/.exec(url.pathname);
+  if (roomOne && method === "GET") {
+    return handleRoomDetail(roomOne[1], request, env);
+  }
+  const roomTable = /^\/api\/rooms\/([0-9a-f-]{36})\/table$/.exec(url.pathname);
+  if (roomTable && method === "GET") {
+    return handleTableToken(roomTable[1], request, env);
+  }
+  const roomTableLeave = /^\/api\/rooms\/([0-9a-f-]{36})\/table\/leave$/.exec(url.pathname);
+  if (roomTableLeave && method === "POST") {
+    return handleTableLeave(roomTableLeave[1], request, env);
+  }
+  if (url.pathname === "/api/rooms/scan-table" && method === "POST") {
+    return handleTableScan(request, env);
+  }
+  if (url.pathname === "/api/table/pending" && method === "GET") {
+    return handleTablePending(request, env);
+  }
+  if (url.pathname === "/api/table/start" && method === "POST") {
+    return handleTableStart(request, env);
+  }
+  if (url.pathname === "/api/table/claim" && method === "POST") {
+    return handleTableClaim(request, env);
+  }
+  if (url.pathname === "/api/posters/scan" && method === "POST") {
+    return handlePosterScan(request, env);
+  }
+  if (url.pathname === "/api/posters/start" && method === "POST") {
+    return handlePosterStart(request, env);
+  }
+  if (url.pathname === "/api/posters/claim" && method === "POST") {
+    return handlePosterClaim(request, env);
+  }
+  if (url.pathname === "/api/rooms/debrief-pending" && method === "GET") {
+    return handleDebriefPending(request, env);
+  }
+  const roomDebrief = /^\/api\/rooms\/([0-9a-f-]{36})\/debrief$/.exec(url.pathname);
+  if (roomDebrief && method === "GET") {
+    return handleDebriefGet(roomDebrief[1], request, env);
+  }
+  if (roomDebrief && method === "POST") {
+    return handleDebriefPost(roomDebrief[1], request, env);
+  }
+  const roomAction = /^\/api\/rooms\/([0-9a-f-]{36})\/(join|leave|reply|takedown|remove)$/.exec(url.pathname);
+  if (roomAction && method === "POST") {
+    const [, id, action] = roomAction;
+    if (action === "join") return handleRoomJoin(id, request, env);
+    if (action === "leave") return handleRoomLeave(id, request, env);
+    if (action === "reply") return handleRoomReply(id, request, env);
+    if (action === "takedown") return handleRoomTakedown(id, request, env);
+    return handleRoomRemove(id, request, env);
+  }
   const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
   if (peek && method === "GET") {
     return handlePeek(peek[1], env);
@@ -298,7 +376,7 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   return json({ error: "not_found" }, 404);
 }
 
-/** Cron: expire signals, purge old check-ins. metrics_daily rollup lands with WP5/WP6. */
+/** Cron: expire signals and rooms, purge old check-ins and rooms. metrics_daily rollup lands with WP5/WP6. */
 export async function runScheduled(env: Env, now: Date = new Date()): Promise<void> {
   const nowIso = now.toISOString();
   const dayAgoIso = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
@@ -307,12 +385,17 @@ export async function runScheduled(env: Env, now: Date = new Date()): Promise<vo
   )
     .bind(nowIso)
     .run();
+  await env.DB.prepare("UPDATE rooms SET status = 'expired' WHERE status = 'open' AND ends_at <= ?").bind(nowIso).run();
+  await env.DB.prepare("DELETE FROM rooms WHERE ends_at < ?").bind(dayAgoIso).run();
   await env.DB.prepare("DELETE FROM checkins WHERE started_at < ?").bind(dayAgoIso).run();
   await env.DB.prepare("DELETE FROM game_tries WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .run();
   await env.DB.prepare("DELETE FROM workings WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .run();
+  await env.DB.prepare("DELETE FROM owner_feedback WHERE created_at < ?")
+    .bind(new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString())
     .run();
   try {
     await ensureSample(env.DB, now);
@@ -329,6 +412,11 @@ export default {
     }
     if (url.pathname === "/auth/verify" && request.method === "GET") {
       return withSecurityHeaders(await handleAuthVerify(request, env));
+    }
+    // A phone camera opens the table QR: /r/<token> holds dots, /r/claim is the app.
+    const tableLanding = /^\/r\/([^/]+)$/.exec(url.pathname);
+    if (tableLanding && tableLanding[1].includes(".") && request.method === "GET") {
+      return withSecurityHeaders(await handleTableLanding(request, tableLanding[1], env));
     }
     return withSecurityHeaders(await env.ASSETS.fetch(request));
   },

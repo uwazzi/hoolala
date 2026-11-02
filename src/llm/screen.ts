@@ -7,7 +7,7 @@
 import type { Env } from "../types";
 import { structured } from "./client";
 
-export const SCREEN_CATEGORIES = ["ok", "dating", "selling", "contact", "abuse", "crisis", "other"] as const;
+export const SCREEN_CATEGORIES = ["ok", "dating", "sexual", "selling", "contact", "abuse", "crisis", "other"] as const;
 export type ScreenCategoryAI = (typeof SCREEN_CATEGORIES)[number];
 export const LANGS = ["en", "fr", "de", "it", "other"] as const;
 
@@ -23,6 +23,7 @@ const SYSTEM = `You check short lines people post in Hoolala!, a public app for 
 Approve: friendly, public invitations to talk, ask, share a table or a coffee; light humour; work talk.
 Reject with a category:
 - dating: flirting, romance, looks, "single", hook-ups, anything that reads like a date.
+- sexual: explicit or flirty content about bodies, sex or looks.
 - selling: ads, promotions, recruiting, money, crypto, MLM.
 - contact: phone numbers, emails, links, social handles, ways to move the talk elsewhere.
 - abuse: insults, harassment, hate, threats, anything degrading.

@@ -2,6 +2,8 @@
 
 Decided 27 Oct after the competitor review (`claude/COMPETITOR-REVIEWS.md`): the main feature for 4 Nov is **Signals here**. People at the same **place** (any public place: a café, a bar, a coworking space, a library) post and answer small, open invitations to talk, stay anonymous until both accept, then meet in person. Where this brief and older docs differ, this brief wins on product scope.
 
+v6.4 addendum (2 Nov, owner's decision): the 4 Nov hero moves to **icebreaker rooms on Around** (rule 46 in `docs/DESIGN.md`): one 500 m sweep finds open rooms, anyone nearby joins with no accept step, names go to members only, and phones on the table record meetings by scan. Signals here stays for checked-in places, unchanged. Room data: the snapped 200 m grid cell is deleted with the room 24 h after it ends; table meetings keep user IDs and the day only; owner feedback keeps no user ID and is deleted after 90 days.
+
 v5 changes (27 Oct, owner's decision): a venue is now **any place**, not a partner venue with a host. Onboarding reads the person's **public footprint** (with their OK) to draft their **Personal Compass**. Check-in is **share location, pick the place**; a place that isn't there yet is added and saved. People who add places and keep their details right (for example the menu the agent fetched from Google Maps) earn **place points**.
 
 > "We've sat at the same table for six months."

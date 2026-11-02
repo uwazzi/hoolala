@@ -11,6 +11,12 @@ import { Juicy } from "./pages/Juicy";
 import { Around } from "./pages/Around";
 import { Arrive } from "./pages/Arrive";
 import { Compass } from "./pages/Compass";
+import { Compose } from "./pages/Compose";
+import { Debrief } from "./pages/Debrief";
+import { Room } from "./pages/Room";
+import { TableClaim, TableLanding } from "./pages/TableJoin";
+import { PosterClaim, PosterLanding } from "./pages/PosterJoin";
+import { Posters } from "./pages/Posters";
 import { Dashboard } from "./pages/Dashboard";
 import { Here } from "./pages/Here";
 import { Live } from "./pages/Live";
@@ -59,6 +65,14 @@ function App() {
       <Route path="/friends" component={Friends} />
       <Route path="/signin" component={SignIn} />
       <Route path="/around" component={Around} />
+      <Route path="/around/new" component={Compose} />
+      <Route path="/room" component={Room} />
+      <Route path="/debrief" component={Debrief} />
+      <Route path="/r/claim" component={TableClaim} />
+      <Route path="/r/:token" component={TableLanding} />
+      <Route path="/p/claim" component={PosterClaim} />
+      <Route path="/p" component={PosterLanding} />
+      <Route path="/posters" component={Posters} />
       <Route path="/arrive" component={Arrive} />
       <Route path="/surprise" component={Surprise} />
       <Route path="/juicy" component={Juicy} />

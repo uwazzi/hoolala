@@ -2,6 +2,10 @@
 // at every level. Regression test for the staging freeze of 29 Oct 2026,
 // when rebuilding places failed on its foreign keys and stopped the release.
 // Every table in the closure holds a row before the rebuilds run.
+//
+// D1 enforces foreign keys and ignores PRAGMA foreign_keys, so the files run
+// here with that line stripped: a rebuild that needs keys off (the 0023
+// staging freeze of 2 Nov 2026) fails in this test, not in the release.
 import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
@@ -11,6 +15,8 @@ const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as typeof
 const files = readdirSync("src/db/migrations")
   .filter((f) => f.endsWith(".sql"))
   .sort();
+
+const migrationSql = (f: string) => readFileSync(`src/db/migrations/${f}`, "utf8").replace(/PRAGMA foreign_keys[^;]*;/gi, "");
 
 const CLOSURE = [
   "places",
@@ -36,7 +42,7 @@ describe("migrations with data", () => {
     const db = new DatabaseSync(":memory:");
     db.exec("PRAGMA foreign_keys = ON;");
     const split = files.findIndex((f) => f >= "0011_place_kinds.sql");
-    for (const f of files.slice(0, split)) db.exec(readFileSync(`src/db/migrations/${f}`, "utf8"));
+    for (const f of files.slice(0, split)) db.exec(migrationSql(f));
     db.exec("INSERT INTO users (id, first_name, is_adult, created_at) VALUES ('u1', 'Ana', 1, 't'), ('u2', 'Tom', 1, 't')");
     db.exec("INSERT INTO places (id, slug, name, kind, status, created_at) VALUES ('p1', 's1', 'Café', 'cafe', 'active', 't')");
     db.exec("INSERT INTO place_facts (id, place_id, field, value, source, state, updated_at) VALUES ('f1', 'p1', 'hours', 'Open late', 'people', 'confirmed', 't')");
@@ -56,7 +62,7 @@ describe("migrations with data", () => {
     db.exec("INSERT INTO place_ratings (place_id, user_id, value, visit_date, week, created_at) VALUES ('p1', 'u1', 3, '2026-10-29', '2026-W44', 't')");
     db.exec("INSERT INTO compass_items (id, user_id, part, text, origin, active, created_at) VALUES ('l1', 'u1', 'talk_about', 'Chess', 'find_me', 1, 't'), ('l2', 'u1', 'more_of', 'Slow mornings', 'questions', 1, 't')");
     db.exec("INSERT INTO compass_changes (id, user_id, before, after, words, confirmed_at) VALUES ('ch1', 'u1', 'Busy evenings', 'Slow mornings', 'slow mornings', 't')");
-    for (const f of files.slice(split)) db.exec(readFileSync(`src/db/migrations/${f}`, "utf8"));
+    for (const f of files.slice(split)) db.exec(migrationSql(f));
     for (const table of CLOSURE) {
       expect((db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n, table).toBe(1);
     }

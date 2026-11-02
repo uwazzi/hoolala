@@ -47,7 +47,8 @@ function redirect(location: string, cookie?: string): Response {
 }
 
 export async function handleAuthVerify(request: Request, env: Env, now = new Date()): Promise<Response> {
-  const token = new URL(request.url).searchParams.get("token");
+  const params = new URL(request.url).searchParams;
+  const token = params.get("token");
   if (!token) return redirect("/signin?error=link");
   const email = await consumeLoginToken(env.DB, await sha256Hex(token), now.toISOString());
   if (!email) return redirect("/signin?error=link");
@@ -56,6 +57,15 @@ export async function handleAuthVerify(request: Request, env: Env, now = new Dat
     (await findUserByEmail(env.DB, email)) ??
     (await createEmailUser(env.DB, crypto.randomUUID(), email, now.toISOString()));
   const session = await createSession(env, user.id, now);
+  // A table magic link carries only the pending id: straight back to the table.
+  const table = params.get("table");
+  if (table && /^[A-Za-z0-9_-]+$/.test(table) && (await env.SESSIONS.get(`table-pending:${table}`, { type: "text" }))) {
+    return redirect(`/r/claim?pending=${table}`, sessionCookie(session));
+  }
+  // A poster magic link carries only the marker: onboarding ends on /around/new.
+  if (params.get("poster") === "1") {
+    return redirect("/p/claim", sessionCookie(session));
+  }
   return redirect(user.first_name ? "/" : "/signin?step=name", sessionCookie(session));
 }
 

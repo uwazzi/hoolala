@@ -10,6 +10,7 @@ const TABS: Record<string, TopTab> = {
   "/around": "around",
   "/here": "around",
   "/place": "around",
+  "/room": "around",
   "/friends": "friends",
 };
 
