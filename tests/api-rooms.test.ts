@@ -318,6 +318,21 @@ describe("rooms post", () => {
     expect(body.rooms).toEqual([]);
   });
 
+  it("seats the starter at the table at once: the QR is up from creation", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const { status, body } = await postRoom(env, hugo, {});
+    expect(status).toBe(200);
+    const detail = (await (await call(env, "GET", `/api/rooms/${body.id as string}`, hugo)).json()) as {
+      tableOpen: boolean;
+      youAtTable: boolean;
+      atTable: string[];
+    };
+    expect(detail.tableOpen).toBe(true);
+    expect(detail.youAtTable).toBe(true);
+    expect(detail.atTable).toEqual(["Hugo"]);
+  });
+
   it("allows 1 open room per starter", async () => {
     const env = testEnv();
     const hugo = await person(env, "Hugo");
