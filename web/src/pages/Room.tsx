@@ -58,6 +58,7 @@ export function Room() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [confirmingClose, setConfirmingClose] = useState(false);
   const [tableUrl, setTableUrl] = useState<string | null>(null);
   const [scanned, setScanned] = useState<string[] | null>(null);
 
@@ -285,9 +286,27 @@ export function Room() {
             <span class="table-note">{recordedLine}</span>
           </div>
           <div class="table-spacer" />
-          <button class="table-done" type="button" disabled={busy} onClick={tableLeave}>
-            {detail.mine ? "WE'RE DONE. CLOSE THE TABLE" : "I'M LEAVING"}
-          </button>
+          {detail.mine ? (
+            confirmingClose ? (
+              <>
+                <p class="table-confirm">Close this room for everyone? Nobody new can join after this.</p>
+                <button class="table-done" type="button" disabled={busy} onClick={tableLeave}>
+                  CLOSE THE ROOM
+                </button>
+                <button class="table-back" type="button" disabled={busy} onClick={() => setConfirmingClose(false)}>
+                  GO BACK
+                </button>
+              </>
+            ) : (
+              <button class="table-done" type="button" disabled={busy} onClick={() => setConfirmingClose(true)}>
+                WE'RE DONE. CLOSE THE TABLE
+              </button>
+            )
+          ) : (
+            <button class="table-done" type="button" disabled={busy} onClick={tableLeave}>
+              I'M LEAVING
+            </button>
+          )}
         </div>
       </Screen>
     );
