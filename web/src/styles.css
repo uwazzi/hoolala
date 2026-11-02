@@ -455,9 +455,8 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .field-label { font: 11px/1.4 var(--font-display); }
 .field-count { font-size: 11px; color: var(--lcd-ink-secondary); }
 .refusal-note { margin: 0; padding: 10px 12px; border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.45; }
-.need-one { align-self: flex-start; display: flex; flex-direction: column; gap: 2px; background: none; border: none; padding: 4px 0; min-height: 44px; cursor: pointer; text-align: left; color: var(--lcd-ink); }
-.need-one-key { font: 11px/1.4 var(--font-display); text-decoration: underline; }
-.need-one-note { font-size: 11px; color: var(--lcd-ink-secondary); }
+.need-one { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 0 14px; background: var(--lcd-selected); color: var(--lcd-selected-ink); border: none; border-radius: var(--radius-control); font: 13px/1.2 var(--font-display); cursor: pointer; width: 100%; box-sizing: border-box; text-align: left; }
+.need-one:disabled { opacity: 0.6; cursor: default; }
 .suggesting-line { margin: 0; font: 11px/1.5 var(--font-display); color: var(--lcd-ink-secondary); }
 .ideas { display: flex; flex-direction: column; gap: 6px; }
 .ideas-label { font: 10px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }

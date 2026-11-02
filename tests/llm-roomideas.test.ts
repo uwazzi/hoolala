@@ -140,6 +140,32 @@ describe("room ideas with the model", () => {
     expect(body.ideas).toEqual([{ text: "Slow coffee, one recipe swap?" }]);
   });
 
+  it("starts fresh on demand: fresh skips the cache and avoids the shown ideas", async () => {
+    const env = testEnv(AI);
+    const me = await who(env, ["board games"]);
+    const post = (body: unknown) =>
+      worker.fetch(
+        new Request(`${BASE}/api/rooms/suggest`, { method: "POST", headers: { cookie: me.cookie, "content-type": "application/json" }, body: JSON.stringify(body) }),
+        env,
+        ctx,
+      );
+    const first = await post({});
+    expect(first.status).toBe(200);
+    const firstBody = (await first.json()) as { ideas: { text: string }[] };
+    expect(firstBody.ideas).toHaveLength(3);
+    // The model now has new ideas; a plain second call still gets the cached three.
+    ideas = [{ text: "Stargazing spots around here?" }, { text: "One sketch each, ten minutes?" }, { text: "Best dumplings nearby?" }];
+    const cached = await post({});
+    expect(((await cached.json()) as { ideas: { text: string }[] }).ideas).toEqual(firstBody.ideas);
+    expect(suggestBodies).toHaveLength(1);
+    // fresh:true asks the model again and steers it away from the shown ones.
+    const fresh = await post({ fresh: true, avoid: firstBody.ideas.map((i) => i.text) });
+    expect(fresh.status).toBe(200);
+    expect(((await fresh.json()) as { ideas: { text: string }[] }).ideas).toEqual(ideas);
+    expect(suggestBodies).toHaveLength(2);
+    expect(suggestBodies[1]).toContain(firstBody.ideas[0].text);
+  });
+
   it("falls back when every idea fails screening", async () => {
     ideas = [{ text: "You idiot" }, { text: "Call 079 123 45 67" }];
     const env = testEnv(AI);

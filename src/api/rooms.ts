@@ -249,8 +249,12 @@ export async function handleRoomsSuggest(request: Request, env: Env, now = new D
   if (await overLimit(env, `rooms-suggest:${user.id}`, SUGGEST_LIMIT)) return json({ error: "rate_limited" }, 429);
   const body = await readJson(request);
   const lang = body.lang === "fr" ? "fr" : "en";
+  const fresh = body.fresh === true;
+  const avoid = Array.isArray(body.avoid)
+    ? body.avoid.filter((a: unknown): a is string => typeof a === "string").map((a: string) => a.slice(0, 60)).slice(0, 6)
+    : [];
   const compass = await compassTexts(env.DB, user.id);
-  const result = await roomIdeasFor(env, user.id, compass, now, lang);
+  const result = await roomIdeasFor(env, user.id, compass, now, lang, { fresh, avoid });
   return json({
     ...result,
     label: result.fromCompass ? "AI / SUGGESTION · FROM YOUR COMPASS · CHECKED" : "AI / SUGGESTION · CHECKED",

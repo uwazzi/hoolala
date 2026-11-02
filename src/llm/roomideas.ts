@@ -76,14 +76,15 @@ export interface RoomIdeas {
   workings: string;
 }
 
-/** Fixed ideas first that share a word with the compass, else the first three. */
-function pickFallback(compass: string[]): { text: string }[] {
+/** Fixed ideas first that share a word with the compass, else the first three; a fresh ask skips the shown ones when it can. */
+function pickFallback(compass: string[], avoid: string[] = []): { text: string }[] {
   const hay = compass.join(" ").toLowerCase();
-  return [...FALLBACK_IDEAS]
+  const said = new Set(avoid.map((a) => a.toLowerCase()));
+  const ranked = [...FALLBACK_IDEAS]
     .map((idea, i) => ({ idea, i, hit: idea.tags.some((t) => hay.includes(t)) }))
-    .sort((a, b) => Number(b.hit) - Number(a.hit) || a.i - b.i)
-    .slice(0, 3)
-    .map(({ idea }) => ({ text: idea.text }));
+    .sort((a, b) => Number(b.hit) - Number(a.hit) || a.i - b.i);
+  const unshown = ranked.filter(({ idea }) => !said.has(idea.text.toLowerCase()));
+  return (unshown.length >= 3 ? unshown : ranked).slice(0, 3).map(({ idea }) => ({ text: idea.text }));
 }
 
 /** Each idea passes the code rules, then SCREEN IT; a refusal drops the idea. */
@@ -104,25 +105,36 @@ function workingsFor(compass: string[], ideas: { text: string }[], fromCompass: 
   return matched.length ? `from your compass: ${matched.join(", ")}` : "from your compass";
 }
 
-export async function roomIdeasFor(env: Env, userId: string, compass: string[], now: Date, lang: "en" | "fr"): Promise<RoomIdeas> {
+export async function roomIdeasFor(
+  env: Env,
+  userId: string,
+  compass: string[],
+  now: Date,
+  lang: "en" | "fr",
+  opts: { fresh?: boolean; avoid?: string[] } = {},
+): Promise<RoomIdeas> {
   const fromCompass = compass.length > 0;
-  const fallback: RoomIdeas = { ideas: pickFallback(compass), source: "rules", fromCompass, workings: "" };
+  const avoid = (opts.avoid ?? []).map((a) => a.trim()).filter(Boolean).slice(0, 6);
+  const fallback: RoomIdeas = { ideas: pickFallback(compass, avoid), source: "rules", fromCompass, workings: "" };
   fallback.workings = workingsFor(compass, fallback.ideas, fromCompass);
 
   const cacheKey = `suggest-rooms:v1:${userId}:${Math.floor(now.getTime() / (CACHE_TTL_S * 1000))}`;
-  const cached = await env.SESSIONS.get(cacheKey, { type: "text" });
-  if (cached) {
-    try {
-      return JSON.parse(cached) as RoomIdeas;
-    } catch {
-      // Recompute below.
+  if (!opts.fresh) {
+    const cached = await env.SESSIONS.get(cacheKey, { type: "text" });
+    if (cached) {
+      try {
+        return JSON.parse(cached) as RoomIdeas;
+      } catch {
+        // Recompute below.
+      }
     }
   }
 
   const { label } = localTime(now);
-  const input = fromCompass
+  const base = fromCompass
     ? `Compass lines: ${compass.join(" | ")}. Time: ${label}.`
     : `No compass. Time: ${label}.`;
+  const input = avoid.length ? `${base} Do not repeat these: ${avoid.join(" | ")}.` : base;
   const res = await structured(env, {
     purpose: "suggest",
     system: systemFor(fromCompass, lang),
