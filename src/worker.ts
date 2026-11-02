@@ -37,6 +37,7 @@ import {
 } from "./api/rooms";
 import { handleTableClaim, handleTableLanding, handleTablePending, handleTableStart } from "./api/table";
 import { handlePosterClaim, handlePosterScan, handlePosterStart } from "./api/posters";
+import { handlePosterCheck } from "./api/poster";
 import { handleDebriefGet, handleDebriefPending, handleDebriefPost } from "./api/debrief";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
@@ -282,6 +283,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/posters/claim" && method === "POST") {
     return handlePosterClaim(request, env);
+  }
+  if (url.pathname === "/api/poster/check" && method === "POST") {
+    return handlePosterCheck(request, env);
   }
   if (url.pathname === "/api/rooms/debrief-pending" && method === "GET") {
     return handleDebriefPending(request, env);
