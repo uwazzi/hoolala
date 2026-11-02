@@ -356,6 +356,7 @@ export interface RoomMemberRow {
   left_at: IsoDateTime | null;
   removed: number;
   at_table_at: IsoDateTime | null;
+  remove_token: string | null;
 }
 
 export interface RoomReplyRow {

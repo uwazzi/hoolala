@@ -63,7 +63,7 @@ async function room(env: Env, starter: Person, over: { at?: { lat: number; lng: 
     status: over.status ?? "open",
     createdAt: NOW,
   });
-  await addMember(env.DB, { roomId: id, userId: starter.id, role: "starter", joinedAt: NOW });
+  await addMember(env.DB, { roomId: id, userId: starter.id, role: "starter", joinedAt: NOW, removeToken: crypto.randomUUID() });
   return id;
 }
 
@@ -99,7 +99,7 @@ describe("rooms scan", () => {
     const hugo = await person(env, "Hugo");
     const lea = await person(env, "Lea");
     const id = await room(env, hugo);
-    await addMember(env.DB, { roomId: id, userId: lea.id, role: "member", joinedAt: NOW });
+    await addMember(env.DB, { roomId: id, userId: lea.id, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     const outsider = await person(env, "Marc");
     const { status, body } = await scan(env, outsider);
     expect(status).toBe(200);
@@ -123,7 +123,7 @@ describe("rooms scan", () => {
     const hugo = await person(env, "Hugo");
     const lea = await person(env, "Lea");
     const id = await room(env, hugo);
-    await addMember(env.DB, { roomId: id, userId: lea.id, role: "member", joinedAt: NOW });
+    await addMember(env.DB, { roomId: id, userId: lea.id, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     const { body } = await scan(env, lea);
     expect(body.rooms[0].member).toBe(true);
     expect(body.rooms[0].names).toEqual(["Hugo", "Lea"]);
@@ -155,10 +155,10 @@ describe("rooms scan", () => {
     const full = await room(env, hugo, { topic: "full" });
     for (let i = 0; i < 5; i++) {
       const m = await person(env, `M${i}`);
-      await addMember(env.DB, { roomId: full, userId: m.id, role: "member", joinedAt: NOW });
+      await addMember(env.DB, { roomId: full, userId: m.id, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     }
     const gone = await room(env, hugo, { topic: "removed" });
-    await addMember(env.DB, { roomId: gone, userId: viewer.id, role: "member", joinedAt: NOW });
+    await addMember(env.DB, { roomId: gone, userId: viewer.id, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     await env.DB.prepare("UPDATE room_members SET removed = 1 WHERE room_id = ? AND user_id = ?").bind(gone, viewer.id).run();
     const { body } = await scan(env, viewer);
     expect(body.rooms).toEqual([]);
@@ -219,7 +219,7 @@ describe("rooms join and leave", () => {
     const hugo = await person(env, "Hugo");
     const id = await room(env, hugo);
     const strangers = [await person(env, "S1"), await person(env, "S2"), await person(env, "S3"), await person(env, "S4"), await person(env, "S5")];
-    for (const s of strangers) await addMember(env.DB, { roomId: id, userId: s.id, role: "member", joinedAt: NOW });
+    for (const s of strangers) await addMember(env.DB, { roomId: id, userId: s.id, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     const sixth = await person(env, "Sixth");
     expect((await call(env, "POST", `/api/rooms/${id}/join`, sixth, CAFE)).status).toBe(409);
 
@@ -229,7 +229,7 @@ describe("rooms join and leave", () => {
     await env.DB.prepare("INSERT INTO blocks (blocker_id, blocked_id, created_at) VALUES (?, ?, ?)").bind(hugo.id, blocked.id, NOW).run();
     expect((await call(env, "POST", `/api/rooms/${open}/join`, blocked, CAFE)).status).toBe(404);
     const removed = await person(env, "Removed");
-    await addMember(env.DB, { roomId: open, userId: removed.id, role: "member", joinedAt: NOW });
+    await addMember(env.DB, { roomId: open, userId: removed.id, role: "member", joinedAt: NOW, removeToken: crypto.randomUUID() });
     await env.DB.prepare("UPDATE room_members SET removed = 1 WHERE room_id = ? AND user_id = ?").bind(open, removed.id).run();
     expect((await call(env, "POST", `/api/rooms/${open}/join`, removed, CAFE)).status).toBe(404);
     const closed = await room(env, hugo, { status: "closed", topic: "closed room" });
@@ -264,5 +264,151 @@ describe("rooms join and leave", () => {
     expect((await call(env, "POST", `/api/rooms/${ids[0]}/join`, lea, CAFE)).status).toBe(200);
     expect((await call(env, "POST", `/api/rooms/${ids[1]}/join`, lea, CAFE)).status).toBe(200);
     expect((await call(env, "POST", `/api/rooms/${ids[2]}/join`, lea, CAFE)).status).toBe(429);
+  });
+});
+
+async function postRoom(env: Env, who: Person, body: Record<string, unknown>) {
+  const res = await call(env, "POST", "/api/rooms", who, { topic: "Teach me a two-player game?", placeText: "Café du Coin, window table", durationMin: 60, ...CAFE, ...body });
+  return { status: res.status, body: (await res.json()) as Record<string, unknown> };
+}
+
+describe("rooms post", () => {
+  it("posts with a topic, place, duration and one borrowed point", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const { status, body } = await postRoom(env, hugo, {});
+    expect(status).toBe(200);
+    expect(body.topic).toBe("Teach me a two-player game?");
+    expect(body.endsAt).toBe("2026-11-02T15:00:00.000Z");
+    expect(body.names).toEqual(["Hugo"]);
+    const { body: found } = await scan(env, await person(env, "Lea"));
+    expect(found.rooms.map((r) => r.topic)).toContain("Teach me a two-player game?");
+  });
+
+  it("refuses an empty topic or place", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    expect((await postRoom(env, hugo, { topic: "" })).status).toBe(400);
+    expect((await postRoom(env, hugo, { topic: "   " })).status).toBe(400);
+    expect((await postRoom(env, hugo, { placeText: "" })).status).toBe(400);
+    expect((await postRoom(env, hugo, { durationMin: 45 })).status).toBe(400);
+  });
+
+  it("screens the topic and the place, with the reason, and publishes nothing refused", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const rude = await postRoom(env, hugo, { topic: "You idiot" });
+    expect(rude.status).toBe(422);
+    expect(rude.body.category).toBe("abuse");
+    const home = await postRoom(env, hugo, { placeText: "My flat" });
+    expect(home.status).toBe(422);
+    expect(home.body.category).toBe("home");
+    const { body } = await scan(env, await person(env, "Lea"));
+    expect(body.rooms).toEqual([]);
+  });
+
+  it("returns the fixed help message on crisis words and publishes nothing", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const res = await postRoom(env, hugo, { topic: "I want to die" });
+    expect(res.status).toBe(422);
+    expect(res.body.category).toBe("crisis");
+    expect(String(res.body.message)).toContain("143");
+    const { body } = await scan(env, await person(env, "Lea"));
+    expect(body.rooms).toEqual([]);
+  });
+
+  it("allows 1 open room per starter", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    expect((await postRoom(env, hugo, {})).status).toBe(200);
+    const second = await postRoom(env, hugo, { topic: "Another one?" });
+    expect(second.status).toBe(409);
+    expect(second.body.error).toBe("already_open");
+  });
+});
+
+describe("room detail", () => {
+  it("shows members the room with first names, statuses and lines", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await call(env, "POST", `/api/rooms/${id}/join`, lea, { ...CAFE, line: "I know a quick one" });
+    await call(env, "POST", `/api/rooms/${id}/reply`, lea, { code: "FIVE_LATE" });
+    const res = await call(env, "GET", `/api/rooms/${id}`, hugo);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { members: { name: string; you: boolean; starter: boolean; status: string; line: string | null }[]; mine: boolean };
+    expect(body.mine).toBe(true);
+    expect(body.members.map((m) => m.name)).toEqual(["Hugo", "Lea"]);
+    expect(body.members[0]).toMatchObject({ you: true, starter: true, status: "AT THE SPOT" });
+    expect(body.members[1]).toMatchObject({ you: false, starter: false, status: "5 MIN LATE", line: "I know a quick one" });
+  });
+
+  it("shows non-members the card only, never member names", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const id = await room(env, hugo);
+    const res = await call(env, "GET", `/api/rooms/${id}`, await person(env, "Marc"));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.names).toBeNull();
+    expect(JSON.stringify(body)).not.toContain("Hugo");
+  });
+
+  it("tells removed people only that the room is closed for them", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await call(env, "POST", `/api/rooms/${id}/join`, lea, CAFE);
+    const detail = (await (await call(env, "GET", `/api/rooms/${id}`, hugo)).json()) as { members: { name: string; removeToken: string | null }[] };
+    const token = detail.members.find((m) => m.name === "Lea")?.removeToken as string;
+    expect(token).toBeTruthy();
+    expect(JSON.stringify(detail)).not.toContain(lea.id);
+    await call(env, "POST", `/api/rooms/${id}/remove`, hugo, { token });
+    const res = await call(env, "GET", `/api/rooms/${id}`, lea);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ closedForYou: true, note: "That room is closed for you now" });
+  });
+});
+
+describe("room replies, take down and remove", () => {
+  it("records quick replies by code for members only", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const id = await room(env, hugo);
+    expect((await call(env, "POST", `/api/rooms/${id}/reply`, hugo, { code: "AT_THE_SPOT" })).status).toBe(200);
+    expect((await call(env, "POST", `/api/rooms/${id}/reply`, hugo, { code: "hello" })).status).toBe(400);
+    expect((await call(env, "POST", `/api/rooms/${id}/reply`, await person(env, "Marc"), { code: "AT_THE_SPOT" })).status).toBe(404);
+  });
+
+  it("takes the room down for everyone, starter only", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await call(env, "POST", `/api/rooms/${id}/join`, lea, CAFE);
+    expect((await call(env, "POST", `/api/rooms/${id}/takedown`, lea)).status).toBe(404);
+    expect((await call(env, "POST", `/api/rooms/${id}/takedown`, hugo)).status).toBe(200);
+    const { body } = await scan(env, await person(env, "Marc"));
+    expect(body.rooms).toEqual([]);
+    const gone = (await (await call(env, "GET", `/api/rooms/${id}`, hugo)).json()) as { closed: boolean };
+    expect(gone.closed).toBe(true);
+  });
+
+  it("lets only the starter remove a member, by opaque token", async () => {
+    const env = testEnv();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await call(env, "POST", `/api/rooms/${id}/join`, lea, CAFE);
+    const detail = (await (await call(env, "GET", `/api/rooms/${id}`, hugo)).json()) as { members: { name: string; removeToken: string | null }[] };
+    const token = detail.members.find((m) => m.name === "Lea")?.removeToken as string;
+    expect(detail.members.find((m) => m.name === "Hugo")?.removeToken).toBeNull();
+    expect((await call(env, "POST", `/api/rooms/${id}/remove`, lea, { token })).status).toBe(404);
+    expect((await call(env, "POST", `/api/rooms/${id}/remove`, hugo, { token: "bogus" })).status).toBe(404);
+    expect((await call(env, "POST", `/api/rooms/${id}/remove`, hugo, {})).status).toBe(400);
+    expect((await call(env, "POST", `/api/rooms/${id}/remove`, hugo, { token })).status).toBe(200);
   });
 });

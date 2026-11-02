@@ -3,7 +3,7 @@
 // fetch candidates. Only the snapped grid cell is stored, never raw
 // coordinates.
 
-import type { D1Database, RoomMemberRow, RoomReplyCode, RoomRole, RoomRow, RoomStatus } from "../types";
+import type { D1Database, RoomMemberRow, RoomReplyCode, RoomReplyRow, RoomRole, RoomRow, RoomStatus } from "../types";
 
 export interface NewRoom {
   id: string;
@@ -90,12 +90,13 @@ export interface NewMember {
   role: RoomRole;
   line?: string;
   joinedAt: string;
+  removeToken: string;
 }
 
 export async function addMember(db: D1Database, member: NewMember): Promise<void> {
   await db
-    .prepare("INSERT INTO room_members (room_id, user_id, role, line, joined_at) VALUES (?, ?, ?, ?, ?)")
-    .bind(member.roomId, member.userId, member.role, member.line ?? null, member.joinedAt)
+    .prepare("INSERT INTO room_members (room_id, user_id, role, line, joined_at, remove_token) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(member.roomId, member.userId, member.role, member.line ?? null, member.joinedAt, member.removeToken)
     .run();
 }
 
@@ -168,6 +169,41 @@ export async function memberNames(db: D1Database, roomId: string): Promise<strin
     .bind(roomId)
     .all<{ name: string }>();
   return results.map((r) => r.name);
+}
+
+export interface RoomMemberView {
+  userId: string;
+  name: string;
+  role: RoomRole;
+  line: string | null;
+  removeToken: string | null;
+}
+
+/** Current members with names and joining lines, starter first. */
+export async function roomMemberViews(db: D1Database, roomId: string): Promise<RoomMemberView[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT m.user_id AS userId, u.first_name AS name, m.role AS role, m.line AS line, m.remove_token AS removeToken
+       FROM room_members m JOIN users u ON u.id = m.user_id
+       WHERE m.room_id = ? AND m.left_at IS NULL AND m.removed = 0 AND u.first_name IS NOT NULL
+       ORDER BY CASE m.role WHEN 'starter' THEN 0 ELSE 1 END ASC, m.joined_at ASC, m.user_id ASC`,
+    )
+    .bind(roomId)
+    .all<RoomMemberView>();
+  return results;
+}
+
+/** The membership behind an opaque remove token, or null. */
+export async function membershipByToken(db: D1Database, roomId: string, token: string): Promise<RoomMemberRow | null> {
+  return db.prepare("SELECT * FROM room_members WHERE room_id = ? AND remove_token = ?").bind(roomId, token).first<RoomMemberRow>();
+}
+
+export async function repliesFor(db: D1Database, roomId: string): Promise<RoomReplyRow[]> {
+  const { results } = await db
+    .prepare("SELECT * FROM room_replies WHERE room_id = ? ORDER BY created_at ASC, id ASC")
+    .bind(roomId)
+    .all<RoomReplyRow>();
+  return results;
 }
 
 export async function addReply(

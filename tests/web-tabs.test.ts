@@ -8,6 +8,7 @@ describe("softkey trio", () => {
     expect(tabForPath("/around")).toBe("around");
     expect(tabForPath("/here")).toBe("around");
     expect(tabForPath("/place")).toBe("around");
+    expect(tabForPath("/room")).toBe("around");
     expect(tabForPath("/friends")).toBe("friends");
   });
 

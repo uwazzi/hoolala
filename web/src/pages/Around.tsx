@@ -240,6 +240,7 @@ export function Around() {
                         <div class="room-in" aria-live="polite">
                           <span class="room-in-head">YOU'RE IN.</span>
                           <span class="room-in-line">{count !== null ? `${count} in now, first names only. Head to ${r.placeText}.` : `Head to ${r.placeText}.`}</span>
+                          <a class="room-open" href={`/room?id=${r.id}`}>OPEN ROOM ›</a>
                           <button type="button" class="room-leave" onClick={() => leave(r)}>LEAVE ROOM</button>
                         </div>
                       )}

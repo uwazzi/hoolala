@@ -21,7 +21,17 @@ import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMee
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
 import { handleMeetingPoint, handlePlan } from "./api/plan";
-import { handleRoomJoin, handleRoomLeave, handleRoomsScan } from "./api/rooms";
+import {
+  handleRoomDetail,
+  handleRoomJoin,
+  handleRoomLeave,
+  handleRoomPost,
+  handleRoomRemove,
+  handleRoomReply,
+  handleRoomTakedown,
+  handleRoomsScan,
+  handleRoomsSuggest,
+} from "./api/rooms";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
 import { handleAnother, handleNewGame, handleNewOne, handlePick } from "./api/game";
@@ -228,10 +238,24 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/rooms/scan" && method === "POST") {
     return handleRoomsScan(request, env);
   }
-  const roomAction = /^\/api\/rooms\/([0-9a-f-]{36})\/(join|leave)$/.exec(url.pathname);
+  if (url.pathname === "/api/rooms/suggest" && method === "POST") {
+    return handleRoomsSuggest(request, env);
+  }
+  if (url.pathname === "/api/rooms" && method === "POST") {
+    return handleRoomPost(request, env);
+  }
+  const roomOne = /^\/api\/rooms\/([0-9a-f-]{36})$/.exec(url.pathname);
+  if (roomOne && method === "GET") {
+    return handleRoomDetail(roomOne[1], request, env);
+  }
+  const roomAction = /^\/api\/rooms\/([0-9a-f-]{36})\/(join|leave|reply|takedown|remove)$/.exec(url.pathname);
   if (roomAction && method === "POST") {
     const [, id, action] = roomAction;
-    return action === "join" ? handleRoomJoin(id, request, env) : handleRoomLeave(id, request, env);
+    if (action === "join") return handleRoomJoin(id, request, env);
+    if (action === "leave") return handleRoomLeave(id, request, env);
+    if (action === "reply") return handleRoomReply(id, request, env);
+    if (action === "takedown") return handleRoomTakedown(id, request, env);
+    return handleRoomRemove(id, request, env);
   }
   const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
   if (peek && method === "GET") {

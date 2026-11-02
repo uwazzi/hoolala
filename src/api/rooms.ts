@@ -7,36 +7,57 @@ import { compassTexts } from "../db/compass";
 import { blockedIds } from "../db/here";
 import {
   addMember,
+  addReply,
   candidateRooms,
+  createRoom,
   currentMemberIds,
   currentRoomsFor,
   getMembership,
   getRoom,
   joinsLastHour,
   markLeft,
+  markRemoved,
   memberNames,
+  membershipByToken,
+  openRoomsByStarter,
   rejoined,
   removedIds,
+  repliesFor,
+  roomMemberViews,
+  setRoomStatus,
+  startsToday,
 } from "../db/rooms";
 import { writeWorking } from "../llm/client";
+import { roomIdeasFor } from "../llm/roomideas";
+import { translationFor, type ScreenVerdict } from "../llm/screen";
 import { screenWithModel } from "../llm/screen";
 import { fitsYou } from "../rules/compass";
 import {
   canJoinAnother,
+  canRemove,
+  canStartRoom,
+  isRoomReply,
   JOIN_LINE_MAX,
   joinRefusal,
+  normalizeDuration,
+  REMOVED_NOTE,
+  ROOM_CAPACITY,
+  ROOM_REPLY_LABELS,
   roomCard,
+  roomEndsAt,
   snapToCell,
+  TOPIC_MAX,
   visibleRooms,
   type Cell,
 } from "../rules/rooms";
-import { SCREEN_MESSAGES, screenText } from "../rules/screening";
+import { SCREEN_MESSAGES, screenPlaceText, screenText } from "../rules/screening";
 import type { Env, RoomRow } from "../types";
 import { json } from "./health";
 import { overLimit, readJson } from "./request";
 import { getSessionUser } from "./session";
 
 const SCAN_LIMIT = { max: 20, windowS: 60 * 60 };
+const SUGGEST_LIMIT = { max: 20, windowS: 60 * 60 };
 
 const OTHER_MESSAGE = "That one doesn't fit the house rules here. Try again?";
 
@@ -165,7 +186,15 @@ export async function handleRoomJoin(id: string, request: Request, env: Env, now
   }
 
   if (membership) await rejoined(env.DB, room.id, user.id, now.toISOString());
-  else await addMember(env.DB, { roomId: room.id, userId: user.id, role: "member", line: line ?? undefined, joinedAt: now.toISOString() });
+  else
+    await addMember(env.DB, {
+      roomId: room.id,
+      userId: user.id,
+      role: "member",
+      line: line ?? undefined,
+      joinedAt: now.toISOString(),
+      removeToken: crypto.randomUUID(),
+    });
   return json(await memberView(env, room, cell));
 }
 
@@ -196,6 +225,184 @@ async function memberView(env: Env, room: RoomRow, cell: Cell) {
 export async function handleRoomLeave(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
   if (!user) return json({ error: "signed_out" }, 401);
+  const membership = await getMembership(env.DB, id, user.id);
+  if (membership && membership.left_at === null && membership.removed === 0) {
+    await addReply(env.DB, { id: crypto.randomUUID(), roomId: id, userId: user.id, code: "LEAVE", createdAt: now.toISOString() });
+  }
   await markLeft(env.DB, id, user.id);
+  return json({ ok: true });
+}
+
+/** NEED ONE?: 3 checked ideas from the compass, or creative ones without it. */
+export async function handleRoomsSuggest(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  if (await overLimit(env, `rooms-suggest:${user.id}`, SUGGEST_LIMIT)) return json({ error: "rate_limited" }, 429);
+  const body = await readJson(request);
+  const lang = body.lang === "fr" ? "fr" : "en";
+  const compass = await compassTexts(env.DB, user.id);
+  const result = await roomIdeasFor(env, user.id, compass, now, lang);
+  return json({
+    ...result,
+    label: result.fromCompass ? "AI / SUGGESTION · FROM YOUR COMPASS · CHECKED" : "AI / SUGGESTION · CHECKED",
+  });
+}
+
+async function screenSecondOpinion(env: Env, userId: string, text: string): Promise<ScreenVerdict | null> {
+  const ai = await screenWithModel(env, text);
+  if (ai) {
+    await writeWorking(env, {
+      userId,
+      fn: "screen",
+      tools: [],
+      verdict: ai.verdict === "approve" ? "approved" : `rejected: ${ai.category}`,
+      effort: "minimal",
+    });
+  }
+  return ai;
+}
+
+/** POST IT: a topic, a public place, a duration, one borrowed point. */
+export async function handleRoomPost(request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const body = await readJson(request);
+  const topic = typeof body.topic === "string" ? body.topic.trim() : "";
+  const placeText = typeof body.placeText === "string" ? body.placeText.trim() : "";
+  if (!topic || !placeText) return json({ error: "needs_topic_and_place" }, 400);
+  const durationMin = normalizeDuration(body.durationMin);
+  if (!durationMin) return json({ error: "bad_duration" }, 400);
+  const point = pointOf(body);
+  if (!point) return json({ error: "bad_location" }, 400);
+  // Code rules first: instant, free, and final on refusal.
+  const topicCode = screenText(topic, TOPIC_MAX);
+  if (!topicCode.ok) return refused(topicCode.category as string);
+  const placeCode = screenPlaceText(placeText);
+  if (!placeCode.ok) return refused(placeCode.category as string);
+  if (!canStartRoom(await openRoomsByStarter(env.DB, user.id), await startsToday(env.DB, user.id, now.toISOString().slice(0, 10)))) {
+    const open = await openRoomsByStarter(env.DB, user.id);
+    return json({ error: open > 0 ? "already_open" : "too_many" }, open > 0 ? 409 : 429);
+  }
+  // Then SCREEN IT, topic and place; when it is down, the code approval stands.
+  const topicAi = await screenSecondOpinion(env, user.id, topic);
+  if (topicAi?.verdict === "reject") return refused(topicAi.category);
+  const placeAi = await screenSecondOpinion(env, user.id, placeText);
+  if (placeAi?.verdict === "reject") return refused(placeAi.category);
+
+  const cell = snapToCell(point.lat, point.lng);
+  const id = crypto.randomUUID();
+  const opensAt = now.toISOString();
+  await createRoom(env.DB, {
+    id,
+    starterId: user.id,
+    topic,
+    placeText,
+    cellLat: cell.lat,
+    cellLng: cell.lng,
+    lang: topicAi?.lang ?? null,
+    translation: topicAi ? translationFor(topicAi, topic) : null,
+    opensAt,
+    endsAt: roomEndsAt(now, durationMin),
+    status: "open",
+    createdAt: opensAt,
+  });
+  await addMember(env.DB, { roomId: id, userId: user.id, role: "starter", joinedAt: opensAt, removeToken: crypto.randomUUID() });
+  const created = (await getRoom(env.DB, id)) as RoomRow;
+  return json({ ...(await memberView(env, created, cell)), mine: true });
+}
+
+export async function handleRoomDetail(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const room = await getRoom(env.DB, id);
+  if (!room) return json({ error: "not_found" }, 404);
+  const membership = await getMembership(env.DB, id, user.id);
+  if (membership && membership.removed === 1) return json({ closedForYou: true, note: REMOVED_NOTE });
+  const current = membership && membership.left_at === null;
+  const live = room.status === "open" && Date.parse(room.ends_at) > now.getTime();
+  if (!current) {
+    if (!live) return json({ error: "not_found" }, 404);
+    const count = (await currentMemberIds(env.DB, id)).length;
+    return json({
+      id: room.id,
+      topic: room.topic,
+      placeText: room.place_text,
+      endsAt: room.ends_at,
+      status: room.status,
+      size: `${count} IN · UP TO ${ROOM_CAPACITY}`,
+      translation: room.translation,
+      lang: room.lang,
+      member: false,
+      names: null,
+    });
+  }
+  if (!live) return json({ id: room.id, closed: true });
+  const views = await roomMemberViews(env.DB, id);
+  const replies = await repliesFor(env.DB, id);
+  const lastByUser = new Map<string, string>();
+  for (const reply of replies) lastByUser.set(reply.user_id, reply.code);
+  return json({
+    id: room.id,
+    topic: room.topic,
+    placeText: room.place_text,
+    endsAt: room.ends_at,
+    status: room.status,
+    size: `${views.length} IN · UP TO ${ROOM_CAPACITY}`,
+    count: views.length,
+    mine: room.starter_id === user.id,
+    member: true,
+    translation: room.translation,
+    lang: room.lang,
+    members: views.map((m) => {
+      const last = lastByUser.get(m.userId);
+      const you = m.userId === user.id;
+      return {
+        name: m.name,
+        you,
+        starter: m.role === "starter",
+        status: last ? ROOM_REPLY_LABELS[last as keyof typeof ROOM_REPLY_LABELS] : m.role === "starter" ? "AT THE SPOT" : "ON MY WAY",
+        line: m.line,
+        // The starter removes others by opaque token; nobody sees user ids.
+        removeToken: room.starter_id === user.id && !you ? m.removeToken : null,
+      };
+    }),
+  });
+}
+
+export async function handleRoomReply(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const code = (await readJson(request)).code;
+  if (!isRoomReply(code)) return json({ error: "bad_reply" }, 400);
+  const room = await getRoom(env.DB, id);
+  const membership = room ? await getMembership(env.DB, id, user.id) : null;
+  if (!room || !membership || membership.left_at !== null || membership.removed === 1) return json({ error: "not_found" }, 404);
+  if (room.status !== "open" || Date.parse(room.ends_at) <= now.getTime()) return json({ error: "closed" }, 409);
+  await addReply(env.DB, { id: crypto.randomUUID(), roomId: id, userId: user.id, code, createdAt: now.toISOString() });
+  if (code === "LEAVE") await markLeft(env.DB, id, user.id);
+  return json({ ok: true });
+}
+
+export async function handleRoomTakedown(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const room = await getRoom(env.DB, id);
+  if (!room || room.starter_id !== user.id) return json({ error: "not_found" }, 404);
+  await setRoomStatus(env.DB, id, "closed");
+  return json({ ok: true });
+}
+
+export async function handleRoomRemove(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
+  const user = await getSessionUser(request, env, now);
+  if (!user) return json({ error: "signed_out" }, 401);
+  const room = await getRoom(env.DB, id);
+  const token = (await readJson(request)).token;
+  if (!room || room.starter_id !== user.id) return json({ error: "not_found" }, 404);
+  if (typeof token !== "string" || !token) return json({ error: "bad_target" }, 400);
+  const target = await membershipByToken(env.DB, id, token);
+  const targetId = target?.user_id ?? "";
+  const current = target !== null && target.left_at === null && target.removed === 0;
+  if (!target || !canRemove(user.id, room.starter_id, targetId, current)) return json({ error: "not_found" }, 404);
+  await markRemoved(env.DB, id, targetId);
   return json({ ok: true });
 }
