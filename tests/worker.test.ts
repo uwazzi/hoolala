@@ -64,7 +64,7 @@ describe("security headers", () => {
 });
 
 describe("scheduled handler", () => {
-  it("expires open signals, purges old check-ins, games and workings, even if the sample top-up fails", async () => {
+  it("expires open signals and rooms, purges old check-ins, rooms, games and workings, even if the sample top-up fails", async () => {
     const queries: string[] = [];
     const db = {
       prepare: (q: string) => ({
@@ -80,8 +80,10 @@ describe("scheduled handler", () => {
     await runScheduled({ DB: recording } as Env, new Date("2026-10-27T12:00:00.000Z"));
     // Expiry and purges run first, in this order; topping up the SAMPLE place comes after.
     expect(queries[0]).toContain("UPDATE signals SET state = 'expired'");
-    expect(queries[1]).toContain("DELETE FROM checkins");
-    expect(queries[2]).toContain("DELETE FROM game_tries");
-    expect(queries[3]).toContain("DELETE FROM workings");
+    expect(queries[1]).toContain("UPDATE rooms SET status = 'expired'");
+    expect(queries[2]).toContain("DELETE FROM rooms");
+    expect(queries[3]).toContain("DELETE FROM checkins");
+    expect(queries[4]).toContain("DELETE FROM game_tries");
+    expect(queries[5]).toContain("DELETE FROM workings");
   });
 });

@@ -298,7 +298,7 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   return json({ error: "not_found" }, 404);
 }
 
-/** Cron: expire signals, purge old check-ins. metrics_daily rollup lands with WP5/WP6. */
+/** Cron: expire signals and rooms, purge old check-ins and rooms. metrics_daily rollup lands with WP5/WP6. */
 export async function runScheduled(env: Env, now: Date = new Date()): Promise<void> {
   const nowIso = now.toISOString();
   const dayAgoIso = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
@@ -307,6 +307,8 @@ export async function runScheduled(env: Env, now: Date = new Date()): Promise<vo
   )
     .bind(nowIso)
     .run();
+  await env.DB.prepare("UPDATE rooms SET status = 'expired' WHERE status = 'open' AND ends_at <= ?").bind(nowIso).run();
+  await env.DB.prepare("DELETE FROM rooms WHERE ends_at < ?").bind(dayAgoIso).run();
   await env.DB.prepare("DELETE FROM checkins WHERE started_at < ?").bind(dayAgoIso).run();
   await env.DB.prepare("DELETE FROM game_tries WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())

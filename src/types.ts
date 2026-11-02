@@ -325,6 +325,47 @@ export interface MeetingPointRow {
   confirmed_at: IsoDateTime | null;
 }
 
+export type RoomStatus = "open" | "closed" | "expired";
+export type RoomRole = "starter" | "member";
+export type RoomReplyCode = "AT_THE_SPOT" | "ON_MY_WAY" | "FIVE_LATE" | "CALL_IT_OFF" | "LEAVE";
+
+// WP-A1 (v6.4): cell_lat/cell_lng hold the snapped 200 m grid centre, never a
+// raw position. Deleted 24 h after ends_at with the room.
+export interface RoomRow {
+  id: string;
+  starter_id: string;
+  topic: string;
+  place_text: string;
+  cell_lat: number;
+  cell_lng: number;
+  radius_m: number;
+  lang: string | null;
+  translation: string | null;
+  opens_at: IsoDateTime;
+  ends_at: IsoDateTime;
+  status: RoomStatus;
+  created_at: IsoDateTime;
+}
+
+export interface RoomMemberRow {
+  room_id: string;
+  user_id: string;
+  role: RoomRole;
+  line: string | null;
+  joined_at: IsoDateTime;
+  left_at: IsoDateTime | null;
+  removed: number;
+  at_table_at: IsoDateTime | null;
+}
+
+export interface RoomReplyRow {
+  id: string;
+  room_id: string;
+  user_id: string;
+  code: RoomReplyCode;
+  created_at: IsoDateTime;
+}
+
 export interface BlockRow {
   blocker_id: string;
   blocked_id: string;
