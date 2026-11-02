@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSession } from "../src/api/session";
 import { mintTableToken } from "../src/api/table";
-import { createRoom, addMember } from "../src/db/rooms";
+import { createRoom, addMember, openRoomsByStarter } from "../src/db/rooms";
 import { snapToCell } from "../src/rules/rooms";
 import worker from "../src/worker";
 import type { ExecutionContext } from "../src/types";
@@ -320,6 +320,47 @@ describe("quick onboarding from the table", () => {
     expect(await tablePairs(env)).toHaveLength(0);
     const membership = await env.DB.prepare("SELECT * FROM room_members WHERE room_id = ? AND user_id = ?").bind(id, newcomer.id).first();
     expect(membership).toBeNull();
+  });
+});
+
+describe("leaving the table", () => {
+  async function tableLeave(env: Env, id: string, who: Person) {
+    const res = await call(env, "POST", `/api/rooms/${id}/table/leave`, who);
+    return (await res.json()) as { ok: boolean; debrief: string | null };
+  }
+
+  async function detail(env: Env, id: string, who: Person) {
+    const res = await call(env, "GET", `/api/rooms/${id}`, who);
+    return { status: res.status, body: (await res.json()) as { closed?: boolean; member?: boolean; count?: number; tableOpen?: boolean; atTable?: string[] } };
+  }
+
+  it("closing the table as the starter closes the room for everyone", async () => {
+    const env = envWithSecret();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await join(env, id, lea);
+    const code = (await tableToken(env, id, hugo)).body.token;
+    await scanTable(env, lea, code);
+    const left = await tableLeave(env, id, hugo);
+    expect(left.debrief).toBe(id);
+    expect((await detail(env, id, hugo)).status).toBe(404);
+    expect((await detail(env, id, lea)).body.closed).toBe(true);
+    expect(await openRoomsByStarter(env.DB, hugo.id)).toBe(0);
+  });
+
+  it("leaving the table takes the member out but the room stays open", async () => {
+    const env = envWithSecret();
+    const hugo = await person(env, "Hugo");
+    const lea = await person(env, "Lea");
+    const id = await room(env, hugo);
+    await join(env, id, lea);
+    const code = (await tableToken(env, id, hugo)).body.token;
+    await scanTable(env, lea, code);
+    const left = await tableLeave(env, id, lea);
+    expect(left.debrief).toBe(id);
+    expect((await detail(env, id, lea)).body).toMatchObject({ member: false });
+    expect((await detail(env, id, hugo)).body).toMatchObject({ member: true, count: 1, tableOpen: true, atTable: ["Hugo"] });
   });
 });
 

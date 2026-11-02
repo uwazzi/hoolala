@@ -425,11 +425,14 @@ export async function handleTableToken(id: string, request: Request, env: Env, n
   return json({ token, url: `${new URL(request.url).origin}/r/${token}`, refreshAt: now.toISOString() });
 }
 
-/** Leaving the table keeps the meeting history for the debrief, which opens when due. */
+/** Leaving the table leaves the room too, keeping the meeting history for the debrief; the starter closing the table closes the room for everyone. */
 export async function handleTableLeave(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
   if (!user) return json({ error: "signed_out" }, 401);
   await markTableLeft(env.DB, id, user.id, now.toISOString());
+  await markLeft(env.DB, id, user.id);
+  const room = await getRoom(env.DB, id);
+  if (room && room.starter_id === user.id) await setRoomStatus(env.DB, id, "closed");
   const met = await metAtTable(env.DB, id, user.id);
   const answered = await getDebrief(env.DB, id, user.id);
   return json({ ok: true, debrief: met.length > 0 && !answered ? id : null });

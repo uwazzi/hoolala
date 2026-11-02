@@ -495,6 +495,9 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .table-spacer { flex-grow: 1; min-height: 12px; }
 .table-done { width: 100%; min-height: 48px; background: none; color: var(--lcd-selected-ink); border: 2px solid var(--lcd-selected-ink); border-radius: var(--radius-control); font: 12px/1.2 var(--font-display); cursor: pointer; }
 .table-done:disabled { opacity: 0.55; cursor: default; }
+.table-confirm { margin: 0; font-size: 14px; line-height: 1.5; }
+.table-back { background: none; border: none; min-height: 44px; padding: 6px; color: var(--lcd-selected-ink); font: 11px/1.4 var(--font-display); text-decoration: underline; cursor: pointer; }
+.table-back:disabled { opacity: 0.55; cursor: default; }
 .scan-box { padding: 14px; background: var(--lcd-selected); color: var(--lcd-selected-ink); border-radius: var(--radius-control); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
 .scan-head { font: 13px/1.4 var(--font-display); }
 .scan-video { width: 100%; max-width: 320px; aspect-ratio: 1; object-fit: cover; background: var(--lcd-ink); border: 3px dashed var(--lcd-surface); }
