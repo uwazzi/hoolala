@@ -743,5 +743,51 @@ label.chat-bot { cursor: pointer; }
 .poster-qr .qr { width: 220px; height: 220px; }
 @media print {
   .no-print, .brand-bar, .lcd-softkeys, .brand-footer { display: none; }
-  body { background: #fff; max-width: none; }
+  body { background: #fff; max-width: none; margin: 0; }
+  .poster-print { display: block; padding: 0; }
+  .poster, .poster * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* v6.5 A4 poster: 794 x 1123 px at 96 dpi fills 210 x 297 mm exactly. */
+@page { size: A4; margin: 0; }
+.poster-print { display: flex; justify-content: center; padding: 24px 16px 48px; }
+.poster { width: 210mm; height: 297mm; box-sizing: border-box; flex-shrink: 0; background: var(--lcd-bg); color: var(--lcd-ink); font-family: "Space Mono", monospace; display: flex; flex-direction: column; overflow: hidden; }
+/* Ink saver white: print-only exception to the token rule, owner approved (v6.5). */
+.poster--saver { --lcd-bg: #FFFFFF; --lcd-surface: #FFFFFF; }
+.poster-main { padding: 40px 48px 0 48px; display: flex; flex-direction: column; gap: 18px; flex-grow: 1; }
+.poster-brand { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px dashed var(--lcd-ink-secondary); padding-bottom: 12px; }
+.poster-brand-left { display: flex; flex-direction: column; gap: 4px; }
+.poster-logo { font-family: "Silkscreen", monospace; font-weight: 700; font-size: 30px; letter-spacing: 1px; line-height: 1; }
+.poster-tagline { font-size: 15px; }
+.poster-chip { font-family: "Silkscreen", monospace; font-size: 15px; background: var(--lcd-ink); color: var(--lcd-surface); padding: 8px 12px; border-radius: 2px; }
+.poster-hook-block { display: flex; flex-direction: column; gap: 8px; }
+.poster-hook { margin: 0; font-family: "Silkscreen", monospace; font-weight: 700; font-size: 54px; line-height: 1.04; letter-spacing: -1px; }
+.poster-hook span { display: block; }
+.poster-place { font-size: 19px; }
+.poster-story { display: flex; gap: 24px; align-items: center; }
+.poster-plant-box { flex-shrink: 0; width: 176px; height: 176px; box-sizing: border-box; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: 2px; display: flex; align-items: center; justify-content: center; }
+.poster-story-right { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.poster-kicker { font-family: "Silkscreen", monospace; font-size: 14px; color: var(--lcd-ink-secondary); }
+.poster-motto { font-family: "Silkscreen", monospace; font-weight: 700; font-size: 34px; line-height: 1.12; }
+.poster-story-line { font-size: 16px; line-height: 1.45; }
+.poster-action { display: flex; gap: 28px; align-items: stretch; }
+.poster-qr-block { flex-shrink: 0; width: 272px; display: flex; flex-direction: column; background: var(--lcd-ink); padding: 12px; box-sizing: border-box; border-radius: 2px; gap: 10px; }
+.poster-qr-head { display: flex; justify-content: space-between; align-items: center; font-family: "Silkscreen", monospace; color: var(--lcd-surface); font-size: 18px; }
+.poster-qr-paper { background: var(--lcd-surface); padding: 4px; border-radius: 2px; }
+.poster-qr-paper .qr { width: 240px; height: 240px; margin: 0; border: none; }
+.poster-qr-note { color: var(--lcd-surface); font-size: 13px; line-height: 1.4; }
+.poster-steps { flex-grow: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.poster-how { font-family: "Silkscreen", monospace; font-size: 15px; color: var(--lcd-ink-secondary); }
+.poster-step { display: flex; gap: 14px; align-items: flex-start; }
+.poster-step svg { flex-shrink: 0; }
+.poster-step-text { display: flex; flex-direction: column; gap: 3px; }
+.poster-step-title { font-family: "Silkscreen", monospace; font-weight: 700; font-size: 19px; }
+.poster-step-line { font-size: 15px; line-height: 1.45; }
+.poster-trust { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; background: var(--lcd-ink); color: var(--lcd-surface); padding: 11px 16px; border-radius: 2px; font-family: "Silkscreen", monospace; font-size: 14px; }
+.poster-tabs { display: flex; flex-direction: column; margin-top: 14px; }
+.poster-tabs-head { display: flex; justify-content: space-between; align-items: center; padding: 0 48px 8px 48px; font-size: 13px; }
+.poster-tabs-band { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); border-top: 2px dashed var(--lcd-ink); height: 140px; }
+.poster-tab { border-right: 2px dashed var(--lcd-ink); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.poster-tab-turn { transform: rotate(-90deg); white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.poster-tab-grow { font-family: "Silkscreen", monospace; font-weight: 700; font-size: 14px; }
+.poster-tab-host { font-size: 12px; }
