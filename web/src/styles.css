@@ -724,3 +724,15 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .st-pop { display: inline-block; transform-origin: 50% 100%; animation: st-pop 0.35s steps(4) both; }
 @keyframes st-pop { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .st-drift, .st-lean, .st-leanl, .st-cup, .st-pop { animation: none; } }
+
+/* Poster QR for coffee machines: a block on Around, a print sheet of its own. */
+.poster-box { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 12px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); }
+.poster-box .qr { width: 140px; height: 140px; }
+.poster-box .around-privacy { text-align: center; }
+.poster-sheet { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 20px 16px; }
+.poster-qr { padding: 12px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); }
+.poster-qr .qr { width: 220px; height: 220px; }
+@media print {
+  .no-print, .brand-bar, .lcd-softkeys, .brand-footer { display: none; }
+  body { background: #fff; max-width: none; }
+}

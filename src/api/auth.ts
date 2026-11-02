@@ -62,6 +62,10 @@ export async function handleAuthVerify(request: Request, env: Env, now = new Dat
   if (table && /^[A-Za-z0-9_-]+$/.test(table) && (await env.SESSIONS.get(`table-pending:${table}`, { type: "text" }))) {
     return redirect(`/r/claim?pending=${table}`, sessionCookie(session));
   }
+  // A poster magic link carries only the marker: onboarding ends on /around/new.
+  if (params.get("poster") === "1") {
+    return redirect("/p/claim", sessionCookie(session));
+  }
   return redirect(user.first_name ? "/" : "/signin?step=name", sessionCookie(session));
 }
 
