@@ -164,7 +164,7 @@ export function Around() {
             </div>
             <div class="thumb-zone">
               <button class="thumb-key" type="button" onClick={scan}><span>ONE LOOK AROUND</span><span aria-hidden="true">&gt;</span></button>
-              <button class="thumb-link" type="button" onClick={() => setPhase("partner")}>OWN A CAFÉ, BAR OR SPACE? BECOME A PARTNER</button>
+              <button class="thumb-key thumb-key--ghost" type="button" onClick={() => setPhase("partner")}><span>OWN A CAFÉ, BAR OR SPACE? BECOME A PARTNER</span><span aria-hidden="true">&gt;</span></button>
             </div>
           </>
         )}
