@@ -59,10 +59,10 @@ function IdeasBlock({
 }
 
 export function Compose() {
-  const { route } = useLocation();
+  const { query, route } = useLocation();
   const [phase, setPhase] = useState<Phase>("compose");
   const [topic, setTopic] = useState("");
-  const [place, setPlace] = useState("");
+  const [place, setPlace] = useState(() => (typeof query.place === "string" ? query.place.slice(0, 40) : ""));
   const [dur, setDur] = useState(60);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [note, setNote] = useState("");

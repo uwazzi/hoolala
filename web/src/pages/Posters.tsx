@@ -32,6 +32,7 @@ export function Posters() {
   const placeLabel = posterPlaceName(place);
   const origin = window.location.origin;
   const host = window.location.host;
+  const qrUrl = placeLabel === "this place" ? `${origin}/p` : `${origin}/p?place=${encodeURIComponent(placeLabel)}`;
 
   function doPrint() {
     const done = () => setPrinted(true);
@@ -84,7 +85,7 @@ export function Posters() {
     (err?.field === "place" ? placeRef : ownRef).current?.focus();
   }
 
-  const art = <PosterArt lines={lines} place={placeLabel} saver={saver} qrUrl={`${origin}/p`} host={host} />;
+  const art = <PosterArt lines={lines} place={placeLabel} saver={saver} qrUrl={qrUrl} host={host} />;
   const softkeys = (
     <>
       <a class="lcd-softkey" href="/around">Back</a>
