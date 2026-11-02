@@ -132,12 +132,17 @@ export function Room() {
   async function phoneDown() {
     if (busy || !id) return;
     setBusy(true);
+    setNote("");
     try {
       const res = await api<{ url: string }>("GET", `/api/rooms/${id}/table`);
       if (res.status === 200) {
         setTableUrl(res.data.url);
         setDetail((d) => (d ? { ...d, youAtTable: true, tableOpen: true } : d));
+      } else {
+        setNote("Couldn't put the phone down. Try again?");
       }
+    } catch {
+      setNote("No connection. Try again when you're back online.");
     } finally {
       setBusy(false);
     }
