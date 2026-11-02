@@ -93,10 +93,10 @@ export function PosterArt({ lines, place, saver, qrUrl, host }: { lines: string[
       <div class="poster-tabs">
         <div class="poster-tabs-head">
           <span>Take one. Say hi later.</span>
-          <span>A tiny try by HG-Labs</span>
+          <span>powered by hg-labs.io · say hi hugo@hg-labs.io</span>
         </div>
         <div class="poster-tabs-band">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
             <div class="poster-tab" key={n}>
               <div class="poster-tab-turn">
                 <span class="poster-tab-grow">GROW INSIDE</span>
@@ -104,6 +104,10 @@ export function PosterArt({ lines, place, saver, qrUrl, host }: { lines: string[
               </div>
             </div>
           ))}
+          <div class="poster-tab poster-brandcell">
+            <Qr text="https://hg-labs.io" label="QR code: opens the HG-Labs website" />
+            <span class="poster-tab-host">hg-labs.io</span>
+          </div>
         </div>
       </div>
     </div>

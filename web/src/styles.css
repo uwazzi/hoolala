@@ -794,6 +794,8 @@ label.chat-bot { cursor: pointer; }
 .poster-tab-turn { transform: rotate(-90deg); white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .poster-tab-grow { font-family: "Silkscreen", monospace; font-weight: 700; font-size: 14px; }
 .poster-tab-host { font-size: 12px; }
+.poster-brandcell { flex-direction: column; gap: 6px; }
+.poster-brandcell .qr { width: 72px; height: 72px; margin: 0; border: none; }
 
 /* v6.5 poster maker page. */
 .print-only { display: none; }
