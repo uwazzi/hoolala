@@ -17,6 +17,7 @@ import { Room } from "./pages/Room";
 import { TableClaim, TableLanding } from "./pages/TableJoin";
 import { PosterClaim, PosterLanding } from "./pages/PosterJoin";
 import { Posters } from "./pages/Posters";
+import { PosterPrint } from "./pages/PosterPrint";
 import { Dashboard } from "./pages/Dashboard";
 import { Here } from "./pages/Here";
 import { Live } from "./pages/Live";
@@ -73,6 +74,7 @@ function App() {
       <Route path="/p/claim" component={PosterClaim} />
       <Route path="/p" component={PosterLanding} />
       <Route path="/posters" component={Posters} />
+      <Route path="/posters/print" component={PosterPrint} />
       <Route path="/arrive" component={Arrive} />
       <Route path="/surprise" component={Surprise} />
       <Route path="/juicy" component={Juicy} />

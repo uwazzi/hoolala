@@ -11,8 +11,9 @@ import { Screen } from "../components/Screen";
 type LandingPhase = "working" | "landing" | "check" | "sent";
 
 export function PosterLanding() {
-  const { route } = useLocation();
+  const { query, route } = useLocation();
   const [phase, setPhase] = useState<LandingPhase>("working");
+  const place = typeof query.place === "string" ? query.place.slice(0, 40) : "";
   const [email, setEmail] = useState("");
   const [adult, setAdult] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -30,10 +31,16 @@ export function PosterLanding() {
         }
       }
     })();
+    try {
+      if (place) sessionStorage.setItem("poster-place", place);
+    } catch {
+      // Private mode: the place prefill is skipped, onboarding continues.
+    }
+    const next = place ? `/around/new?place=${encodeURIComponent(place)}` : "/around/new";
     api<{ firstName: string | null }>("GET", "/api/me")
       .then((res) => {
         if (res.status !== 200) return setPhase("landing");
-        if (res.data.firstName) return route("/around/new");
+        if (res.data.firstName) return route(next);
         route("/p/claim");
       })
       .catch(() => setPhase("landing"));
@@ -150,7 +157,14 @@ export function PosterClaim() {
       setPhase("name");
       return setNote("Something went wrong. Try again.");
     }
-    route("/around/new");
+    let place = "";
+    try {
+      place = sessionStorage.getItem("poster-place") ?? "";
+      sessionStorage.removeItem("poster-place");
+    } catch {
+      // Private mode: no prefill, the icebreaker form still opens.
+    }
+    route(place ? `/around/new?place=${encodeURIComponent(place)}` : "/around/new");
   }
 
   useEffect(() => {

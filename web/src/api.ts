@@ -13,6 +13,7 @@ export async function api<T = Record<string, unknown>>(
   method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
+  init?: RequestInit,
 ): Promise<ApiResult<T>> {
   let res: Response;
   try {
@@ -21,6 +22,7 @@ export async function api<T = Record<string, unknown>>(
       credentials: "same-origin",
       headers: body === undefined ? {} : { "content-type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
+      ...init,
     });
   } catch (err) {
     pushLog(`${method} ${path} -> network-error`);
