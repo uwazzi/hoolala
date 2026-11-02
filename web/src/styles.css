@@ -464,6 +464,8 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .idea { min-height: 44px; padding: 8px 10px; background: var(--lcd-surface); color: var(--lcd-ink); border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.4; text-align: left; cursor: pointer; width: 100%; box-sizing: border-box; }
 .dur-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .dur-row .chip { min-height: 44px; }
+.chat-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.chat-row .chip { font-size: 9px; padding: 4px 2px; }
 .thumb-key:disabled { background: none; color: var(--lcd-ink-secondary); border: 2px dashed var(--lcd-ink-secondary); cursor: not-allowed; }
 .waiting-box { padding: 12px; border: 2px dashed var(--lcd-ink); border-radius: var(--radius-control); display: flex; flex-direction: column; gap: 4px; }
 .waiting-head { font: 12px/1.4 var(--font-display); }
@@ -500,6 +502,20 @@ textarea.lcd-field { resize: vertical; font: inherit; }
 .scan-note { font-size: 11px; color: var(--lcd-sunken); }
 .scan-back { width: 100%; min-height: 48px; background: var(--lcd-surface); color: var(--lcd-ink); border: none; border-radius: var(--radius-control); font: 12px/1 var(--font-display); cursor: pointer; }
 .table-kicker { font: 700 20px/1.2 var(--font-display); letter-spacing: 1px; }
+.debrief-nudge { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: var(--lcd-selected); color: var(--lcd-selected-ink); border: none; border-radius: var(--radius-control); text-align: left; cursor: pointer; min-height: 44px; }
+.debrief-nudge-head { font: 12px/1.4 var(--font-display); }
+.debrief-nudge-topic { font-size: 12px; }
+.battery-row { display: flex; gap: 6px; }
+.battery { flex: 1 1 auto; min-height: 44px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); color: var(--lcd-ink); font-size: 11px; letter-spacing: -1px; cursor: pointer; }
+.battery.on { background: var(--lcd-selected); color: var(--lcd-selected-ink); }
+.stay-row { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); }
+.stay-ask { font: 10px/1.4 var(--font-display); }
+.stay-keys { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.stay-keys .chip { min-height: 44px; }
+.confetti { position: relative; height: 60px; overflow: hidden; }
+.confetti span { position: absolute; top: -10px; width: 8px; height: 8px; background: var(--lcd-selected); animation: hl-fall 2.4s ease-in forwards; }
+@keyframes hl-fall { to { transform: translateY(70px) rotate(180deg); opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
 .partner-list { margin: 0; padding: 12px 12px 12px 30px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
 .chip-row { display: flex; gap: 6px; }
 .chip { flex: 1; padding: 8px 10px; border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); background: var(--lcd-surface); font: 11px/1 var(--font-display); cursor: pointer; }

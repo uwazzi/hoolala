@@ -46,6 +46,7 @@ export function Around() {
   const [busy, setBusy] = useState<string | null>(null);
   const [compass, setCompass] = useState<CompassLine[] | null>(null);
   const [note, setNote] = useState("");
+  const [pendingDebrief, setPendingDebrief] = useState<{ id: string; topic: string } | null>(null);
 
   useEffect(() => {
     api<{ compass: CompassLine[] }>("GET", "/api/me/compass")
@@ -55,6 +56,13 @@ export function Around() {
       })
       .catch(() => {
         // Offline: the compass box stays hidden, the scan still works.
+      });
+    api<{ room: { id: string; topic: string } | null }>("GET", "/api/rooms/debrief-pending")
+      .then((res) => {
+        if (res.status === 200 && res.data.room) setPendingDebrief(res.data.room);
+      })
+      .catch(() => {
+        // Offline: the debrief waits for next time.
       });
   }, []);
 
@@ -138,6 +146,12 @@ export function Around() {
         {phase === "ask" && (
           <>
             <div class="around-body">
+              {pendingDebrief && (
+                <button type="button" class="debrief-nudge" onClick={() => route(`/debrief?room=${pendingDebrief.id}`)}>
+                  <span class="debrief-nudge-head">HOW DID IT GO?</span>
+                  <span class="debrief-nudge-topic">{pendingDebrief.topic}</span>
+                </button>
+              )}
               <h1 class="around-head">AROUND YOU</h1>
               <p class="around-promise">Who's up for a chat within a short walk. Nobody yet? Then you go first.</p>
               {compass !== null &&

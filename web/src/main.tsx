@@ -12,6 +12,7 @@ import { Around } from "./pages/Around";
 import { Arrive } from "./pages/Arrive";
 import { Compass } from "./pages/Compass";
 import { Compose } from "./pages/Compose";
+import { Debrief } from "./pages/Debrief";
 import { Room } from "./pages/Room";
 import { TableClaim, TableLanding } from "./pages/TableJoin";
 import { Dashboard } from "./pages/Dashboard";
@@ -64,6 +65,7 @@ function App() {
       <Route path="/around" component={Around} />
       <Route path="/around/new" component={Compose} />
       <Route path="/room" component={Room} />
+      <Route path="/debrief" component={Debrief} />
       <Route path="/r/claim" component={TableClaim} />
       <Route path="/r/:token" component={TableLanding} />
       <Route path="/arrive" component={Arrive} />

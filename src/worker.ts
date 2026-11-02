@@ -36,6 +36,7 @@ import {
   handleTableToken,
 } from "./api/rooms";
 import { handleTableClaim, handleTableLanding, handleTablePending, handleTableStart } from "./api/table";
+import { handleDebriefGet, handleDebriefPending, handleDebriefPost } from "./api/debrief";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
 import { handleAnother, handleNewGame, handleNewOne, handlePick } from "./api/game";
@@ -272,6 +273,16 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/table/claim" && method === "POST") {
     return handleTableClaim(request, env);
   }
+  if (url.pathname === "/api/rooms/debrief-pending" && method === "GET") {
+    return handleDebriefPending(request, env);
+  }
+  const roomDebrief = /^\/api\/rooms\/([0-9a-f-]{36})\/debrief$/.exec(url.pathname);
+  if (roomDebrief && method === "GET") {
+    return handleDebriefGet(roomDebrief[1], request, env);
+  }
+  if (roomDebrief && method === "POST") {
+    return handleDebriefPost(roomDebrief[1], request, env);
+  }
   const roomAction = /^\/api\/rooms\/([0-9a-f-]{36})\/(join|leave|reply|takedown|remove)$/.exec(url.pathname);
   if (roomAction && method === "POST") {
     const [, id, action] = roomAction;
@@ -372,6 +383,9 @@ export async function runScheduled(env: Env, now: Date = new Date()): Promise<vo
     .run();
   await env.DB.prepare("DELETE FROM workings WHERE created_at < ?")
     .bind(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .run();
+  await env.DB.prepare("DELETE FROM owner_feedback WHERE created_at < ?")
+    .bind(new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString())
     .run();
   try {
     await ensureSample(env.DB, now);

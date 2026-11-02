@@ -36,6 +36,7 @@ import {
 import { writeWorking } from "../llm/client";
 import { roomIdeasFor } from "../llm/roomideas";
 import { mintTableToken, verifyTableToken } from "./table";
+import { getDebrief, metAtTable } from "../db/debrief";
 import { translationFor, type ScreenVerdict } from "../llm/screen";
 import { screenWithModel } from "../llm/screen";
 import { fitsYou } from "../rules/compass";
@@ -237,6 +238,7 @@ export async function handleRoomLeave(id: string, request: Request, env: Env, no
     await addReply(env.DB, { id: crypto.randomUUID(), roomId: id, userId: user.id, code: "LEAVE", createdAt: now.toISOString() });
   }
   await markLeft(env.DB, id, user.id);
+  await markTableLeft(env.DB, id, user.id, now.toISOString());
   return json({ ok: true });
 }
 
@@ -418,12 +420,14 @@ export async function handleTableToken(id: string, request: Request, env: Env, n
   return json({ token, url: `${new URL(request.url).origin}/r/${token}`, refreshAt: now.toISOString() });
 }
 
-/** Leaving the table keeps the meeting history for the debrief. */
+/** Leaving the table keeps the meeting history for the debrief, which opens when due. */
 export async function handleTableLeave(id: string, request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
   if (!user) return json({ error: "signed_out" }, 401);
   await markTableLeft(env.DB, id, user.id, now.toISOString());
-  return json({ ok: true });
+  const met = await metAtTable(env.DB, id, user.id);
+  const answered = await getDebrief(env.DB, id, user.id);
+  return json({ ok: true, debrief: met.length > 0 && !answered ? id : null });
 }
 
 /**

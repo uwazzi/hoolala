@@ -147,14 +147,15 @@ export function Room() {
   async function tableLeave() {
     if (busy) return;
     setBusy(true);
+    let debriefRoom: string | null = null;
     try {
-      await api("POST", `/api/rooms/${id}/table/leave`);
+      const res = await api<{ debrief: string | null }>("POST", `/api/rooms/${id}/table/leave`);
+      if (res.status === 200) debriefRoom = res.data.debrief;
     } finally {
       setBusy(false);
     }
     setTableUrl(null);
-    // WP-A5 turns this corner into HOW DID IT GO?; until then, back to Around.
-    route("/around");
+    route(debriefRoom ? `/debrief?room=${debriefRoom}` : "/around");
   }
 
   async function onScannedText(text: string) {

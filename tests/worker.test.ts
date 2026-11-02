@@ -85,5 +85,6 @@ describe("scheduled handler", () => {
     expect(queries[3]).toContain("DELETE FROM checkins");
     expect(queries[4]).toContain("DELETE FROM game_tries");
     expect(queries[5]).toContain("DELETE FROM workings");
+    expect(queries[6]).toContain("DELETE FROM owner_feedback");
   });
 });

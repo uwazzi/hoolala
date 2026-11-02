@@ -369,6 +369,34 @@ export interface RoomReplyRow {
   created_at: IsoDateTime;
 }
 
+export type DebriefChat = "awkward" | "ok" | "good" | "great";
+export type FeedbackTag = "good" | "bad" | "idea";
+
+// WP-A5 (v6.4): debriefs are private to the person; owner feedback carries no
+// user id, no room id and no place; stay choices are per table pair.
+export interface DebriefRow {
+  user_id: string;
+  room_id: string;
+  battery: number | null;
+  chat: DebriefChat | null;
+  created_at: IsoDateTime;
+}
+
+export interface OwnerFeedbackRow {
+  id: string;
+  tag: FeedbackTag | null;
+  text: string;
+  created_at: IsoDateTime;
+  app_version: string;
+}
+
+export interface StayRoomRow {
+  user_id: string;
+  other_id: string;
+  room_id: string;
+  chosen_at: IsoDateTime;
+}
+
 export interface BlockRow {
   blocker_id: string;
   blocked_id: string;
