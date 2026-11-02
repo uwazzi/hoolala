@@ -8,6 +8,7 @@ import { compassTexts } from "../db/compass";
 import { getGameTry } from "../db/tries";
 import { pickedTodayTry } from "./game";
 import { getTry, lastOutcomes, recordTry, setUserStep, tryCounts, userStep } from "../db/tries";
+import { meetLeaves } from "../db/rooms";
 import { draftTry, timeOfDay, validateDraft } from "../llm/tryit";
 import { llmEnabled } from "../llm/client";
 import { suggestNext, validateTry, type Outcome, type Step } from "../rules/tries";
@@ -128,8 +129,9 @@ export async function handleRecordTry(request: Request, env: Env, now = new Date
     createdAt: now.toISOString(),
   });
   const counts = await tryCounts(env.DB, user.id);
+  const leaves = counts.leaves + (await meetLeaves(env.DB, user.id));
   const leaf = outcome !== "didnt_happen";
-  return json({ ok: true, try_id: tryId, step, leaves: counts.leaves, grew: leaf ? Math.min(counts.leaves, 9) - 1 : -1, suggestion: suggestNext(step, outcome) });
+  return json({ ok: true, try_id: tryId, step, leaves, grew: leaf ? Math.min(leaves, 9) - 1 : -1, suggestion: suggestNext(step, outcome) });
 }
 
 /** One recorded try for its owner: title and outcome, for the COMPASS? fix-up. */
@@ -156,5 +158,5 @@ export async function handlePlant(request: Request, env: Env, now = new Date()):
   const user = await getSessionUser(request, env, now);
   if (!user) return json({ error: "signed_out" }, 401);
   const counts = await tryCounts(env.DB, user.id);
-  return json({ tries: counts.tries, leaves: counts.leaves, step: await userStep(env.DB, user.id) });
+  return json({ tries: counts.tries, leaves: counts.leaves + (await meetLeaves(env.DB, user.id)), step: await userStep(env.DB, user.id) });
 }

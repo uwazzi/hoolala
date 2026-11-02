@@ -397,6 +397,19 @@ export interface StayRoomRow {
   chosen_at: IsoDateTime;
 }
 
+export type LeafSource = "try" | "meet";
+
+// WP-A6 (v6.4): a recorded table meeting grows 5 leaves, once per person per
+// room. Only meet leaves are stored; try leaves keep being counted.
+export interface LeafEventRow {
+  id: string;
+  user_id: string;
+  source: LeafSource;
+  amount: number;
+  room_id: string | null;
+  created_at: IsoDateTime;
+}
+
 export interface BlockRow {
   blocker_id: string;
   blocked_id: string;

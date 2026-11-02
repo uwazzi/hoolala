@@ -282,8 +282,25 @@ export async function recordTablePairs(db: D1Database, roomId: string, userId: s
         db.prepare("INSERT INTO moments (id, user_id, interaction_id, label) VALUES (?, ?, ?, ?)").bind(crypto.randomUUID(), uid, interactionId, "You met an actual human."),
       ),
     );
+    // Both sides grow 5 leaves, once per person per room.
+    await db.batch(
+      [a, b].map((uid) =>
+        db
+          .prepare("INSERT OR IGNORE INTO leaf_events (id, user_id, source, amount, room_id, created_at) VALUES (?, ?, 'meet', 5, ?, ?)")
+          .bind(crypto.randomUUID(), uid, roomId, nowIso),
+      ),
+    );
   }
   return recorded;
+}
+
+/** Leaves grown from real connections. */
+export async function meetLeaves(db: D1Database, userId: string): Promise<number> {
+  const row = await db
+    .prepare("SELECT COALESCE(SUM(amount), 0) AS n FROM leaf_events WHERE user_id = ? AND source = 'meet'")
+    .bind(userId)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
 }
 
 /** Table meetings recorded today between these people, for the table sign. */

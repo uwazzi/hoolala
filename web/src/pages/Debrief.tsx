@@ -245,7 +245,7 @@ export function Debrief() {
           ))}
           <p class="around-status">HOOLALA! IS OFF. YOU'RE ON.</p>
           <p class="around-privacy">Enjoy the rest of your day.</p>
-          <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/">Back to today</a></li></ul>
+          <ul class="key-list"><li><a class="lcd-key lcd-key--primary" href="/?grew=5">Back to today</a></li></ul>
         </div>
       )}
     </Screen>
