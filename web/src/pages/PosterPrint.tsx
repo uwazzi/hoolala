@@ -13,6 +13,7 @@ export function PosterPrint() {
   const place = posterPlaceName(typeof query.place === "string" ? query.place : "");
   const origin = window.location.origin;
   const host = window.location.host;
+  const qrUrl = place === "this place" ? `${origin}/p` : `${origin}/p?place=${encodeURIComponent(place)}`;
   let lines: string[];
   if (hookParam === "own") {
     const wrapped = wrapHook(typeof query.text === "string" ? query.text : "");
@@ -23,7 +24,7 @@ export function PosterPrint() {
   }
   return (
     <div class="poster-print">
-      <PosterArt lines={lines} place={place} saver={saver} qrUrl={`${origin}/p`} host={host} />
+      <PosterArt lines={lines} place={place} saver={saver} qrUrl={qrUrl} host={host} />
     </div>
   );
 }

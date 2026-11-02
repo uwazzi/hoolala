@@ -745,8 +745,8 @@ label.chat-bot { cursor: pointer; }
   .no-print, .brand-bar, .lcd-softkeys, .brand-footer { display: none; }
   body { background: #fff; max-width: none; margin: 0; }
   main { max-width: none; }
-  .poster-print { display: block; padding: 0; }
-  .print-only { display: block; }
+  div.poster-print { display: block; padding: 0; }
+  div.print-only { display: block; }
   .poster, .poster * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 @media (prefers-reduced-motion: reduce) { .thumb-key .typing-dots { display: none; } }
