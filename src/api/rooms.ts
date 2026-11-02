@@ -275,7 +275,7 @@ async function screenSecondOpinion(env: Env, userId: string, text: string): Prom
   return ai;
 }
 
-/** POST IT: a topic, a public place, a duration, one borrowed point. */
+/** POST IT: a topic, a public place, a duration, one borrowed point. The starter sits at the table at once, so the QR is up from creation. */
 export async function handleRoomPost(request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
   if (!user) return json({ error: "signed_out" }, 401);
@@ -320,6 +320,7 @@ export async function handleRoomPost(request: Request, env: Env, now = new Date(
     createdAt: opensAt,
   });
   await addMember(env.DB, { roomId: id, userId: user.id, role: "starter", joinedAt: opensAt, removeToken: crypto.randomUUID() });
+  await markAtTable(env.DB, id, user.id, opensAt);
   const created = (await getRoom(env.DB, id)) as RoomRow;
   return json({ ...(await memberView(env, created, cell)), mine: true });
 }
