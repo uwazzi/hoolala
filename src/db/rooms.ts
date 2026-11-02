@@ -103,10 +103,13 @@ export async function getMembership(db: D1Database, roomId: string, userId: stri
   return db.prepare("SELECT * FROM room_members WHERE room_id = ? AND user_id = ?").bind(roomId, userId).first<RoomMemberRow>();
 }
 
-/** Current members: joined, not left, not removed. */
+/** Current members: joined, not left, not removed. The starter first, then join order. */
 export async function currentMemberIds(db: D1Database, roomId: string): Promise<string[]> {
   const { results } = await db
-    .prepare("SELECT user_id AS id FROM room_members WHERE room_id = ? AND left_at IS NULL AND removed = 0 ORDER BY joined_at ASC")
+    .prepare(
+      `SELECT user_id AS id FROM room_members WHERE room_id = ? AND left_at IS NULL AND removed = 0
+       ORDER BY CASE role WHEN 'starter' THEN 0 ELSE 1 END ASC, joined_at ASC, user_id ASC`,
+    )
     .bind(roomId)
     .all<{ id: string }>();
   return results.map((r) => r.id);
@@ -160,7 +163,7 @@ export async function memberNames(db: D1Database, roomId: string): Promise<strin
     .prepare(
       `SELECT u.first_name AS name FROM room_members m JOIN users u ON u.id = m.user_id
        WHERE m.room_id = ? AND m.left_at IS NULL AND m.removed = 0 AND u.first_name IS NOT NULL
-       ORDER BY m.joined_at ASC`,
+       ORDER BY CASE m.role WHEN 'starter' THEN 0 ELSE 1 END ASC, m.joined_at ASC, m.user_id ASC`,
     )
     .bind(roomId)
     .all<{ name: string }>();

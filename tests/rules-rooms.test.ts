@@ -10,6 +10,7 @@ import {
   cellDistanceM,
   distanceLabel,
   isRoomReply,
+  joinRefusal,
   normalizeDuration,
   REMOVED_NOTE,
   roomCard,
@@ -155,6 +156,13 @@ describe("canJoin", () => {
     expect(canJoin(viewer(), room({ cellLat: far.lat, cellLng: far.lng }), CAFE, NOW)).toBe(false);
     expect(canJoin(viewer(), room({ status: "closed" }), CAFE, NOW)).toBe(false);
     expect(canJoin(viewer(), room({ endsAt: NOW.toISOString() }), CAFE, NOW)).toBe(false);
+  });
+
+  it("says full only when nothing hidden also applies", () => {
+    const full = room({ memberIds: ["s", "a", "b", "c", "d", "e"] });
+    expect(joinRefusal(viewer(), full, CAFE, NOW)).toBe("full");
+    expect(joinRefusal(viewer({ blockedIds: ["s"] }), full, CAFE, NOW)).toBe("hidden");
+    expect(joinRefusal(viewer(), room(), CAFE, NOW)).toBeNull();
   });
 });
 

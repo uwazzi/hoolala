@@ -118,14 +118,28 @@ export function visibleRooms(viewer: RoomViewer, rooms: RoomCandidate[], viewerC
 
 /** Open join: the room is visible, has space, and no block touches any current member. */
 export function canJoin(viewer: RoomViewer, room: RoomCandidate, viewerCell: Cell, now: Date): boolean {
+  return joinRefusal(viewer, room, viewerCell, now) === null;
+}
+
+/**
+ * Why a join is refused. "hidden" covers everything that must look like
+ * nothing there (far, closed, expired, removed, blocked); only a full room
+ * says so, and only when nothing hidden also applies.
+ */
+export type JoinRefusal = "hidden" | "full";
+
+export function joinRefusal(viewer: RoomViewer, room: RoomCandidate, viewerCell: Cell, now: Date): JoinRefusal | null {
   const blocked = new Set(viewer.blockedIds);
-  return (
-    live(room, now) &&
-    withinReach(room, viewerCell) &&
-    !room.removedIds.includes(viewer.id) &&
-    room.memberIds.length < ROOM_CAPACITY &&
-    !room.memberIds.some((id) => blocked.has(id))
-  );
+  if (
+    !live(room, now) ||
+    !withinReach(room, viewerCell) ||
+    room.removedIds.includes(viewer.id) ||
+    room.memberIds.some((id) => blocked.has(id))
+  ) {
+    return "hidden";
+  }
+  if (room.memberIds.length >= ROOM_CAPACITY) return "full";
+  return null;
 }
 
 /** Only the starter removes, and only a current member who is not themselves. */

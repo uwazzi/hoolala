@@ -20,7 +20,7 @@ A finite, real-world nudge with a Nokia LCD look. The first screen says GET OUTS
 | Folder | Owns | Never does |
 |---|---|---|
 | `src/worker.ts` | Routing, static assets, security headers (CSP allows Telegram's Mini App script) | Business rules |
-| `src/api/` | One file per resource: auth, telegram-auth, compass, places (nearby, add, card, facts, points), checkin, here (signals, responses, quick replies, meeting points), block, report, meet, stay-in-touch, tries, plant, crew, around, live, share, workings | SQL strings (use `src/db/`) or model calls (use `src/llm/`) |
+| `src/api/` | One file per resource: auth, telegram-auth, compass, places (nearby, add, card, facts, points), checkin, here (signals, responses, quick replies, meeting points), block, report, meet, stay-in-touch, tries, plant, crew, around, rooms (v6.4 scan, join, leave, post, suggest, replies, take down), live, share, workings | SQL strings (use `src/db/`) or model calls (use `src/llm/`) |
 | `src/rules/` | Pure functions: `checkin.ts` (radius, search within the city, optional poster key and code, expiry), `compass.ts` (consent, provenance, banned labels), `places.ts` (fact states, points, caps, scan range, fit, talking labels, radius), `here.ts` (visibility, anonymity, capacity, limits), `screening.ts` (code rules), `grounding.ts` (citations), `tries.ts` (step bounds, validation, leaves, next-step suggestion), confirmation tokens, counter and connection-rate rules, crisis words (`safety.ts`) | I/O of any kind |
 | `src/db/` | D1 schema, migrations, small repositories | Leaks SQL elsewhere |
 | `src/content/` | The 15-try library and the 24-try game library (`tries.ts`), data not code | Rules or model calls |

@@ -21,6 +21,7 @@ import { handleLive, handleMeetAgree, handleMeetJoin, handleMeetStart, handleMee
 import { handleAddPlace, handleNearby, handlePeek, handleSearch } from "./api/places";
 import { handleAddFact, handleCard, handleConfirm as handleFactConfirm, handleDispute, handleFetch, handlePoints } from "./api/placecard";
 import { handleMeetingPoint, handlePlan } from "./api/plan";
+import { handleRoomJoin, handleRoomLeave, handleRoomsScan } from "./api/rooms";
 import { handleHear, handleNext } from "./api/surprise";
 import { handlePlant, handleRecordTry, handleStep, handleTodayTry, handleTry } from "./api/tries";
 import { handleAnother, handleNewGame, handleNewOne, handlePick } from "./api/game";
@@ -223,6 +224,14 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/around/rate" && method === "POST") {
     return handleRate(request, env);
+  }
+  if (url.pathname === "/api/rooms/scan" && method === "POST") {
+    return handleRoomsScan(request, env);
+  }
+  const roomAction = /^\/api\/rooms\/([0-9a-f-]{36})\/(join|leave)$/.exec(url.pathname);
+  if (roomAction && method === "POST") {
+    const [, id, action] = roomAction;
+    return action === "join" ? handleRoomJoin(id, request, env) : handleRoomLeave(id, request, env);
   }
   const peek = /^\/api\/places\/([a-z0-9-]{1,60})\/peek$/.exec(url.pathname);
   if (peek && method === "GET") {
