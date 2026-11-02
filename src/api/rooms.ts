@@ -350,7 +350,11 @@ export async function handleRoomDetail(id: string, request: Request, env: Env, n
       names: null,
     });
   }
-  if (!live) return json({ id: room.id, closed: true });
+  if (!live) {
+    const met = await metAtTable(env.DB, id, user.id);
+    const answered = await getDebrief(env.DB, id, user.id);
+    return json({ id: room.id, closed: true, debrief: met.length > 0 && !answered ? id : null });
+  }
   const views = await roomMemberViews(env.DB, id);
   const replies = await repliesFor(env.DB, id);
   const lastByUser = new Map<string, string>();
