@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Hoolala! landing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#182513}a:hover{color:#304327}
+@keyframes hl-blink{50%{opacity:0}}
+.hl-cursor{animation:hl-blink 1s steps(1) infinite}
+@keyframes plant-pop{0%{transform:scale(0)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
+.plant-pop{animation:plant-pop .6s ease-out both}
+@media (prefers-reduced-motion: reduce){.hl-cursor{animation:none}.plant-pop{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #E5E8E0; padding: clamp(0px, 2vw, 24px); font-family: 'Space Mono', 'Courier New', monospace; color: #182513;">
+<div style="max-width: 960px; margin: 0 auto; background: #BED39C; border: 2px solid #182513; border-radius: 2px; box-sizing: border-box;">
+
+<!-- Header: name, tagline, one quiet link -->
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px clamp(16px, 3vw, 24px); border-bottom: 2px dashed #304327;">
+<div style="display: flex; flex-direction: column; gap: 2px;">
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 20px;">HOOLALA!</span>
+<span style="font-size: 13px; color: #304327;">You never know until you go.</span>
+</div>
+<a href="https://hoolala.hg-labs.io/signin" style="min-height: 44px; display: inline-flex; align-items: center; font-family: Silkscreen, monospace; font-size: 14px;">SIGN IN</a>
+</header>
+
+<!-- 1. Hero: one typed hook, one line, one key, the growing plant -->
+<section aria-labelledby="hero-title" style="display: flex; flex-wrap: wrap; align-items: center; gap: clamp(24px, 4vw, 40px); padding: clamp(32px, 7vw, 64px) clamp(16px, 4vw, 32px);">
+<div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 24px;">
+<h1 id="hero-title" aria-label="Say hi. See what happens." style="margin: 0; min-height: 3.2em; font-family: Silkscreen, monospace; font-weight: 700; font-size: clamp(26px, 7vw, 52px); line-height: 1.05; letter-spacing: -0.03em; white-space: pre-line;"><span aria-hidden="true">{{typed}}</span><span class="hl-cursor" aria-hidden="true" style="display: inline-block; width: 0.55em; height: 0.9em; margin-left: 4px; vertical-align: -0.05em; background: #182513;"></span></h1>
+<p style="margin: 0; font-size: 18px; line-height: 1.5; max-width: 32ch;">One tiny thing to try in real life, each day.</p>
+<a href="https://hoolala.hg-labs.io/signin" style="width: 100%; max-width: 320px; min-height: 52px; padding: 0 24px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: #182513; color: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: Silkscreen, monospace; font-weight: 700; font-size: 16px; text-decoration: none;">LET'S GO &gt;</a>
+</div>
+<div style="flex: 0 1 260px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+<div style="width: clamp(170px, 45vw, 220px); height: clamp(170px, 45vw, 220px); background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; display: flex; align-items: center; justify-content: center;">
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat(14, 9px); grid-auto-rows: 9px;">
+<sc-for list="{{plantCells}}" as="pc" hint-placeholder-count="252">
+<div class="{{pc.cls}}" style="background: {{pc.bg}};"></div>
+</sc-for>
+</div>
+</div>
+<span style="font-family: Silkscreen, monospace; font-size: 12px; color: #304327;">EVERY TRY GROWS A LEAF.</span>
+</div>
+</section>
+
+<!-- 2. Why: the story in four squares, all visible at once; each square plays its scene in turn, on a loop -->
+<section aria-labelledby="why-title" style="padding: clamp(32px, 6vw, 48px) clamp(16px, 4vw, 32px); border-top: 2px solid #182513; display: flex; flex-direction: column; gap: 20px;">
+<h2 id="why-title" style="margin: 0; font-family: Silkscreen, monospace; font-size: 12px; font-weight: 400; color: #304327;">WHY GO?</h2>
+<ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 24px 16px;">
+
+<li style="display: flex; flex-direction: column; gap: 10px;">
+<div style="aspect-ratio: 1 / 1; box-sizing: border-box; padding: 12px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; display: flex; align-items: center; justify-content: center; outline: {{o1}}; outline-offset: 3px;">
+<svg width="100%" viewBox="0 0 66 28" aria-hidden="true" shape-rendering="crispEdges"><g fill="#182513"><g opacity="{{a1}}"><rect x="3" y="0" width="4" height="4"/><rect x="1" y="5" width="8" height="5"/><rect x="2" y="10" width="2" height="3"/><rect x="6" y="10" width="2" height="3"/></g><g opacity="{{a2}}"><rect x="14" y="0" width="4" height="4"/><rect x="12" y="5" width="8" height="5"/><rect x="13" y="10" width="2" height="3"/><rect x="17" y="10" width="2" height="3"/></g><g opacity="{{a3}}"><rect x="25" y="0" width="4" height="4"/><rect x="23" y="5" width="8" height="5"/><rect x="24" y="10" width="2" height="3"/><rect x="28" y="10" width="2" height="3"/></g><g opacity="{{a4}}"><rect x="36" y="0" width="4" height="4"/><rect x="34" y="5" width="8" height="5"/><rect x="35" y="10" width="2" height="3"/><rect x="39" y="10" width="2" height="3"/></g><g opacity="{{a5}}"><rect x="47" y="0" width="4" height="4"/><rect x="45" y="5" width="8" height="5"/><rect x="46" y="10" width="2" height="3"/><rect x="50" y="10" width="2" height="3"/></g></g><g fill="#AEC58A" opacity="{{a6}}"><rect x="59" y="14" width="4" height="4"/><rect x="57" y="19" width="8" height="5"/><rect x="58" y="24" width="2" height="3"/><rect x="62" y="24" width="2" height="3"/></g></svg>
+</div>
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 15px; line-height: 1.25; opacity: {{t1}};">1 IN 6 OF US FEEL ALONE.</span>
+</li>
+
+<li style="display: flex; flex-direction: column; gap: 10px;">
+<div style="aspect-ratio: 1 / 1; box-sizing: border-box; padding: 12px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; display: flex; align-items: center; justify-content: center; outline: {{o2}}; outline-offset: 3px;">
+<svg width="100%" viewBox="0 0 66 28" aria-hidden="true" shape-rendering="crispEdges"><g fill="#182513"><g opacity="{{b1}}"><rect x="7" y="13" width="4" height="4"/><rect x="5" y="18" width="8" height="5"/><rect x="6" y="23" width="2" height="4"/><rect x="10" y="23" width="2" height="4"/></g><g opacity="{{b2}}"><rect x="53" y="13" width="4" height="4"/><rect x="51" y="18" width="8" height="5"/><rect x="52" y="23" width="2" height="4"/><rect x="56" y="23" width="2" height="4"/></g><g opacity="{{b3}}"><rect x="2" y="1" width="30" height="1"/><rect x="2" y="9" width="30" height="1"/><rect x="2" y="1" width="1" height="9"/><rect x="31" y="1" width="1" height="9"/><rect x="8" y="10" width="2" height="2"/></g><g opacity="{{b4}}"><rect x="6" y="5" width="2" height="1"/><rect x="10" y="5" width="2" height="1"/><rect x="14" y="5" width="2" height="1"/></g><g opacity="{{b5}}"><rect x="18" y="5" width="2" height="1"/><rect x="22" y="5" width="2" height="1"/><rect x="26" y="5" width="2" height="1"/></g></g></svg>
+</div>
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 15px; line-height: 1.25; opacity: {{t2}};">WE THINK THEY WON'T LIKE US.</span>
+</li>
+
+<li style="display: flex; flex-direction: column; gap: 10px;">
+<div style="aspect-ratio: 1 / 1; box-sizing: border-box; padding: 12px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; display: flex; align-items: center; justify-content: center; outline: {{o3}}; outline-offset: 3px;">
+<svg width="100%" viewBox="0 0 66 28" aria-hidden="true" shape-rendering="crispEdges"><g fill="#182513"><g opacity="{{c1}}"><rect x="15" y="13" width="4" height="4"/><rect x="13" y="18" width="8" height="5"/><rect x="14" y="23" width="2" height="4"/><rect x="18" y="23" width="2" height="4"/></g><g opacity="{{c2}}"><rect x="45" y="13" width="4" height="4"/><rect x="43" y="18" width="8" height="5"/><rect x="44" y="23" width="2" height="4"/><rect x="48" y="23" width="2" height="4"/></g></g><g opacity="{{c3}}"><rect x="22" y="2" width="20" height="8" fill="#182513"/><rect x="29" y="10" width="2" height="2" fill="#182513"/><g fill="#DDE7C6"><rect x="25" y="5" width="1" height="2"/><rect x="27" y="5" width="1" height="2"/><rect x="25" y="6" width="3" height="1"/><rect x="30" y="5" width="3" height="2"/><rect x="35" y="5" width="1" height="2"/><rect x="38" y="5" width="1" height="2"/></g></g></svg>
+</div>
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 15px; line-height: 1.25; opacity: {{t3}};">ONE HELLO. A LIFT FOR HOURS.</span>
+</li>
+
+<li style="display: flex; flex-direction: column; gap: 10px;">
+<div style="aspect-ratio: 1 / 1; box-sizing: border-box; padding: 12px; background: #DDE7C6; border: 2px solid #182513; border-radius: 2px; display: flex; align-items: center; justify-content: center; outline: {{o4}}; outline-offset: 3px;">
+<svg width="100%" viewBox="0 0 66 28" aria-hidden="true" shape-rendering="crispEdges"><g fill="#182513"><g opacity="{{d1}}"><rect x="15" y="13" width="4" height="4"/><rect x="13" y="18" width="8" height="5"/><rect x="14" y="23" width="2" height="4"/><rect x="18" y="23" width="2" height="4"/></g><g opacity="{{d2}}"><rect x="45" y="13" width="4" height="4"/><rect x="43" y="18" width="8" height="5"/><rect x="44" y="23" width="2" height="4"/><rect x="48" y="23" width="2" height="4"/></g><g opacity="{{d3}}"><rect x="22" y="17" width="5" height="5"/><rect x="27" y="18" width="2" height="2"/></g><g opacity="{{d4}}"><rect x="28" y="17" width="5" height="5"/><rect x="33" y="18" width="2" height="2"/></g><g opacity="{{d5}}"><rect x="35" y="17" width="5" height="5"/><rect x="40" y="18" width="2" height="2"/><rect x="36" y="13" width="1" height="2"/><rect x="38" y="12" width="1" height="2"/></g></g></svg>
+</div>
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 15px; line-height: 1.25; opacity: {{t4}};">A SMALL KINDNESS COUNTS.</span>
+</li>
+</ol>
+
+<!-- Story progress: one square per beat, filled as it plays -->
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+<div aria-hidden="true" style="display: flex; gap: 6px;">
+<span style="width: 14px; height: 14px; border: 2px solid #182513; background: {{q1}};"></span>
+<span style="width: 14px; height: 14px; border: 2px solid #182513; background: {{q2}};"></span>
+<span style="width: 14px; height: 14px; border: 2px solid #182513; background: {{q3}};"></span>
+<span style="width: 14px; height: 14px; border: 2px solid #182513; background: {{q4}};"></span>
+</div>
+<span style="font-family: Silkscreen, monospace; font-size: 12px; color: #304327;">{{beatLabel}}</span>
+</div>
+
+<div style="background: #182513; color: #DDE7C6; border-radius: 2px; padding: 20px 24px; opacity: {{turn}};">
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: clamp(18px, 3vw, 24px); line-height: 1.25;">SO, HOOLALA! GET OUTSIDE. MEET PEOPLE. GROW INSIDE.</span>
+</div>
+<span style="font-size: 12px; color: #304327;">Sources: WHO 2025 · Tissera et al. 2025 · Wild et al. 2025; Drebing et al. 2025 · Lanser &amp; Eisenberger 2022; Lee et al. 2025</span>
+</section>
+
+<!-- 3. How: three steps, a few words each -->
+<section aria-labelledby="how-title" style="padding: clamp(32px, 6vw, 48px) clamp(16px, 4vw, 32px); border-top: 2px solid #182513; display: flex; flex-direction: column; gap: 32px;">
+<h2 id="how-title" style="margin: 0; font-family: Silkscreen, monospace; font-size: 12px; font-weight: 400; color: #304327;">HOW IT WORKS</h2>
+<ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px 24px;">
+<li style="display: flex; gap: 16px; align-items: baseline;">
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 32px; line-height: 1;">1</span>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 16px;">TELL US A LITTLE</span><span style="font-size: 14px; color: #304327;">Two minutes.</span></div>
+</li>
+<li style="display: flex; gap: 16px; align-items: baseline;">
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 32px; line-height: 1;">2</span>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 16px;">GET ONE TINY TRY</span><span style="font-size: 14px; color: #304327;">Soft, brave or bold.</span></div>
+</li>
+<li style="display: flex; gap: 16px; align-items: baseline;">
+<span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 32px; line-height: 1;">3</span>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-family: Silkscreen, monospace; font-weight: 700; font-size: 16px;">GO. PHONE DOWN.</span><span style="font-size: 14px; color: #304327;">Your plant grows.</span></div>
+</li>
+</ol>
+<p style="margin: 0; font-family: Silkscreen, monospace; font-size: 12px; color: #304327; display: flex; flex-wrap: wrap; gap: 4px 12px;"><span>FIRST NAMES ONLY</span><span>·</span><span>NOT A DATING APP</span><span>·</span><span>NO STREAKS</span><span>·</span><span>18+</span></p>
+</section>
+
+<!-- 4. Close -->
+<section aria-labelledby="close-title" style="padding: clamp(40px, 7vw, 56px) clamp(16px, 4vw, 32px); border-top: 2px solid #182513; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center;">
+<h2 id="close-title" style="margin: 0; font-family: Silkscreen, monospace; font-weight: 700; font-size: clamp(22px, 4vw, 28px); line-height: 1.22;">YOU NEVER KNOW UNTIL YOU GO.</h2>
+<a href="https://hoolala.hg-labs.io/signin" style="width: 100%; max-width: 320px; min-height: 52px; display: flex; align-items: center; justify-content: center; background: #182513; color: #DDE7C6; border: 2px solid #182513; border-radius: 2px; font-family: Silkscreen, monospace; font-weight: 700; font-size: 16px; text-decoration: none;">LET'S GO &gt;</a>
+</section>
+
+<footer style="padding: 16px clamp(16px, 3vw, 24px); border-top: 2px dashed #304327; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 13px; color: #304327;">
+<span>Run a place? <a href="https://hoolala.hg-labs.io/posters">Make a poster</a></span>
+<span>Powered by <a href="https://hg-labs.io">hg-labs.io</a> · Muse Spark by Meta · <a href="https://hoolala.hg-labs.io/privacy">Privacy</a></span>
+</footer>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.phrases = [
+      'SAY HI.\nSEE WHAT\nHAPPENS.',
+      'ONE HELLO\nCOULD MAKE\nYOUR DAY.',
+      'SAME FACES.\nTIME FOR A\nFIRST WORD.',
+      'THE BEST CHAT\nIS ONE TABLE\nAWAY.'
+    ];
+    // The app's own plant (web/src/components/Plant.tsx): grows 0 to 9 leaves, the newest pops.
+    this.plantSteps = 9;
+    // Story: all four squares stay visible; one at a time replays its scene, then the next, on a loop.
+    // Steps per beat: people 6, liking gap 4, hello 3, kindness 4.
+    this.beatSteps = [6, 4, 3, 4];
+    this.state = { typed: '', grow: 0, beat: 0, sub: 0 };
+    this.p = 0; this.i = 0; this.deleting = false;
+    this.timer = null; this.plantTimer = null; this.storyTimer = null;
+    this.reduce = false;
+  }
+  componentDidMount() {
+    try { this.reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (this.reduce) {
+      this.setState({ typed: this.phrases[0], grow: this.plantSteps, beat: -1, sub: 0 });
+      return;
+    }
+    this.tick();
+    this.growTick();
+    this.storyTick();
+  }
+  componentWillUnmount() {
+    clearTimeout(this.timer); clearTimeout(this.plantTimer); clearTimeout(this.storyTimer);
+  }
+  storyTick() {
+    var self = this;
+    var beat = this.state.beat, sub = this.state.sub, delay = 320;
+    if (sub < this.beatSteps[beat]) {
+      sub += 1;
+      if (sub === this.beatSteps[beat]) { delay = 1400; }
+    } else {
+      beat = (beat + 1) % 4; sub = 0; delay = 250;
+    }
+    this.setState({ beat: beat, sub: sub });
+    this.storyTimer = setTimeout(function () { self.storyTick(); }, delay);
+  }
+  growTick() {
+    var self = this;
+    var g = this.state.grow;
+    var next, delay;
+    if (g >= this.plantSteps) { next = 0; delay = 500; }
+    else { next = g + 1; delay = next === this.plantSteps ? 2800 : 650; }
+    this.setState({ grow: next });
+    this.plantTimer = setTimeout(function () { self.growTick(); }, delay);
+  }
+  tick() {
+    var self = this;
+    var phrase = this.phrases[this.p];
+    var delay = 70;
+    if (!this.deleting) {
+      this.i += 1;
+      if (this.i >= phrase.length) { this.i = phrase.length; this.deleting = true; delay = 2600; }
+    } else {
+      this.i -= 1;
+      delay = 30;
+      if (this.i <= 0) { this.i = 0; this.deleting = false; this.p = (this.p + 1) % this.phrases.length; delay = 400; }
+    }
+    this.setState({ typed: phrase.slice(0, this.i) });
+    this.timer = setTimeout(function () { self.tick(); }, delay);
+  }
+  // Port of the app's Plant.tsx: 14 by 18 cells, one leaf per try, a flower on every third leaf.
+  plantCells(leaves, grew) {
+    var W = 14, H = 18;
+    var GREENS = ['#2E8B3E', '#47A847', '#1F7A4D'];
+    var BLOOMS = ['#E8618C', '#F2B630', '#5B8DEF'];
+    var n = Math.min(leaves, 9);
+    var cells = [];
+    for (var k = 0; k < W * H; k++) { cells.push(null); }
+    function set(r, c, col, pop) {
+      if (r >= 0 && r < H && c >= 0 && c < W) { cells[r * W + c] = { col: col, pop: !!pop }; }
+    }
+    var ink = '#182513', soil = '#304327';
+    var count = Math.min(n, 6);
+    var stemH = 2 + 2 * count;
+    for (var r0 = 14 - stemH; r0 < 14; r0++) {
+      set(r0, 6, n > 0 ? '#2B6B2F' : ink);
+      set(r0, 7, n > 0 ? '#2B6B2F' : ink);
+    }
+    for (var i = 0; i < count; i++) {
+      var r = 12 - 2 * i;
+      var gc = GREENS[i % 3];
+      var pop = i === grew;
+      if (i % 2 === 0) { set(r, 5, gc, pop); set(r, 4, gc, pop); set(r - 1, 4, gc, pop); set(r - 1, 3, gc, pop); }
+      else { set(r, 8, gc, pop); set(r, 9, gc, pop); set(r - 1, 9, gc, pop); set(r - 1, 10, gc, pop); }
+      if ((i + 1) % 3 === 0 || n - 6 > i) {
+        var b = BLOOMS[i % 3];
+        var bp = pop || (grew >= 6 && i === n - 7);
+        if (i % 2 === 0) { set(r - 2, 3, b, bp); set(r - 1, 2, b, bp); set(r - 1, 3, '#F2E28C', bp); }
+        else { set(r - 2, 10, b, bp); set(r - 1, 11, b, bp); set(r - 1, 10, '#F2E28C', bp); }
+      }
+    }
+    if (n >= 3) {
+      var top = 14 - stemH;
+      set(top - 1, 6, '#E8618C'); set(top - 1, 7, '#E8618C');
+      set(top - 2, 6, '#F2B630'); set(top - 2, 7, '#F2B630');
+    }
+    for (var c = 3; c <= 10; c++) { set(14, c, ink); }
+    for (var r1 = 15; r1 < 18; r1++) { for (var c1 = 4; c1 <= 9; c1++) { set(r1, c1, r1 === 15 ? soil : ink); } }
+    return cells.map(function (x) {
+      return { bg: x ? x.col : 'transparent', cls: x && x.pop ? 'plant-pop' : '' };
+    });
+  }
+  renderVals() {
+    var g = this.state.grow;
+    var beat = this.state.beat, sub = this.state.sub;
+    // A square that is not playing shows its whole scene; the playing one builds up step by step.
+    function v(k, n) { return (beat !== k || sub >= n) ? '1' : '0'; }
+    var playing3 = beat === 3;
+    var labels = ['1 OF 4 · THE NUMBERS', '2 OF 4 · THE LIKING GAP', '3 OF 4 · THE GOOD NEWS', '4 OF 4 · GIVING HELPS TOO'];
+    function ring(k) { return beat === k ? '3px solid #182513' : '3px solid transparent'; }
+    function cell(k) { return beat >= k ? '#182513' : 'transparent'; }
+    return {
+      typed: this.state.typed,
+      plantCells: this.plantCells(g, this.reduce ? -1 : g - 1),
+      // Beat 1: five people appear one by one, then the sixth, faded.
+      a1: v(0, 1), a2: v(0, 2), a3: v(0, 3), a4: v(0, 4), a5: v(0, 5), a6: v(0, 6),
+      // Beat 2: two people, the worry bubble, its words.
+      b1: v(1, 1), b2: v(1, 1), b3: v(1, 2), b4: v(1, 3), b5: v(1, 4),
+      // Beat 3: one person, the other, then HELLO!
+      c1: v(2, 1), c2: v(2, 2), c3: v(2, 3),
+      // Beat 4: two people, a coffee travels across.
+      d1: v(3, 1), d2: v(3, 1),
+      d3: playing3 && sub === 2 ? '1' : '0',
+      d4: playing3 && sub === 3 ? '1' : '0',
+      d5: !playing3 || sub >= 4 ? '1' : '0',
+      t1: '1', t2: '1', t3: '1', t4: '1', turn: '1',
+      o1: ring(0), o2: ring(1), o3: ring(2), o4: ring(3),
+      q1: cell(0), q2: cell(1), q3: cell(2), q4: cell(3),
+      beatLabel: beat >= 0 ? labels[beat] : 'THE STORY IN 4 BEATS'
+    };
+  }
+}
+</script>
+</body>
+</html>
