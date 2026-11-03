@@ -1,7 +1,8 @@
 // Poster QR onboarding: a camera scan of the generic coffee-machine poster
 // counts the scan in its GPS zone, then runs the fast onboarding (email
-// link and 18+, first name) and ends on /around/new to post an icebreaker.
-// Counting never blocks or identifies anyone; denied GPS still onboards.
+// link and 18+, first name) and ends on a choice: look around for open
+// rooms, or post an icebreaker. Counting never blocks or identifies
+// anyone; denied GPS still onboards.
 import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
@@ -36,11 +37,9 @@ export function PosterLanding() {
     } catch {
       // Private mode: the place prefill is skipped, onboarding continues.
     }
-    const next = place ? `/around/new?place=${encodeURIComponent(place)}` : "/around/new";
     api<{ firstName: string | null }>("GET", "/api/me")
       .then((res) => {
         if (res.status !== 200) return setPhase("landing");
-        if (res.data.firstName) return route(next);
         route("/p/claim");
       })
       .catch(() => setPhase("landing"));
@@ -78,7 +77,7 @@ export function PosterLanding() {
           <div class="around-body">
             <span class="table-kicker">HOOLALA! POSTER</span>
             <h1 class="around-head">TALK TO A HUMAN HERE.</h1>
-            <p class="around-promise">You just scanned a Hoolala! poster at this place. Join in 30 seconds, post one line, meet around you.</p>
+            <p class="around-promise">You just scanned a Hoolala! poster at this place. Join in 30 seconds, then look around or post one line.</p>
             <p class="around-privacy">Not a dating app. First names only. Your exact spot is never stored.</p>
           </div>
           <div class="thumb-zone">
@@ -118,21 +117,21 @@ export function PosterLanding() {
       {phase === "sent" && (
         <div class="around-body">
           <h1 class="around-head">CHECK YOUR EMAIL</h1>
-          <p class="around-promise">Tap the link we sent. It brings you back to post your icebreaker.</p>
+          <p class="around-promise">Tap the link we sent. It brings you back to look around or post your icebreaker.</p>
         </div>
       )}
     </Screen>
   );
 }
 
-type ClaimPhase = "loading" | "name" | "joining" | "signin";
+type ClaimPhase = "loading" | "name" | "joining" | "signin" | "choice";
 
 export function PosterClaim() {
-  const { route } = useLocation();
   const [phase, setPhase] = useState<ClaimPhase>("loading");
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [postUrl, setPostUrl] = useState("/around/new");
 
   async function claim(firstName?: string) {
     setPhase("joining");
@@ -164,7 +163,8 @@ export function PosterClaim() {
     } catch {
       // Private mode: no prefill, the icebreaker form still opens.
     }
-    route(place ? `/around/new?place=${encodeURIComponent(place)}` : "/around/new");
+    setPostUrl(place ? `/around/new?place=${encodeURIComponent(place)}` : "/around/new");
+    setPhase("choice");
   }
 
   useEffect(() => {
@@ -179,10 +179,22 @@ export function PosterClaim() {
   }, []);
 
   return (
-    <Screen title="Post your icebreaker">
+    <Screen title={phase === "choice" ? "You are in" : "Post your icebreaker"}>
       {(phase === "loading" || phase === "joining") && (
         <div class="around-body">
           <p class="around-status">GETTING YOU IN...</p>
+        </div>
+      )}
+
+      {phase === "choice" && (
+        <div class="around-body">
+          <h1 class="around-head">YOU'RE IN.</h1>
+          <p class="around-promise">Look for open rooms around you, or post your own icebreaker.</p>
+          <ul class="key-list">
+            <li><a class="lcd-key lcd-key--primary" href="/around">Look around</a></li>
+            <li><a class="lcd-key" href={postUrl}>Post your own</a></li>
+          </ul>
+          <p class="around-privacy">First names only. Your exact spot is never stored.</p>
         </div>
       )}
 

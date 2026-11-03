@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
-import { locate } from "../around";
+import { locate, locateReason, LOCATION_BLOCKED_NOTE } from "../around";
 import { Screen } from "../components/Screen";
 import { Typed } from "../components/Typed";
 
@@ -116,9 +116,9 @@ export function Compose() {
     let spot;
     try {
       spot = await locate();
-    } catch {
+    } catch (e) {
       setPhase("compose");
-      return setNote("Around needs one look at where you are to open the room. Try again?");
+      return setNote(locateReason(e) === "denied" ? LOCATION_BLOCKED_NOTE : "Around needs one look at where you are to open the room. Try again?");
     }
     let res;
     try {

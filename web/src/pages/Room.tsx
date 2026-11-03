@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
-import { hhmm, locate } from "../around";
+import { hhmm, locate, locateReason, LOCATION_BLOCKED_NOTE } from "../around";
 import { Qr } from "../components/Qr";
 import { Screen } from "../components/Screen";
 import { detectTableQr, parseTableTokenText } from "../scan";
@@ -231,9 +231,9 @@ export function Room() {
     let spot;
     try {
       spot = await locate();
-    } catch {
+    } catch (e) {
       setBusy(false);
-      return setNote("Joining needs one look at where you are. Try again?");
+      return setNote(locateReason(e) === "denied" ? LOCATION_BLOCKED_NOTE : "Joining needs one look at where you are. Try again?");
     }
     let res;
     try {
