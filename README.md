@@ -136,7 +136,7 @@ Building started 27 Oct 2026. Before that: brainstorming, the design system and 
 | Telegram Mini App | Started, paused to finish the web app first | — |
 | Pilot at a real place | Planned for Mon 2 Nov | — |
 
-**How it was built.** With coding agents, each commit marked with an `Agent:` trailer: 32 by Claude Code, 80 by Muse Code at the time of writing. Rules every agent follows: [AGENTS.md](AGENTS.md).
+**How it was built.** With coding agents, each commit marked with an `Agent:` trailer: 32 by Claude Code, 80 by Muse Code at the time of writing. The boilerplate and design were made with Claude Code; all the implementation was done with Muse Code. Rules every agent follows: [AGENTS.md](AGENTS.md). The flowers on the plant and the virtual icebreaker rooms both came out of usability tests in the wild with real people.
 
 ## Research behind the story
 
