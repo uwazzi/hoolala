@@ -1,6 +1,6 @@
 // Poster QR (one generic code for coffee machines): scans count per GPS
 // zone so hotspot places can be tracked, and the fast onboarding (email
-// link, 18+, first name) ends on /around/new to post an icebreaker. Scan
+// link, 18+, first name) ends on a choice: look around or post. Scan
 // counting never blocks or identifies anyone: snapped cells and day
 // buckets only, no user ids, and the raw point is dropped right away.
 
@@ -70,7 +70,7 @@ export async function handlePosterStart(request: Request, env: Env, now = new Da
 
 /**
  * I'M IN: after the email link, set the screened first name when missing.
- * No room, no pending join: onboarding ends on /around/new.
+ * No room, no pending join: onboarding ends on a look-around-or-post choice.
  */
 export async function handlePosterClaim(request: Request, env: Env, now = new Date()): Promise<Response> {
   const user = await getSessionUser(request, env, now);
