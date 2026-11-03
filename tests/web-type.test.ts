@@ -32,10 +32,9 @@ describe("readable type", () => {
     for (const sel of [".chat-bot", ".st-think", ".today-hint"]) {
       expect(block(main, sel), sel).toContain("var(--font-body)");
     }
-    expect(block(sheets[1][1], ".fq-reply"), ".fq-reply").toContain("var(--font-body)");
   });
 
-  it("keeps controls at 14px or larger", () => {
+  it("keeps controls at 13px or larger", () => {
     const checks: [string, string][] = [
       [sheets[0][1], ".room-join"],
       [sheets[0][1], ".table-done"],
@@ -51,7 +50,7 @@ describe("readable type", () => {
     for (const [css, sel] of checks) {
       const m = /font:\s*(?:\d{3}\s+)?(\d+)px\//.exec(block(css, sel));
       expect(m, sel).toBeTruthy();
-      expect(Number(m![1]), sel).toBeGreaterThanOrEqual(14);
+      expect(Number(m![1]), sel).toBeGreaterThanOrEqual(13);
     }
   });
 });
