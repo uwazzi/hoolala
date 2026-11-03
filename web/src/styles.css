@@ -819,3 +819,49 @@ label.chat-bot { cursor: pointer; }
 .maker-save:disabled { opacity: 0.55; cursor: default; }
 .maker-tips { display: flex; flex-direction: column; gap: 8px; }
 .maker-hook:focus-visible, .maker-paper:focus-visible, .maker-save:focus-visible, .maker-link:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 3px; }
+
+/* WP66 landing for signed-out visitors (v6.6): hero, WHY GO?, HOW IT WORKS, close. */
+main.land { max-width: none; }
+.land a:focus-visible { outline: 3px dashed var(--lcd-ink); outline-offset: 3px; }
+.land-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 2px dashed var(--lcd-ink-secondary); }
+.land-brand { display: flex; flex-direction: column; gap: 2px; }
+.land-name { font: 700 20px/1.2 var(--font-display); }
+.land-tag { font-size: 13px; color: var(--lcd-ink-secondary); }
+.land-signin { min-height: 44px; display: inline-flex; align-items: center; font: 400 14px/1 var(--font-display); }
+.land-hero { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(24px, 4vw, 40px); padding: clamp(32px, 7vw, 64px) 0; }
+.land-hero-text { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.land-hero-title { margin: 0; min-height: 3.2em; font: 700 clamp(26px, 7vw, 52px)/1.05 var(--font-display); letter-spacing: -0.03em; white-space: pre-line; overflow-wrap: anywhere; }
+.land-hero-line { margin: 0; font-size: 18px; line-height: 1.5; max-width: 32ch; }
+.land-go { width: 100%; max-width: 320px; min-height: 52px; font-size: 16px; }
+.land-plant-col { flex: 0 1 260px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.land-plant-box { width: clamp(170px, 45vw, 220px); height: clamp(170px, 45vw, 220px); box-sizing: border-box; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); display: flex; align-items: center; justify-content: center; }
+.land-plant-cap { font: 400 12px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }
+.land-section { padding: clamp(32px, 6vw, 48px) 0; border-top: 2px solid var(--lcd-ink); display: flex; flex-direction: column; gap: 20px; }
+.land-kicker { margin: 0; font: 400 12px/1.4 var(--font-display); color: var(--lcd-ink-secondary); }
+.land-beats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 24px 16px; }
+.land-beat { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.land-scene { aspect-ratio: 1 / 1; box-sizing: border-box; padding: 12px; background: var(--lcd-surface); border: 2px solid var(--lcd-ink); border-radius: var(--radius-control); display: flex; align-items: center; justify-content: center; outline: 3px solid transparent; outline-offset: 3px; }
+.land-scene.is-playing { outline-color: var(--lcd-ink); }
+.land-scene svg { width: 100%; height: auto; }
+.land-f-ink { fill: var(--lcd-ink); }
+.land-f-dim { fill: var(--lcd-sunken); }
+.land-f-paper { fill: var(--lcd-surface); }
+.land-beat-head { font: 700 15px/1.25 var(--font-display); }
+.land-progress-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.land-progress { display: flex; gap: 6px; }
+.land-dot { width: 14px; height: 14px; box-sizing: border-box; border: 2px solid var(--lcd-ink); }
+.land-dot.is-on { background: var(--lcd-ink); }
+.land-beat-label { font: 400 12px/1.4 var(--font-display); color: var(--lcd-ink-secondary); text-align: right; }
+.land-turn { background: var(--lcd-selected); color: var(--lcd-selected-ink); border-radius: var(--radius-control); padding: 20px 24px; }
+.land-turn span { font: 700 clamp(18px, 3vw, 24px)/1.25 var(--font-display); }
+.land-sources { margin: 0; font-size: 12px; color: var(--lcd-ink-secondary); }
+.land-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px 24px; }
+.land-step { display: flex; gap: 16px; align-items: baseline; min-width: 0; }
+.land-step-n { font: 700 32px/1 var(--font-display); }
+.land-step-text { display: flex; flex-direction: column; gap: 6px; }
+.land-step-title { font: 700 16px/1.3 var(--font-display); }
+.land-step-sub { font-size: 14px; color: var(--lcd-ink-secondary); }
+.land-trust { margin: 12px 0 0; font: 400 12px/1.6 var(--font-display); color: var(--lcd-ink-secondary); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.land-close { padding: clamp(40px, 7vw, 56px) 0; border-top: 2px solid var(--lcd-ink); display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+.land-close-title { margin: 0; font: 700 clamp(22px, 4vw, 28px)/1.22 var(--font-display); }
+.land-foot { padding: 16px 0 8px; border-top: 2px dashed var(--lcd-ink-secondary); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 13px; color: var(--lcd-ink-secondary); }
