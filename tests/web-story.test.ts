@@ -120,8 +120,10 @@ describe("the guest sign-in shortcut", () => {
     expect(storyView).toContain("Sign in");
   });
 
-  it("marks only confirmed signed-out visitors as guests", () => {
-    expect(homeView).toContain('guest={auth === "out"}');
+  it("sends signed-out visitors to the landing, not the guest story (WP66)", () => {
+    expect(homeView).toContain("<Landing");
+    expect(homeView).not.toContain("<Story guest");
+    expect(homeView).toContain('auth === "in"');
   });
 });
 

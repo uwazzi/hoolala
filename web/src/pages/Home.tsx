@@ -9,6 +9,7 @@ import { api } from "../api";
 import { Plant } from "../components/Plant";
 import { Screen } from "../components/Screen";
 import { Story } from "../components/Story";
+import { Landing } from "./Landing";
 import { TryFlow, type HeroTry, type PlantState } from "../components/TryFlow";
 import { localSeen, shouldShowStory } from "../story";
 import { Typed } from "../components/Typed";
@@ -63,15 +64,18 @@ export function Home() {
     setSkip((s) => s + 1);
   }
 
-  // Guests always get the story; the local flag only decides while the
-  // sign-in check loads, so the animation starts straight away.
+  // Guests get the landing; signed-in first-timers keep the story. The
+  // local flag only decides while the sign-in check loads, so the page
+  // starts straight away without flashing at returning people.
   const showStory = shouldShowStory(auth, me?.introSeen ?? null, seenLocal);
+
+  if (showStory && auth !== "in") return <Landing />;
 
   return (
     <Screen back={false} bare={showStory}>
       {auth === "loading" || showStory ? (
-        showStory ? (
-          <Story guest={auth === "out"} />
+        showStory && auth === "in" ? (
+          <Story />
         ) : null
       ) : !me ? null : inFlow && plant && current ? (
         <TryFlow
