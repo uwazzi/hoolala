@@ -55,13 +55,15 @@ All on `muse-spark-1.3` (standard mode: what we send isn't used for training). E
 | PLAN IT | Chat Completions tool loop: 4 read-only tools in parallel, then `draft_meeting_point` limited to real spots | medium | 4.1 s | The poster's own spot and time |
 | WHY GO | Chat Completions, strict JSON; one grounded line per nearby place, every fact must exist | low | — | Template from real inputs |
 | READ IT | Chat Completions, strict JSON; today's menu or event off the place's own page, checked against it | low | — | The menu link only |
+| JUICY BITS | Chat Completions, strict JSON; topics, people and nearly-said from two free-text answers, validator rejects | low | — | Code filler-strip fallback |
+| TRY IT | Chat Completions, strict JSON; exactly 9 tries, 3 per level; code assigns step and bounds | low | — | Hand-written 24-try library |
 | CHECK IT | `workings` rows: tools, sources, verdicts, grounding; owner only, no personal text | | | "Model off: rules only." |
 
 What real calls taught us (and the code now handles): the JSON answer arrives after a preamble message; the model cites a site's home page or a bare domain instead of the page it found, so citations are resolved against the pages the search actually returned, and invented sites are dropped. Details in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-## Evaluation: 74 cases, 74 passing
+## Evaluation: 97 cases
 
-`npm run eval` (58 offline cases, run in CI before every deploy) and `npm run eval:live` (16 cases against Muse Spark). Latest results: [`evals/results/latest.json`](evals/results/latest.json).
+`npm run eval` (82 offline cases, run in CI before every deploy, all passing) and `npm run eval:live` (15 cases against Muse Spark). Last published results: [`evals/results/latest.json`](evals/results/latest.json) (28 Oct run).
 
 | Suite | Pass | What it checks |
 |---|---|---|
@@ -73,8 +75,11 @@ What real calls taught us (and the code now handles): the JSON answer arrives af
 | PLACE IT | 4/4 | Never a menu item without a returned page; no points for your own detail; 30 a day; live: sourced details for a real Lausanne café |
 | TRY IT | 15/15 | Drafts live or die by the validator: right step and place, inside the talking, minutes and ask bounds, and never flirting, contacts, streak shame or advice |
 | GAME | 15/15 | Five passes (talk and kind in each level, with roles); ten rejections (buying, heavy service tries, BOLD at home, names, looks, contact asks, LESS OF, single-kind levels, model-set steps, em dashes) |
+| JUICY BITS | 10/10 | Full bits pass; filler kept, names, off-table topics, labels about the person and off-list roles rejected |
+| READ IT | 5/5 | Items absent from the source page, allergen claims and unsourced hours dropped |
+| WHY GO | 10/10 | Unused facts dropped; invented content rejected |
 
-Live fallback rate: 0 of 16. The live eval caught a real bug before users did (FIND ME was dropping every finding because the model cites bare domains).
+Last live run (28 Oct): 0 fallbacks in 16. The live eval caught a real bug before users did (FIND ME was dropping every finding because the model cites bare domains).
 
 ## Privacy, in short
 
@@ -88,17 +93,17 @@ One Cloudflare Worker (TypeScript) serves a Vite + Preact web app and a JSON API
 |---|---|
 | `src/rules/` | Pure rules: visibility, anonymity, check-in, screening, grounding, compass, meet, plan, place points |
 | `src/api/` | One file per resource; every permission check |
-| `src/llm/` | The Meta Model API client and the four functions |
+| `src/llm/` | The Meta Model API client, voice transcription and ten Muse functions |
 | `src/db/` | D1 migrations and repositories |
 | `web/` | The Mono LCD web app |
 | `evals/` | The evaluation set |
-| `tests/` | 249 tests, including three-person permission scenarios on a real SQLite schema |
+| `tests/` | 723 tests, including three-person permission scenarios on a real SQLite schema |
 
 ## Run it
 
 ```bash
 npm install
-npm test            # 249 tests
+npm test            # 723 tests
 npm run typecheck
 npm run eval        # offline evaluation set
 npm run dev         # wrangler dev; without EMAIL_API_KEY the sign-in link prints to the console
@@ -111,19 +116,27 @@ Secrets and how they're handled: [docs/SECRETS.md](docs/SECRETS.md). Pipeline (s
 
 Building started 27 Oct 2026. Before that: brainstorming, the design system and project organisation only, no product code ([PRIOR-WORK.md](PRIOR-WORK.md)). Everything below was built from 27 Oct.
 
-| Area | Status |
-|---|---|
-| Worker, D1, KV, cron, staging and production with an accept step, migrations before every deploy | Done |
-| Sign-in (email link, 18+, first name), delete account | Done |
-| Places and check-in (location, add a place, search by town), OpenStreetMap | Done |
-| Signals here: post, discover, I'M CURIOUS, accept, quick replies, block, report | Done |
-| MEET (mutual QR), STAY IN TOUCH, Live page, SAMPLE place | Done |
-| SCREEN IT, SUGGEST IT, the Personal Compass from spoken answers, PLAN IT, CHECK IT, evaluation set | Done |
-| PLACE IT and place points | Done |
-| Telegram Mini App | Started, paused to finish the web app first |
-| Pilot at a real place | Planned for Mon 2 Nov |
+| Area | Status | Live code |
+|---|---|---|
+| Worker, D1, KV, cron, staging and production with an accept step, migrations before every deploy | Done | `src/worker.ts`, `src/db/`, `wrangler.toml`, `.github/workflows/` |
+| Sign-in (email link, 18+, first name), delete account | Done | `web/src/pages/SignIn.tsx`, `src/api/auth.ts`, `src/api/me.ts`, `src/channels/email.ts` |
+| Landing for signed-out visitors | Done | `web/src/pages/Landing.tsx`, `web/src/landing.ts` |
+| Today: tiny try, plant, go-out flow | Done | `web/src/pages/Home.tsx`, `web/src/components/TryFlow.tsx`, `web/src/components/Plant.tsx`, `src/api/tries.ts`, `src/rules/tries.ts` |
+| Story and voice onboarding (COMPASS DRAFT) | Done | `web/src/components/Story.tsx`, `web/src/story.ts`, `web/src/pages/Surprise.tsx`, `src/api/surprise.ts`, `src/api/compass.ts`, `src/llm/compassdraft.ts`, `src/llm/voice.ts` |
+| Five quick ones, juicy bits, Snake, game (TRY IT) | Done | `web/src/pages/Juicy.tsx`, `web/src/pages/Game.tsx`, `web/src/components/Snake.tsx`, `src/api/juicy.ts`, `src/api/game.ts`, `src/llm/juicy.ts`, `src/llm/tryit.ts`, `src/rules/juicy.ts`, `src/content/tries.ts` |
+| Compass page | Done | `web/src/pages/Compass.tsx`, `src/api/compass.ts`, `src/rules/compass.ts` |
+| Places and check-in (location, add a place, search by town), OpenStreetMap | Done | `web/src/pages/Arrive.tsx`, `web/src/pages/Place.tsx`, `src/api/checkin.ts`, `src/api/places.ts`, `src/api/placecard.ts`, `src/rules/checkin.ts`, `src/rules/places.ts` |
+| Signals here: post, discover, I'M CURIOUS, accept, quick replies, block, report | Done | `web/src/pages/Here.tsx`, `src/api/here.ts`, `src/api/plan.ts`, `src/rules/here.ts` |
+| Around, icebreaker rooms, table QR, debrief | Done | `web/src/pages/Around.tsx`, `web/src/pages/Compose.tsx`, `web/src/pages/Room.tsx`, `web/src/pages/TableJoin.tsx`, `web/src/pages/Debrief.tsx`, `web/src/around.ts`, `web/src/scan.ts`, `src/api/rooms.ts`, `src/api/around.ts`, `src/api/table.ts`, `src/api/debrief.ts`, `src/rules/rooms.ts` |
+| MEET (mutual QR), STAY IN TOUCH, Live page, SAMPLE place | Done | `web/src/pages/Meet.tsx`, `web/src/pages/Live.tsx`, `src/api/meet.ts` |
+| Friends and crew | Done | `web/src/pages/Friends.tsx`, `web/src/pages/Join.tsx`, `src/api/crew.ts` |
+| Posters, maker, poster onboarding | Done | `web/src/pages/Posters.tsx`, `web/src/pages/PosterPrint.tsx`, `web/src/pages/PosterJoin.tsx`, `web/src/components/PosterArt.tsx`, `src/api/posters.ts`, `src/api/poster.ts`, `src/rules/poster.ts`, `src/content/posters.ts` |
+| SCREEN IT, SUGGEST IT, PLAN IT, PLACE IT, WHY GO, READ IT, CHECK IT, evaluation set | Done | `src/llm/screen.ts`, `src/llm/suggest.ts`, `src/llm/roomideas.ts`, `src/llm/agent.ts`, `src/llm/place.ts`, `src/llm/whygo.ts`, `src/llm/readit.ts`, `src/api/workings.ts`, `web/src/components/Workings.tsx`, `evals/` |
+| Owner dashboard and feedback | Done | `web/src/pages/Dashboard.tsx`, `web/src/pages/SayHi.tsx`, `src/api/dashboard.ts`, `src/api/feedback.ts` |
+| Telegram Mini App | Started, paused to finish the web app first | — |
+| Pilot at a real place | Planned for Mon 2 Nov | — |
 
-**How it was built.** With coding agents, each commit marked with an `Agent:` trailer: 30 by Claude Code, 2 by Muse Code at the time of writing. Rules every agent follows: [AGENTS.md](AGENTS.md).
+**How it was built.** With coding agents, each commit marked with an `Agent:` trailer: 32 by Claude Code, 80 by Muse Code at the time of writing. Rules every agent follows: [AGENTS.md](AGENTS.md).
 
 ## Research behind the story
 
