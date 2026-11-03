@@ -4,7 +4,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { api } from "../api";
-import { hhmm, locate, type Point } from "../around";
+import { hhmm, locate, locateReason, type LocateReason, type Point } from "../around";
 import { Qr } from "../components/Qr";
 import { Radar } from "../components/Radar";
 import { Screen } from "../components/Screen";
@@ -41,6 +41,7 @@ export function Around() {
   const [busy, setBusy] = useState<string | null>(null);
   const [compass, setCompass] = useState<CompassLine[] | null>(null);
   const [note, setNote] = useState("");
+  const [refused, setRefused] = useState<LocateReason>("unavailable");
   const [pendingDebrief, setPendingDebrief] = useState<{ id: string; topic: string } | null>(null);
 
   useEffect(() => {
@@ -67,7 +68,8 @@ export function Around() {
     let p: Point;
     try {
       p = await locate();
-    } catch {
+    } catch (e) {
+      setRefused(locateReason(e));
       return setPhase("refused");
     }
     setSpot(p);
@@ -184,7 +186,7 @@ export function Around() {
               <div class="poster-box">
                 <span class="compass-box-label">YOUR POSTER</span>
                 <Qr text={`${window.location.origin}/p`} label="Hoolala! poster QR: scan to join and post an icebreaker" />
-                <p class="around-privacy">Print it, post it at your coffee machine. Every scan onboards someone into posting an icebreaker here.</p>
+                <p class="around-privacy">Print it, post it at your coffee machine. Every scan onboards someone into looking around or posting an icebreaker here.</p>
                 <a class="lcd-key" href="/posters">PRINT YOUR POSTER</a>
               </div>
             </div>
@@ -198,9 +200,24 @@ export function Around() {
         {phase === "refused" && (
           <>
             <div class="around-body">
-              <h1 class="around-head">NO LOCATION, NO PROBLEM.</h1>
-              <p class="around-promise">Around only works with one look at where you are: that's how people within 500 m find each other. Used once, never stored as your spot. Tapped no by accident? Try again.</p>
-              {statusNote}
+              {refused === "denied" ? (
+                <>
+                  <h1 class="around-head">LOCATION IS BLOCKED.</h1>
+                  <p class="around-promise">Your browser said no to location, so Around cannot look. It only borrows your spot once per tap: never stored, never on any map.</p>
+                  <ul class="quiet-list">
+                    <li>iPhone, Safari: tap aA in the address bar, then Website Settings, Location, Allow.</li>
+                    <li>Android, Chrome: tap the lock in the address bar, then Permissions, Location, Allow.</li>
+                    <li>Then come back and tap TRY AGAIN.</li>
+                  </ul>
+                  {statusNote}
+                </>
+              ) : (
+                <>
+                  <h1 class="around-head">NO LOCATION, NO PROBLEM.</h1>
+                  <p class="around-promise">Around only works with one look at where you are: that's how people within 500 m find each other. Used once, never stored as your spot. Tapped no by accident? Try again.</p>
+                  {statusNote}
+                </>
+              )}
             </div>
             <div class="thumb-zone">
               <button class="thumb-key" type="button" onClick={scan}><span>TRY AGAIN</span><span aria-hidden="true">&gt;</span></button>

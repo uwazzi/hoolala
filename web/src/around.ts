@@ -18,6 +18,20 @@ export function locate(): Promise<Point> {
   });
 }
 
+/** Why a locate() call failed. Denied means the browser remembers the no. */
+export type LocateReason = "denied" | "unavailable" | "timeout" | "unsupported";
+
+export function locateReason(err: unknown): LocateReason {
+  const code = (err as { code?: unknown } | null)?.code;
+  if (code === 1) return "denied";
+  if (code === 2) return "unavailable";
+  if (code === 3) return "timeout";
+  return "unsupported";
+}
+
+/** One line for small notes where location was blocked in the browser. */
+export const LOCATION_BLOCKED_NOTE = "Location is blocked in your browser. Allow it in the site settings, then try again.";
+
 /** "15:30" from an ISO time, in the viewer's own time zone. */
 export function hhmm(iso: string): string {
   const d = new Date(iso);
