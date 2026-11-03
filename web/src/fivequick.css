@@ -22,7 +22,7 @@
   border-radius: var(--radius-control);
   background: var(--lcd-surface);
   color: var(--lcd-ink);
-  font: 12px/1.2 var(--font-display);
+  font: 700 13px/1.2 var(--font-body); letter-spacing: .04em;
   cursor: pointer;
 }
 
@@ -40,11 +40,11 @@
   margin: 10px 0 0;
   border-left: 4px solid var(--lcd-ink);
   padding: 6px 0 6px 12px;
-  font: 15px/1.3 var(--font-display);
+  font: 16px/1.3 var(--font-display);
 }
 
 .fq-extra {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: 13px;
   text-align: center;
 }
